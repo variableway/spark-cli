@@ -1,0 +1,55 @@
+package cmd
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var cfgFile string
+
+var rootCmd = &cobra.Command{
+	Use:   "monolize",
+	Short: "A CLI tool to manage multiple git repositories",
+	Long: `Monolize is a CLI application that helps you:
+1. Update multiple git repositories to the latest version
+2. Create a mono repo with all repositories as submodules
+3. Manage all repositories with a single git command`,
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.monolize.yaml)")
+	rootCmd.PersistentFlags().StringSliceP("path", "p", []string{"."}, "Path to the directory containing git repositories")
+	viper.BindPFlag("path", rootCmd.PersistentFlags().Lookup("path"))
+}
+
+func initConfig() {
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	} else {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		viper.AddConfigPath(home)
+		viper.SetConfigName(".monolize")
+		viper.SetConfigType("yaml")
+	}
+
+	viper.AutomaticEnv()
+
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+}

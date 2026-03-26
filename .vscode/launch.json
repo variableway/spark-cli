@@ -1,0 +1,54 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Main",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "env": {},
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug Current File",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${file}",
+            "env": {},
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug Test Current File",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${file}",
+            "env": {},
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug All Tests",
+            "type": "go",
+            "request": "launch",
+            "mode": "test",
+            "program": "${workspaceFolder}/...",
+            "env": {},
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Attach to Delve",
+            "type": "go",
+            "request": "attach",
+            "mode": "local",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "showLog": true
+        }
+    ]
+}

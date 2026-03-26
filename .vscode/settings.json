@@ -1,0 +1,38 @@
+{
+    "workbench.colorCustomizations": {
+        "editorCursor.foreground": "#e9dbb7",
+        "activityBarBadge.background": "#e9dbb7",
+        "activityBarBadge.foreground": "#262626",
+        "statusBar.background": "#262626",
+        "statusBar.foreground": "#e9dbb7"
+    },
+    "[go]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "golang.go"
+    },
+    "go.lintOnSave": "package",
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+        "--fast"
+    ],
+    "go.coverOnSingleTestFile": true,
+    "go.useLanguageServer": true,
+    "gopls": {
+        "usePlaceholders": true,
+        "completeUnimported": true,
+        "deepCompletion": true
+    },
+    "go.enableCodeLens": {
+        "references": true,
+        "runtest": true,
+        "test": true
+    },
+    "editor.formatOnSave": true,
+    "go.delveConfig": {
+        "initialized": true,
+        "showGlobalVariables": false
+    }
+}
