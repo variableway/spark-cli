@@ -1,4 +1,4 @@
-package cmd
+package git
 
 import (
 	"fmt"
@@ -27,5 +27,5 @@ var syncCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(syncCmd)
+	GitCmd.AddCommand(syncCmd)
 }

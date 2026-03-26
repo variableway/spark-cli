@@ -1,4 +1,4 @@
-package cmd
+package git
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 var gitcodeURL string
 
-var gitcodeCmd = &cobra.Command{
+var gitCodeCmd = &cobra.Command{
 	Use:   "gitcode",
 	Short: "Add Gitcode as a remote to repositories",
 	Long: `Add Gitcode as a remote to existing GitHub repositories.
@@ -94,6 +94,6 @@ func addGitcodeRemote(repoPath string) error {
 }
 
 func init() {
-	rootCmd.AddCommand(gitcodeCmd)
-	gitcodeCmd.Flags().StringVar(&gitcodeURL, "url", "", "Custom Gitcode URL (default: auto-convert from GitHub URL)")
+	GitCmd.AddCommand(gitCodeCmd)
+	gitCodeCmd.Flags().StringVar(&gitcodeURL, "url", "", "Custom Gitcode URL (default: auto-convert from GitHub URL)")
 }

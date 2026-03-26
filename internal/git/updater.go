@@ -102,3 +102,50 @@ func ConvertGitHubToGitcode(githubURL string) string {
 	githubURL = strings.Replace(githubURL, "github.com:", "gitcode.com:", -1)
 	return githubURL
 }
+
+// GetLocalConfig gets a local git config value for a repository
+func GetLocalConfig(repoPath, key string) (string, error) {
+	cmd := exec.Command("git", "config", "--local", key)
+	cmd.Dir = repoPath
+	output, err := cmd.Output()
+	if err != nil {
+		return "", nil
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
+// SetLocalConfig sets a local git config value for a repository
+func SetLocalConfig(repoPath, key, value string) error {
+	cmd := exec.Command("git", "config", "--local", key, value)
+	cmd.Dir = repoPath
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to set %s: %w", key, err)
+	}
+	return nil
+}
+
+// GetUserConfig gets the user.name and user.email from a repository
+func GetUserConfig(repoPath string) (username, email string, err error) {
+	username, err = GetLocalConfig(repoPath, "user.name")
+	if err != nil {
+		return "", "", err
+	}
+	email, err = GetLocalConfig(repoPath, "user.email")
+	if err != nil {
+		return "", "", err
+	}
+	return username, email, nil
+}
+
+// SetUserConfig sets the user.name and user.email for a repository
+func SetUserConfig(repoPath, username, email string) error {
+	if err := SetLocalConfig(repoPath, "user.name", username); err != nil {
+		return err
+	}
+	if err := SetLocalConfig(repoPath, "user.email", email); err != nil {
+		return err
+	}
+	return nil
+}

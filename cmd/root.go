@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"monolize/cmd/git"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -31,6 +32,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.monolize.yaml)")
 	rootCmd.PersistentFlags().StringSliceP("path", "p", []string{"."}, "Path to the directory containing git repositories")
 	viper.BindPFlag("path", rootCmd.PersistentFlags().Lookup("path"))
+	rootCmd.AddCommand(git.GitCmd)
 }
 
 func initConfig() {

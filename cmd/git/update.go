@@ -1,4 +1,4 @@
-package cmd
+package git
 
 import (
 	"fmt"
@@ -31,7 +31,6 @@ var updateCmd = &cobra.Command{
 			return nil
 		}
 
-		// Remove duplicates
 		repoMap := make(map[string]bool)
 		var uniqueRepos []string
 		for _, repo := range allRepos {
@@ -58,5 +57,5 @@ var updateCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(updateCmd)
+	GitCmd.AddCommand(updateCmd)
 }

@@ -9,9 +9,10 @@
 1. **多仓库更新** - 批量更新多个 Git 仓库到最新版本
 2. **Mono-repo 创建** - 将多个仓库整合为一个带有子模块的 Mono 仓库
 3. **子模块同步** - 同步 Mono 仓库中的所有子模块
-4. **AI Agent 配置管理** - 管理多种 AI Agent（Claude Code、Codex、Kimi、GLM）的配置文件
-5. **任务管理** - 任务分发、同步和 GitHub 仓库创建
-6. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
+4. **Git 用户配置** - 配置仓库的 Git 用户信息
+5. **AI Agent 配置管理** - 管理多种 AI Agent（Claude Code、Codex、Kimi、GLM）的配置文件
+6. **任务管理** - 任务分发、同步和 GitHub 仓库创建
+7. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
 
 ## 技术栈
 
@@ -27,12 +28,16 @@
 monolize/
 ├── cmd/                    # CLI 命令定义
 │   ├── root.go            # 根命令和全局配置
-│   ├── create.go          # mono-repo 创建命令
-│   ├── update.go          # 仓库更新命令
-│   ├── sync.go            # 子模块同步命令
 │   ├── agent.go           # AI Agent 配置管理
+│   ├── agent_profile.go   # Agent Profile 管理
 │   ├── task.go            # 任务管理命令
-│   └── gitcode.go         # Gitcode 远程管理
+│   └── git/               # Git 相关命令
+│       ├── git.go         # Git 父命令
+│       ├── config.go      # Git 用户配置
+│       ├── update.go      # 仓库更新命令
+│       ├── create.go      # mono-repo 创建命令
+│       ├── sync.go        # 子模块同步命令
+│       └── gitcode.go     # Gitcode 远程管理
 ├── internal/              # 内部业务逻辑
 │   ├── agent/             # AI Agent 管理器
 │   ├── config/            # 配置管理
@@ -79,23 +84,34 @@ monolize/
 | `--config` | 指定配置文件 (默认: `$HOME/.monolize.yaml`) |
 | `-p, --path` | 指定要扫描的目录路径 (可多次使用) |
 
-### 核心命令
+### Git 仓库管理
 
-#### `monolize update`
+#### `monolize git`
+Git 仓库管理命令的父命令，包含以下子命令：
+
+```bash
+monolize git update    # 更新多个仓库
+monolize git create    # 创建 Mono 仓库
+monolize git sync      # 同步子模块
+monolize git gitcode   # 添加 Gitcode 远程
+monolize git config    # 配置 Git 用户
+```
+
+#### `monolize git update`
 扫描指定目录中的所有 Git 仓库并更新到最新版本。
 
 ```bash
-monolize update -p /path/to/repos
-monolize update -p ~/workspace -p ~/projects
+monolize git update -p /path/to/repos
+monolize git update -p ~/workspace -p ~/projects
 ```
 
 详细文档: [docs/usage/update.md](docs/usage/update.md)
 
-#### `monolize create`
+#### `monolize git create`
 创建一个 Mono 仓库，将所有找到的仓库作为子模块添加。
 
 ```bash
-monolize create -p /path/to/repos -n my-mono-repo -o ./output
+monolize git create -p /path/to/repos -n my-mono-repo -o ./output
 ```
 
 | 选项 | 说明 |
@@ -105,14 +121,41 @@ monolize create -p /path/to/repos -n my-mono-repo -o ./output
 
 详细文档: [docs/usage/create.md](docs/usage/create.md)
 
-#### `monolize sync`
+#### `monolize git sync`
 同步 Mono 仓库中的所有子模块到最新版本。
 
 ```bash
-monolize sync /path/to/mono-repo
+monolize git sync /path/to/mono-repo
 ```
 
 详细文档: [docs/usage/sync.md](docs/usage/sync.md)
+
+#### `monolize git gitcode`
+为 GitHub 仓库添加 Gitcode 作为远程地址。
+
+```bash
+monolize git gitcode -p /path/to/repos
+monolize git gitcode -p ~/workspace --url https://custom.gitcode.url
+```
+
+详细文档: [docs/usage/gitcode.md](docs/usage/gitcode.md)
+
+#### `monolize git config`
+配置当前仓库的 Git 用户信息。
+
+```bash
+monolize git config                              # 查看当前配置
+monolize git config --username foo --email bar   # 设置用户信息
+```
+
+| 选项 | 说明 |
+|------|------|
+| `--username` | Git 用户名 (默认: 从配置文件读取) |
+| `--email` | Git 邮箱 (默认: 从配置文件读取) |
+
+配置优先级：
+1. 命令行参数 (`--username`, `--email`)
+2. 配置文件 (`~/.monolize.yaml` 中的 `git.username` 和 `git.email`)
 
 ### AI Agent 管理
 
@@ -156,18 +199,6 @@ monolize task sync my-task --task-dir ./tasks --work-path ./workspace
 
 详细文档: [docs/usage/task.md](docs/usage/task.md)
 
-### Gitcode 管理
-
-#### `monolize gitcode`
-为 GitHub 仓库添加 Gitcode 作为远程地址。
-
-```bash
-monolize gitcode -p /path/to/repos
-monolize gitcode -p ~/workspace --url https://custom.gitcode.url
-```
-
-详细文档: [docs/usage/gitcode.md](docs/usage/gitcode.md)
-
 ## 构建与测试
 
 ### 构建命令
@@ -199,6 +230,10 @@ path:
 task-dir: /path/to/tasks
 github-owner: your-username
 work-dir: ./workspace
+
+git:
+  username: your-name      # 默认 Git 用户名
+  email: your@email.com    # 默认 Git 邮箱
 ```
 
 ## 助手指令参考

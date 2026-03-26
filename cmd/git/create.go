@@ -1,4 +1,4 @@
-package cmd
+package git
 
 import (
 	"fmt"
@@ -49,7 +49,6 @@ var createCmd = &cobra.Command{
 			return nil
 		}
 
-		// Remove duplicates
 		repoMap := make(map[string]bool)
 		var uniqueRepos []string
 		for _, repo := range allRepos {
@@ -81,7 +80,7 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
+	GitCmd.AddCommand(createCmd)
 	createCmd.Flags().StringVarP(&monoRepoName, "name", "n", "mono-repo", "Name of the mono repo directory")
 	createCmd.Flags().StringVarP(&outputPath, "output", "o", "", "Output path for the mono repo (default: same as source path)")
-	rootCmd.AddCommand(createCmd)
 }
