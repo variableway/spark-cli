@@ -90,11 +90,13 @@ monolize/
 Git 仓库管理命令的父命令，包含以下子命令：
 
 ```bash
-monolize git update    # 更新多个仓库
-monolize git create    # 创建 Mono 仓库
-monolize git sync      # 同步子模块
-monolize git gitcode   # 添加 Gitcode 远程
-monolize git config    # 配置 Git 用户
+monolize git update     # 更新多个仓库
+monolize git create     # 创建 Mono 仓库
+monolize git sync       # 同步子模块
+monolize git gitcode    # 添加 Gitcode 远程
+monolize git config     # 配置 Git 用户
+monolize git url        # 获取仓库 URL
+monolize git clone-org  # 克隆组织所有仓库
 ```
 
 #### `monolize git update`
@@ -156,6 +158,32 @@ monolize git config --username foo --email bar   # 设置用户信息
 配置优先级：
 1. 命令行参数 (`--username`, `--email`)
 2. 配置文件 (`~/.monolize.yaml` 中的 `git.username` 和 `git.email`)
+
+#### `monolize git url`
+获取当前仓库的 Git 远程 URL。
+
+```bash
+monolize git url              # 当前目录
+monolize git url /path/to/repo
+```
+
+#### `monolize git clone-org`
+克隆 GitHub 组织的所有仓库到本地。
+
+```bash
+monolize git clone-org variableway                    # 使用组织名
+monolize git clone-org https://github.com/variableway # 使用 URL
+monolize git clone-org variableway --ssh              # 使用 SSH
+monolize git clone-org variableway -o ./repos         # 指定输出目录
+```
+
+| 选项 | 说明 |
+|------|------|
+| `--ssh` | 使用 SSH URL 而非 HTTPS |
+| `--include` | 只克隆匹配模式的仓库 (逗号分隔) |
+| `--exclude` | 排除匹配模式的仓库 (逗号分隔) |
+| `--include-forks` | 包含 fork 的仓库 |
+| `-o, --output` | 输出目录 (默认: 当前目录) |
 
 ### AI Agent 管理
 

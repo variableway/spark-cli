@@ -39,6 +39,12 @@ monolize git gitcode -p /path/to/repos
 
 # 配置 Git 用户
 monolize git config --username foo --email bar@example.com
+
+# 获取仓库 URL
+monolize git url
+
+# 克隆 GitHub 组织的所有仓库
+monolize git clone-org variableway -o ./repos
 ```
 
 ### AI Agent 配置
