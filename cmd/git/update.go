@@ -13,7 +13,7 @@ var updateCmd = &cobra.Command{
 	Short: "Update all git repositories to the latest version",
 	Long:  `Scan the specified directory for git repositories and update each one to the latest version.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		paths := viper.GetStringSlice("path")
+		paths := viper.GetStringSlice("repo-path")
 
 		var allRepos []string
 		for _, path := range paths {

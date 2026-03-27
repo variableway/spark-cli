@@ -12,9 +12,9 @@ import (
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "monolize",
+	Use:   "spark",
 	Short: "A CLI tool to manage multiple git repositories",
-	Long: `Monolize is a CLI application that helps you:
+	Long: `Spark is a CLI application that helps you:
 1. Update multiple git repositories to the latest version
 2. Create a mono repo with all repositories as submodules
 3. Manage all repositories with a single git command`,
@@ -29,9 +29,9 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.monolize.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.spark.yaml)")
 	rootCmd.PersistentFlags().StringSliceP("path", "p", []string{"."}, "Path to the directory containing git repositories")
-	viper.BindPFlag("path", rootCmd.PersistentFlags().Lookup("path"))
+	viper.BindPFlag("repo-path", rootCmd.PersistentFlags().Lookup("path"))
 	rootCmd.AddCommand(git.GitCmd)
 }
 
@@ -45,7 +45,7 @@ func initConfig() {
 			os.Exit(1)
 		}
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".monolize")
+		viper.SetConfigName(".spark")
 		viper.SetConfigType("yaml")
 	}
 

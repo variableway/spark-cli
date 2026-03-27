@@ -19,7 +19,7 @@ This command will:
 2. For each repository with a GitHub origin, add Gitcode as another remote
 3. The Gitcode URL is auto-generated from the GitHub URL by replacing github.com with gitcode.com`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		paths := viper.GetStringSlice("path")
+		paths := viper.GetStringSlice("repo-path")
 
 		var allRepos []string
 		for _, path := range paths {

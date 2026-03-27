@@ -13,8 +13,10 @@ This includes:
 - update: Update multiple git repositories
 - create: Create a mono repo with submodules
 - sync: Sync submodules in a mono repo
-- code: Add Gitcode as remote
-- config: Configure git user for repository`,
+- gitcode: Add Gitcode as remote
+- config: Configure git user for repository
+- url: Get repository remote URL
+- clone-org: Clone all repos from a GitHub organization`,
 }
 
 func init() {

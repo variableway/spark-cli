@@ -21,7 +21,7 @@ var createCmd = &cobra.Command{
 	Short: "Create a mono repo with all repositories as submodules",
 	Long:  `Create a new mono repository that contains all found git repositories as submodules.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		paths := viper.GetStringSlice("path")
+		paths := viper.GetStringSlice("repo-path")
 
 		if monoRepoName == "" {
 			monoRepoName = "mono-repo"

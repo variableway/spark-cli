@@ -1,6 +1,6 @@
-# Makefile for Monolize
+# Makefile for Spark
 
-BINARY_NAME=monolize
+BINARY_NAME=spark
 GO=go
 GINKGO=$(GO) run github.com/onsi/ginkgo/v2/ginkgo
 

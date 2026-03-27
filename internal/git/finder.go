@@ -5,22 +5,22 @@ import (
 	"path/filepath"
 )
 
-// FindRepositories scans the given path for git repositories.
-// If the path itself is a git repository, it returns that path.
-// Otherwise, it scans the immediate subdirectories of the path.
 func FindRepositories(rootPath string) ([]string, error) {
-	// First check if the rootPath itself is a git repository
+	var repos []string
+
 	if IsGitRepository(rootPath) {
 		absPath, err := filepath.Abs(rootPath)
 		if err != nil {
 			return nil, err
 		}
-		return []string{absPath}, nil
+		repos = append(repos, absPath)
 	}
 
-	var repos []string
 	entries, err := os.ReadDir(rootPath)
 	if err != nil {
+		if len(repos) > 0 {
+			return repos, nil
+		}
 		return nil, err
 	}
 
@@ -42,7 +42,6 @@ func FindRepositories(rootPath string) ([]string, error) {
 	return repos, nil
 }
 
-// IsGitRepository checks if the given path is a git repository
 func IsGitRepository(path string) bool {
 	gitDir := filepath.Join(path, ".git")
 	info, err := os.Stat(gitDir)

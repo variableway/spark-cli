@@ -1,3 +1,4 @@
 *.exe
 monolize
 go.sum
+spark

@@ -4,7 +4,7 @@
 
 ## 项目概述
 
-**Monolize** 是一个 CLI 工具，用于管理多个 Git 仓库。它提供以下核心功能：
+**Spark** 是一个 CLI 工具，用于管理多个 Git 仓库。它提供以下核心功能：
 
 1. **多仓库更新** - 批量更新多个 Git 仓库到最新版本
 2. **Mono-repo 创建** - 将多个仓库整合为一个带有子模块的 Mono 仓库
@@ -25,7 +25,7 @@
 ## 项目结构
 
 ```
-monolize/
+spark/
 ├── cmd/                    # CLI 命令定义
 │   ├── root.go            # 根命令和全局配置
 │   ├── agent.go           # AI Agent 配置管理
@@ -81,39 +81,39 @@ monolize/
 
 | 选项 | 说明 |
 |------|------|
-| `--config` | 指定配置文件 (默认: `$HOME/.monolize.yaml`) |
+| `--config` | 指定配置文件 (默认: `$HOME/.spark.yaml`) |
 | `-p, --path` | 指定要扫描的目录路径 (可多次使用) |
 
 ### Git 仓库管理
 
-#### `monolize git`
+#### `spark git`
 Git 仓库管理命令的父命令，包含以下子命令：
 
 ```bash
-monolize git update     # 更新多个仓库
-monolize git create     # 创建 Mono 仓库
-monolize git sync       # 同步子模块
-monolize git gitcode    # 添加 Gitcode 远程
-monolize git config     # 配置 Git 用户
-monolize git url        # 获取仓库 URL
-monolize git clone-org  # 克隆组织所有仓库
+spark git update     # 更新多个仓库
+spark git create     # 创建 Mono 仓库
+spark git sync       # 同步子模块
+spark git gitcode    # 添加 Gitcode 远程
+spark git config     # 配置 Git 用户
+spark git url        # 获取仓库 URL
+spark git clone-org  # 克隆组织所有仓库
 ```
 
-#### `monolize git update`
+#### `spark git update`
 扫描指定目录中的所有 Git 仓库并更新到最新版本。
 
 ```bash
-monolize git update -p /path/to/repos
-monolize git update -p ~/workspace -p ~/projects
+spark git update -p /path/to/repos
+spark git update -p ~/workspace -p ~/projects
 ```
 
 详细文档: [docs/usage/update.md](docs/usage/update.md)
 
-#### `monolize git create`
+#### `spark git create`
 创建一个 Mono 仓库，将所有找到的仓库作为子模块添加。
 
 ```bash
-monolize git create -p /path/to/repos -n my-mono-repo -o ./output
+spark git create -p /path/to/repos -n my-mono-repo -o ./output
 ```
 
 | 选项 | 说明 |
@@ -123,31 +123,31 @@ monolize git create -p /path/to/repos -n my-mono-repo -o ./output
 
 详细文档: [docs/usage/create.md](docs/usage/create.md)
 
-#### `monolize git sync`
+#### `spark git sync`
 同步 Mono 仓库中的所有子模块到最新版本。
 
 ```bash
-monolize git sync /path/to/mono-repo
+spark git sync /path/to/mono-repo
 ```
 
 详细文档: [docs/usage/sync.md](docs/usage/sync.md)
 
-#### `monolize git gitcode`
+#### `spark git gitcode`
 为 GitHub 仓库添加 Gitcode 作为远程地址。
 
 ```bash
-monolize git gitcode -p /path/to/repos
-monolize git gitcode -p ~/workspace --url https://custom.gitcode.url
+spark git gitcode -p /path/to/repos
+spark git gitcode -p ~/workspace --url https://custom.gitcode.url
 ```
 
 详细文档: [docs/usage/gitcode.md](docs/usage/gitcode.md)
 
-#### `monolize git config`
+#### `spark git config`
 配置当前仓库的 Git 用户信息。
 
 ```bash
-monolize git config                              # 查看当前配置
-monolize git config --username foo --email bar   # 设置用户信息
+spark git config                              # 查看当前配置
+spark git config --username foo --email bar   # 设置用户信息
 ```
 
 | 选项 | 说明 |
@@ -157,24 +157,24 @@ monolize git config --username foo --email bar   # 设置用户信息
 
 配置优先级：
 1. 命令行参数 (`--username`, `--email`)
-2. 配置文件 (`~/.monolize.yaml` 中的 `git.username` 和 `git.email`)
+2. 配置文件 (`~/.spark.yaml` 中的 `git.username` 和 `git.email`)
 
-#### `monolize git url`
+#### `spark git url`
 获取当前仓库的 Git 远程 URL。
 
 ```bash
-monolize git url              # 当前目录
-monolize git url /path/to/repo
+spark git url              # 当前目录
+spark git url /path/to/repo
 ```
 
-#### `monolize git clone-org`
+#### `spark git clone-org`
 克隆 GitHub 组织的所有仓库到本地。
 
 ```bash
-monolize git clone-org variableway                    # 使用组织名
-monolize git clone-org https://github.com/variableway # 使用 URL
-monolize git clone-org variableway --ssh              # 使用 SSH
-monolize git clone-org variableway -o ./repos         # 指定输出目录
+spark git clone-org variableway                    # 使用组织名
+spark git clone-org https://github.com/variableway # 使用 URL
+spark git clone-org variableway --ssh              # 使用 SSH
+spark git clone-org variableway -o ./repos         # 指定输出目录
 ```
 
 | 选项 | 说明 |
@@ -187,7 +187,7 @@ monolize git clone-org variableway -o ./repos         # 指定输出目录
 
 ### AI Agent 管理
 
-#### `monolize agent`
+#### `spark agent`
 管理多种 AI Agent 的配置文件。
 
 支持的 Agent:
@@ -197,30 +197,30 @@ monolize git clone-org variableway -o ./repos         # 指定输出目录
 - **glm** - GLM (智谱 AI)
 
 ```bash
-monolize agent list                    # 列出所有支持的 Agent
-monolize agent view claude-code        # 查看配置
-monolize agent edit kimi               # 编辑配置
-monolize agent edit claude-code --tui  # TUI 模式选择配置文件
+spark agent list                    # 列出所有支持的 Agent
+spark agent view claude-code        # 查看配置
+spark agent edit kimi               # 编辑配置
+spark agent edit claude-code --tui  # TUI 模式选择配置文件
 
 # Profile 配置模板管理
-monolize agent profile list                    # 列出所有配置模板
-monolize agent profile add my-glm --type glm   # 创建一个 GLM 模板
-monolize agent profile edit my-glm             # 编辑模板配置
-monolize agent use my-glm                      # 将模板应用到当前项目
-monolize agent current                         # 查看当前项目使用的模板
+spark agent profile list                    # 列出所有配置模板
+spark agent profile add my-glm --type glm   # 创建一个 GLM 模板
+spark agent profile edit my-glm             # 编辑模板配置
+spark agent use my-glm                      # 将模板应用到当前项目
+spark agent current                         # 查看当前项目使用的模板
 ```
 
 详细文档: [docs/usage/agent.md](docs/usage/agent.md)
 
 ### 任务管理
 
-#### `monolize task`
+#### `spark task`
 任务分发和同步管理（仅处理 `.md` Markdown 文件）。
 
 ```bash
-monolize task list --task-dir ./tasks
-monolize task dispatch my-task --task-dir ./tasks --owner myuser
-monolize task sync my-task --task-dir ./tasks --work-path ./workspace
+spark task list --task-dir ./tasks
+spark task dispatch my-task --task-dir ./tasks --owner myuser
+spark task sync my-task --task-dir ./tasks --work-path ./workspace
 ```
 
 支持 `--tui` 标志启用交互式终端 UI。
@@ -248,10 +248,10 @@ make lint           # 运行静态检查 (go vet)
 
 ## 配置文件
 
-配置文件位于 `~/.monolize.yaml`，支持以下配置项：
+配置文件位于 `~/.spark.yaml`，支持以下配置项：
 
 ```yaml
-path:
+repo-path:
   - /path/to/repos
   - /another/path
 

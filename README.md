@@ -1,4 +1,4 @@
-# Monolize
+# Spark
 
 一个用于管理多个 Git 仓库的 CLI 工具。
 
@@ -26,64 +26,64 @@ make build-darwin   # 交叉编译 macOS 版
 
 ```bash
 # 更新多个仓库
-monolize git update -p /path/to/repos
+spark git update -p /path/to/repos
 
 # 创建 Mono 仓库
-monolize git create -p /path/to/repos -n my-mono-repo -o ./output
+spark git create -p /path/to/repos -n my-mono-repo -o ./output
 
 # 同步子模块
-monolize git sync /path/to/mono-repo
+spark git sync /path/to/mono-repo
 
 # 添加 Gitcode 远程
-monolize git gitcode -p /path/to/repos
+spark git gitcode -p /path/to/repos
 
 # 配置 Git 用户
-monolize git config --username foo --email bar@example.com
+spark git config --username foo --email bar@example.com
 
 # 获取仓库 URL
-monolize git url
+spark git url
 
 # 克隆 GitHub 组织的所有仓库
-monolize git clone-org variableway -o ./repos
+spark git clone-org variableway -o ./repos
 ```
 
 ### AI Agent 配置
 
 ```bash
 # 列出所有支持的 Agent
-monolize agent list
+spark agent list
 
 # 查看配置
-monolize agent view claude-code
+spark agent view claude-code
 
 # 编辑配置
-monolize agent edit kimi
+spark agent edit kimi
 
 # Profile 配置模板管理
-monolize agent profile list
-monolize agent profile add my-glm --type glm
-monolize agent use my-glm
+spark agent profile list
+spark agent profile add my-glm --type glm
+spark agent use my-glm
 ```
 
 ### 任务管理
 
 ```bash
 # 列出任务
-monolize task list --task-dir ./tasks
+spark task list --task-dir ./tasks
 
 # 分发任务
-monolize task dispatch my-task --task-dir ./tasks --owner myuser
+spark task dispatch my-task --task-dir ./tasks --owner myuser
 
 # 同步任务
-monolize task sync my-task --task-dir ./tasks --work-path ./workspace
+spark task sync my-task --task-dir ./tasks --work-path ./workspace
 ```
 
 ## 配置
 
-配置文件位于 `~/.monolize.yaml`：
+配置文件位于 `~/.spark.yaml`：
 
 ```yaml
-path:
+repo-path:
   - /path/to/repos
   - /another/path
 
