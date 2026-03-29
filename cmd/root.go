@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"monolize/cmd/git"
+	"monolize/cmd/magic"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -33,6 +34,7 @@ func init() {
 	rootCmd.PersistentFlags().StringSliceP("path", "p", []string{"."}, "Path to the directory containing git repositories")
 	viper.BindPFlag("repo-path", rootCmd.PersistentFlags().Lookup("path"))
 	rootCmd.AddCommand(git.GitCmd)
+	rootCmd.AddCommand(magic.MagicCmd)
 }
 
 func initConfig() {
