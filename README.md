@@ -47,6 +47,11 @@ spark git url
 spark git clone-org variableway -o ./repos
 ```
 
+---
+Following is not fully tested,under testing now.
+---
+
+
 ### AI Agent 配置
 
 ```bash
@@ -95,6 +100,17 @@ git:
   username: your-name      # 默认 Git 用户名
   email: your@email.com    # 默认 Git 邮箱
 ```
+
+  Configuration sections:
+   Section        Options                             Used By
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   repo-path      List of paths to scan for repos     git update, git create, git gitcode
+   git            username, email                     git config
+   task_dir       Task templates directory            task commands
+   github_owner   GitHub username for repo creation   task dispatch
+   work_dir       Working directory for tasks         task commands
+   General        path, default_branch, auto_commit   Various commands
+  Usage:
 
 ## 开发
 

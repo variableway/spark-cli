@@ -1,0 +1,44 @@
+# Spark CLI Configuration File
+# Copy this file to ~/.spark.yaml and customize as needed
+
+# =============================================================================
+# Git Repository Paths
+# =============================================================================
+# Paths to scan for git repositories (used by update, create, gitcode commands)
+# Can be a single path or a list of paths
+repo-path:
+  - ~/workspace
+  - ~/projects
+  - ./repos
+
+# =============================================================================
+# Git Configuration
+# =============================================================================
+# Default Git user configuration (used by git config command)
+git:
+  username: your-name
+  email: your-email@example.com
+
+# =============================================================================
+# Task Management
+# =============================================================================
+# Task directory containing all task templates
+task_dir: ~/tasks
+
+# GitHub owner/username for creating repositories (used by task dispatch)
+github_owner: your-github-username
+
+# Working directory for dispatched tasks
+work_dir: ~/workspace
+
+# =============================================================================
+# General Settings
+# =============================================================================
+# Default path for operations
+path: .
+
+# Default branch name for new repositories
+default_branch: main
+
+# Auto-commit changes (for supported commands)
+auto_commit: true
