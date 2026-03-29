@@ -26,11 +26,23 @@ Extract from task:
 Use `scripts/create_issue.py`:
 
 ```bash
+# Auto-detect repo from git remote
 python scripts/create_issue.py \
-  --repo "owner/repo" \
   --title "Task Title" \
   --body "Task description..." \
   --labels "enhancement,task"
+
+# Or specify repo explicitly
+python scripts/create_issue.py \
+  --repo "owner/repo" \
+  --title "Task Title" \
+  --body "Task description..."
+
+# Use different git remote
+python scripts/create_issue.py \
+  --remote upstream \
+  --title "Task Title" \
+  --body "Task description..."
 ```
 
 Store the issue number for later updates.
@@ -52,13 +64,12 @@ Track notable implementation details:
 
 ## Phase 4: Update Issue with Implementation
 
-Options for updating:
+Options for updating (repo auto-detected from git by default):
 
 ### Option A: Add Comment (Recommended)
 
 ```bash
 python scripts/update_issue.py \
-  --repo "owner/repo" \
   --issue 123 \
   --comment "## Implementation Summary\n\n- Changed: ...\n- PR: #456"
 ```
@@ -67,7 +78,6 @@ python scripts/update_issue.py \
 
 ```bash
 python scripts/update_issue.py \
-  --repo "owner/repo" \
   --issue 123 \
   --append \
   --body "## Completed\n\nImplementation details..."
@@ -77,10 +87,25 @@ python scripts/update_issue.py \
 
 ```bash
 python scripts/update_issue.py \
-  --repo "owner/repo" \
   --issue 123 \
   --state closed \
   --comment "Completed in PR #456"
+```
+
+### Override Auto-detection
+
+```bash
+# Specify different repo
+python scripts/update_issue.py \
+  --repo "owner/other-repo" \
+  --issue 123 \
+  --comment "Done"
+
+# Use different remote
+python scripts/update_issue.py \
+  --remote upstream \
+  --issue 123 \
+  --comment "Done"
 ```
 
 ## Implementation Summary Template
@@ -109,12 +134,44 @@ Any additional notes or follow-up tasks
 
 ## Authentication
 
-Scripts require `GITHUB_TOKEN` environment variable:
+Scripts require a GitHub personal access token. Configure via (priority order):
+
+### 1. Command-line Argument (Highest Priority)
+
+```bash
+python scripts/create_issue.py --token "ghp_xxx" --title "Task" --body "Desc"
+```
+
+### 2. Environment Variable
 
 ```bash
 export GITHUB_TOKEN="ghp_xxxxxxxxxxxx"
 ```
 
-Token needs permissions:
-- `repo` - Full repository access
-- Or `public_repo` - Public repositories only
+### 3. Project Config File
+
+Create `.github-task-workflow.yaml` in project root:
+
+```yaml
+github:
+  token: ghp_xxxxxxxxxxxx
+```
+
+### 4. Global Config File (Lowest Priority)
+
+```bash
+# Initialize
+python scripts/config_loader.py --init-global
+
+# Then edit: ~/.config/github-task-workflow/config.yaml
+github:
+  token: ghp_xxxxxxxxxxxx
+```
+
+### Token Permissions
+
+Required scopes:
+- `repo` - Full repository access (for private repos)
+- `public_repo` - Public repositories only
+
+Generate token at: https://github.com/settings/tokens

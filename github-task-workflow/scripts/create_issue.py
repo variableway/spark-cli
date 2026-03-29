@@ -4,9 +4,50 @@
 import argparse
 import json
 import os
+import re
+import subprocess
 import sys
 import urllib.request
 import urllib.error
+
+from config_loader import get_github_token, get_config_info
+
+
+def get_git_remote(repo_url: str = None, remote_name: str = "origin") -> str:
+    """Get owner/repo from git remote or provided URL.
+    
+    Args:
+        repo_url: Optional repo URL or owner/repo string
+        remote_name: Git remote name to check (default: origin)
+        
+    Returns:
+        owner/repo string
+    """
+    if repo_url:
+        # Check if already in owner/repo format
+        if re.match(r"^[\w.-]+/[\w.-]+$", repo_url):
+            return repo_url
+        # Extract from GitHub URL
+        match = re.search(r"github\.com[:/]([\w.-]+/[\w.-]+?)(?:\.git)?$", repo_url)
+        if match:
+            return match.group(1)
+    
+    # Try to get from git config
+    try:
+        result = subprocess.run(
+            ["git", "remote", "get-url", remote_name],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        remote_url = result.stdout.strip()
+        match = re.search(r"github\.com[:/]([\w.-]+/[\w.-]+?)(?:\.git)?$", remote_url)
+        if match:
+            return match.group(1)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    
+    return None
 
 
 def create_issue(repo: str, title: str, body: str, labels: list = None, token: str = None) -> dict:
@@ -17,16 +58,20 @@ def create_issue(repo: str, title: str, body: str, labels: list = None, token: s
         title: Issue title
         body: Issue body (markdown supported)
         labels: Optional list of label names
-        token: GitHub personal access token
+        token: GitHub personal access token (or loaded from config)
         
     Returns:
         Created issue data as dict
     """
+    # Token is already resolved by get_github_token() before this is called
     if not token:
-        token = os.environ.get("GITHUB_TOKEN")
-    
-    if not token:
-        raise ValueError("GitHub token required. Set GITHUB_TOKEN env var or pass --token.")
+        raise ValueError(
+            "GitHub token required. Provide via:\n"
+            "  1. --token argument\n"
+            "  2. GITHUB_TOKEN environment variable\n"
+            "  3. Project config: .github-task-workflow.yaml\n"
+            "  4. Global config: ~/.config/github-task-workflow/config.yaml"
+        )
     
     url = f"https://api.github.com/repos/{repo}/issues"
     
@@ -61,8 +106,12 @@ def create_issue(repo: str, title: str, body: str, labels: list = None, token: s
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Create a GitHub issue from a task")
-    parser.add_argument("--repo", required=True, help="Repository (owner/repo)")
+    parser = argparse.ArgumentParser(
+        description="Create a GitHub issue from a task",
+        epilog="If --repo is not provided, will try to detect from git remote."
+    )
+    parser.add_argument("--repo", help="Repository (owner/repo or URL). Auto-detected from git if not provided.")
+    parser.add_argument("--remote", default="origin", help="Git remote name to use for auto-detection (default: origin)")
     parser.add_argument("--title", required=True, help="Issue title")
     parser.add_argument("--body", required=True, help="Issue body (markdown)")
     parser.add_argument("--labels", help="Comma-separated list of labels")
@@ -71,12 +120,37 @@ def main():
     
     args = parser.parse_args()
     
+    # Detect repo
+    repo = get_git_remote(args.repo, args.remote)
+    if not repo:
+        print("Error: Could not detect repository.", file=sys.stderr)
+        print("Please provide --repo or run from within a git repository with GitHub remote.", file=sys.stderr)
+        sys.exit(1)
+    
+    print(f"Using repository: {repo}")
+    
     labels = None
     if args.labels:
         labels = [l.strip() for l in args.labels.split(",")]
     
+    # Get token using priority chain
+    token = get_github_token(args.token)
+    if not token:
+        print("Error: GitHub token not found.", file=sys.stderr)
+        print("\nTo configure:", file=sys.stderr)
+        print("  1. Set GITHUB_TOKEN environment variable", file=sys.stderr)
+        print("  2. Create project config: .github-task-workflow.yaml", file=sys.stderr)
+        print("  3. Create global config: ~/.config/github-task-workflow/config.yaml", file=sys.stderr)
+        print("\nOr run: python scripts/config_loader.py --init-global", file=sys.stderr)
+        sys.exit(1)
+    
+    # Show token source (without revealing the token)
+    config_info = get_config_info()
+    if config_info["token_source"]:
+        print(f"Using token from: {config_info['token_source']}")
+    
     try:
-        issue = create_issue(args.repo, args.title, args.body, labels, args.token)
+        issue = create_issue(repo, args.title, args.body, labels, token)
         
         if args.output_json:
             print(json.dumps(issue, indent=2))
