@@ -100,7 +100,7 @@ git:
   username: your-name      # 默认 Git 用户名
   email: your@email.com    # 默认 Git 邮箱
 ```
-
+```
   Configuration sections:
    Section        Options                             Used By
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -111,7 +111,8 @@ git:
    work_dir       Working directory for tasks         task commands
    General        path, default_branch, auto_commit   Various commands
   Usage:
-
+```
+ßß
 ## 开发
 
 ```bash
