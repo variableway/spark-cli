@@ -19,7 +19,7 @@ type Profile struct {
 }
 
 func (m *Manager) GetProfilesDir() string {
-	return filepath.Join(m.homeDir, ".monolize", "profiles")
+	return filepath.Join(m.homeDir, ".spark", "profiles")
 }
 
 func (m *Manager) ListProfiles() ([]Profile, error) {
@@ -188,13 +188,26 @@ func (m *Manager) ApplyProfile(name string, projectDir string) error {
 		}
 	}
 
-	// Mark current profile
-	markerPath := filepath.Join(projectDir, ".monolize-agent")
+	// Mark current profile and migrate old marker if present
+	m.migrateOldAgentMarker(projectDir)
+	markerPath := filepath.Join(projectDir, ".spark-agent")
 	return os.WriteFile(markerPath, []byte(name), 0644)
 }
 
+func (m *Manager) migrateOldAgentMarker(projectDir string) {
+	oldMarker := filepath.Join(projectDir, ".monolize-agent")
+	newMarker := filepath.Join(projectDir, ".spark-agent")
+
+	if _, err := os.Stat(oldMarker); err == nil {
+		if _, err := os.Stat(newMarker); os.IsNotExist(err) {
+			os.Rename(oldMarker, newMarker)
+		}
+	}
+}
+
 func (m *Manager) CurrentProfile(projectDir string) (string, error) {
-	markerPath := filepath.Join(projectDir, ".monolize-agent")
+	m.migrateOldAgentMarker(projectDir)
+	markerPath := filepath.Join(projectDir, ".spark-agent")
 	content, err := os.ReadFile(markerPath)
 	if err != nil {
 		if os.IsNotExist(err) {

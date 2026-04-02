@@ -215,7 +215,7 @@ monolize task dispatch --tui --task-dir ./tasks --owner myuser
 
 ## 配置文件
 
-在 `~/.monolize.yaml` 中配置默认值：
+在 `~/.spark.yaml` 中配置默认值：
 
 ```yaml
 task-dir: /Users/you/tasks

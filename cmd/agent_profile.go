@@ -29,7 +29,7 @@ var agentProfileListCmd = &cobra.Command{
 		}
 
 		if len(profiles) == 0 {
-			pterm.Info.Println("No profiles found. Use 'monolize agent profile add' to create one.")
+			pterm.Info.Println("No profiles found. Use 'spark agent profile add' to create one.")
 			return nil
 		}
 
@@ -69,7 +69,7 @@ var agentProfileAddCmd = &cobra.Command{
 		}
 
 		pterm.Success.Printf("Profile '%s' created successfully!\n", name)
-		pterm.Info.Printf("Use 'monolize agent profile edit %s' to customize it.\n", name)
+		pterm.Info.Printf("Use 'spark agent profile edit %s' to customize it.\n", name)
 		return nil
 	},
 }
@@ -184,7 +184,7 @@ var agentCurrentCmd = &cobra.Command{
 
 		if current == "" {
 			pterm.Warning.Println("No agent profile is currently applied to this project.")
-			pterm.Info.Println("Use 'monolize agent use <profile-name>' to apply one.")
+			pterm.Info.Println("Use 'spark agent use <profile-name>' to apply one.")
 			return nil
 		}
 

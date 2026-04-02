@@ -72,9 +72,26 @@ func NewManager() *Manager {
 			editor = "vim"
 		}
 	}
-	return &Manager{
+	m := &Manager{
 		homeDir: homeDir,
 		editor:  editor,
+	}
+	m.migrateOldProfiles()
+	return m
+}
+
+func (m *Manager) migrateOldProfiles() {
+	oldDir := filepath.Join(m.homeDir, ".monolize", "profiles")
+	newDir := filepath.Join(m.homeDir, ".spark", "profiles")
+
+	if _, err := os.Stat(oldDir); err == nil {
+		if _, err := os.Stat(newDir); os.IsNotExist(err) {
+			if err := os.MkdirAll(filepath.Dir(newDir), 0755); err == nil {
+				if err := os.Rename(oldDir, newDir); err == nil {
+					fmt.Fprintf(os.Stderr, "Migrated old agent profiles: %s -> %s\n", oldDir, newDir)
+				}
+			}
+		}
 	}
 }
 

@@ -33,14 +33,14 @@ path: /tmp/repos
 default_branch: develop
 auto_commit: false
 `
-				err := os.WriteFile(".monolize.yaml", []byte(configContent), 0644)
+				err := os.WriteFile(".spark.yaml", []byte(configContent), 0644)
 				Expect(err).NotTo(HaveOccurred())
 
-				viper.SetConfigFile(".monolize.yaml")
+				viper.SetConfigFile(".spark.yaml")
 			})
 
 			AfterEach(func() {
-				os.Remove(".monolize.yaml")
+				os.Remove(".spark.yaml")
 			})
 
 			It("should load values from the configuration file", func() {

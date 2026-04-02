@@ -39,7 +39,7 @@ monolize sync
 | `make clean` | 清理编译产物 |
 
 ## 配置说明
-可以通过 `~/.monolize.yaml` 进行持久化配置：
+可以通过 `~/.spark.yaml` 进行持久化配置：
 ```yaml
 path: /default/path
 default_branch: main

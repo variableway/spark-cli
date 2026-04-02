@@ -17,7 +17,7 @@ monolize update [flags]
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
 | `--path` | `-p` | `.` | 要扫描的目录路径（可多次指定） |
-| `--config` | | `$HOME/.monolize.yaml` | 配置文件路径 |
+| `--config` | | `$HOME/.spark.yaml` | 配置文件路径 |
 
 ## 示例
 
@@ -41,7 +41,7 @@ monolize update -p ~/workspace -p ~/projects -p ~/opensource
 
 ### 使用配置文件
 
-在 `~/.monolize.yaml` 中配置默认路径：
+在 `~/.spark.yaml` 中配置默认路径：
 
 ```yaml
 path:

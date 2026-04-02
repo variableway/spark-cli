@@ -70,8 +70,8 @@ var agentViewCmd = &cobra.Command{
 Available agents: claude-code, codex, kimi, glm
 
 Example:
-  monolize agent view claude-code
-  monolize agent view kimi`,
+  spark agent view claude-code
+  spark agent view kimi`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		agentType := agent.AgentType(args[0])
@@ -108,8 +108,8 @@ On Unix, defaults to vim if $EDITOR is not set.
 Available agents: claude-code, codex, kimi, glm
 
 Example:
-  monolize agent edit claude-code
-  monolize agent edit kimi 0`,
+  spark agent edit claude-code
+  spark agent edit kimi 0`,
 	Args: cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		agentType := agent.AgentType(args[0])
@@ -157,8 +157,8 @@ This will backup existing config files with .bak extension.
 Available agents: claude-code, codex, kimi, glm
 
 Example:
-  monolize agent reset claude-code
-  monolize agent reset kimi`,
+  spark agent reset claude-code
+  spark agent reset kimi`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		agentType := agent.AgentType(args[0])

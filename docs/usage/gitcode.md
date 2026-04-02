@@ -18,7 +18,7 @@ monolize gitcode [flags]
 |------|------|--------|------|
 | `--path` | `-p` | `.` | 要扫描的目录路径（可多次指定） |
 | `--url` | | | 自定义 Gitcode URL（默认自动转换） |
-| `--config` | | `$HOME/.monolize.yaml` | 配置文件路径 |
+| `--config` | | `$HOME/.spark.yaml` | 配置文件路径 |
 
 ## 工作原理
 

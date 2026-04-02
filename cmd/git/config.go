@@ -16,7 +16,7 @@ var configCmd = &cobra.Command{
 	Short: "Configure git user for the current repository",
 	Long: `Configure git user.name and user.email for the current repository.
 This command will:
-1. Read default username and email from config file (~/.monolize.yaml)
+1. Read default username and email from config file (~/.spark.yaml)
 2. Apply them to the current repository (local git config)
 3. Optionally override with --username and --email flags`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,7 +43,7 @@ This command will:
 			fmt.Println()
 			fmt.Println("No username or email provided.")
 			fmt.Println("Please either:")
-			fmt.Println("  1. Set git.username and git.email in ~/.monolize.yaml")
+			fmt.Println("  1. Set git.username and git.email in ~/.spark.yaml")
 			fmt.Println("  2. Use --username and --email flags")
 			return nil
 		}

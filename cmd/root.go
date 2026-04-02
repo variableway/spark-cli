@@ -5,6 +5,7 @@ import (
 	"monolize/cmd/git"
 	"monolize/cmd/magic"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -46,6 +47,7 @@ func initConfig() {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
+		migrateOldConfig(home)
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".spark")
 		viper.SetConfigType("yaml")
@@ -55,5 +57,18 @@ func initConfig() {
 
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+func migrateOldConfig(home string) {
+	oldPath := filepath.Join(home, ".monolize.yaml")
+	newPath := filepath.Join(home, ".spark.yaml")
+
+	if _, err := os.Stat(oldPath); err == nil {
+		if _, err := os.Stat(newPath); os.IsNotExist(err) {
+			if err := os.Rename(oldPath, newPath); err == nil {
+				fmt.Fprintf(os.Stderr, "Migrated old config file: %s -> %s\n", oldPath, newPath)
+			}
+		}
 	}
 }

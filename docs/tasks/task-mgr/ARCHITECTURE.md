@@ -129,7 +129,7 @@ monolize task sync --task-dir ./tasks --tui
 
 ## Configuration
 
-Create `~/.monolize.yaml` for default settings:
+Create `~/.spark.yaml` for default settings:
 
 ```yaml
 task_dir: /path/to/tasks

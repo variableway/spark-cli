@@ -72,7 +72,7 @@ monolize task sync --task-dir ./tasks --tui
 
 ### 配置文件
 
-创建 `~/.monolize.yaml`:
+创建 `~/.spark.yaml`:
 
 ```yaml
 task_dir: /path/to/tasks

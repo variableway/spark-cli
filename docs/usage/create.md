@@ -19,7 +19,7 @@ monolize create [flags]
 | `--path` | `-p` | `.` | 要扫描的目录路径（可多次指定） |
 | `--name` | `-n` | `mono-repo` | Mono 仓库名称 |
 | `--output` | `-o` | `.` | Mono 仓库的输出路径 |
-| `--config` | | `$HOME/.monolize.yaml` | 配置文件路径 |
+| `--config` | | `$HOME/.spark.yaml` | 配置文件路径 |
 
 ## 示例
 

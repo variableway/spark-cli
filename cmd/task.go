@@ -37,8 +37,8 @@ initialize git repository and create a GitHub repository.
 In TUI mode, you can interactively select the task to dispatch.
 
 Example:
-  monolize task dispatch my-task --dest ./workspace/my-task
-  monolize task dispatch --tui`,
+  spark task dispatch my-task --dest ./workspace/my-task
+  spark task dispatch --tui`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if taskDir == "" {
@@ -68,8 +68,8 @@ var taskSyncCmd = &cobra.Command{
 In TUI mode, you can interactively select the task to sync.
 
 Example:
-  monolize task sync my-task --work-path ./workspace/my-task
-  monolize task sync --tui`,
+  spark task sync my-task --work-path ./workspace/my-task
+  spark task sync --tui`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if taskDir == "" {
