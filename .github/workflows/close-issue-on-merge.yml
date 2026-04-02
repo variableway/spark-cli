@@ -1,0 +1,29 @@
+name: Close Linked Issue
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  close-issue:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract issue number from branch
+        id: extract
+        run: |
+          ISSUE=$(echo "${{ github.head_ref }}" | grep -oE '^[0-9]+' | head -n 1)
+          echo "issue=$ISSUE" >> $GITHUB_OUTPUT
+
+      - name: Close issue via API
+        if: steps.extract.outputs.issue != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE: ${{ steps.extract.outputs.issue }}
+          REPO: ${{ github.repository }}
+        run: |
+          curl -X PATCH \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/issues/$ISSUE" \
+            -d '{"state":"closed","body":"Closed by PR #${{ github.event.number }}"}'

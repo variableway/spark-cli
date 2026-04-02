@@ -1,0 +1,18 @@
+# GitHub Task Workflow - Project Configuration
+# This config is specific to the spark-cli project
+
+github:
+  # GitHub token (or use GITHUB_TOKEN env var)
+  # token: ghp_xxxxxxxxxxxx
+
+  # Repository for this project (auto-detected from git if not set)
+  # repo: variableway/spark-cli
+
+# Task templates (optional)
+# templates:
+#   default: |
+#     ## Description
+#     {description}
+#
+#     ## Acceptance Criteria
+#     - [ ] Criteria 1

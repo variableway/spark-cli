@@ -33,7 +33,21 @@
 ./install.sh opencode
 ```
 
-### 方式二：手动链接
+### 方式二：项目级一键配置
+
+```bash
+# 在当前 git 仓库中自动安装 hooks、配置、GitHub Actions 和示例任务
+bash /path/to/spark-skills/setup-project.sh
+```
+
+这会帮你完成：
+1. 安装 `post-commit` 和 `prepare-commit-msg` Git hooks
+2. 创建 `.github-task-workflow.yaml` 项目配置
+3. 创建 `tasks/` 目录和示例 task 文件
+4. 创建 `.github/workflows/close-issue-on-merge.yml`
+5. 将 skill 安装到 `~/.claude/skills/`、`~/.kimi/skills/` 和 `~/.config/agents/skills/`
+
+### 方式三：手动链接
 
 ```bash
 # 以 Claude Code 为例
