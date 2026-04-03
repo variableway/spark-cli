@@ -8,13 +8,16 @@ import (
 )
 
 type Repository struct {
-	Name     string `json:"name"`
-	FullName string `json:"full_name"`
-	HTMLURL  string `json:"html_url"`
-	SSHURL   string `json:"ssh_url"`
-	CloneURL string `json:"clone_url"`
-	Private  bool   `json:"private"`
-	Fork     bool   `json:"fork"`
+	Name        string `json:"name"`
+	FullName    string `json:"full_name"`
+	HTMLURL     string `json:"html_url"`
+	SSHURL      string `json:"ssh_url"`
+	CloneURL    string `json:"clone_url"`
+	Private     bool   `json:"private"`
+	Fork        bool   `json:"fork"`
+	Description string `json:"description"`
+	Stargazers  int    `json:"stargazers_count"`
+	Language    string `json:"language"`
 }
 
 type OrgReposResponse []Repository
@@ -45,8 +48,13 @@ func GetOrgRepos(orgName string) ([]Repository, error) {
 }
 
 func ParseOrgFromURL(url string) (string, error) {
+	url = strings.TrimSpace(url)
 	url = strings.TrimSuffix(url, "/")
-	
+
+	if url == "" {
+		return "", fmt.Errorf("organization name or URL cannot be empty")
+	}
+
 	if strings.Contains(url, "github.com/") {
 		parts := strings.Split(url, "github.com/")
 		if len(parts) > 1 {
@@ -56,10 +64,10 @@ func ParseOrgFromURL(url string) (string, error) {
 			}
 		}
 	}
-	
+
 	if !strings.Contains(url, "/") && !strings.Contains(url, "http") {
 		return url, nil
 	}
-	
+
 	return "", fmt.Errorf("could not parse organization from URL: %s", url)
 }

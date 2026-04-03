@@ -45,6 +45,9 @@ spark git url
 
 # 克隆 GitHub 组织的所有仓库
 spark git clone-org variableway -o ./repos
+
+# 更新组织项目列表到 .github/README.md
+spark git update-org-status variableway
 ```
 
 ---

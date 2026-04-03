@@ -185,6 +185,23 @@ spark git clone-org variableway -o ./repos         # 指定输出目录
 | `--include-forks` | 包含 fork 的仓库 |
 | `-o, --output` | 输出目录 (默认: 当前目录) |
 
+#### `spark git update-org-status`
+获取 GitHub 组织的所有仓库信息，按 star 数量排序，并更新到 `.github/README.md`。
+
+```bash
+spark git update-org-status variableway                    # 使用组织名
+spark git update-org-status https://github.com/variableway # 使用 URL
+spark git update-org-status variableway --dry-run          # 预览输出，不写入文件
+spark git update-org-status variableway -o ./docs/README.md # 指定输出路径
+```
+
+| 选项 | 说明 |
+|------|------|
+| `--dry-run` | 预览 README 内容，不写入文件 |
+| `-o, --output` | 输出文件路径 (默认: `.github/README.md`) |
+
+该命令会自动执行 `git add`, `git commit`, `git push` 提交更改。
+
 ### AI Agent 管理
 
 #### `spark agent`
