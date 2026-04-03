@@ -327,11 +327,16 @@ spark task sync my-task --work-path ./workspace
 |--------|------|
 | `init` | 初始化任务目录结构 |
 | `list` | 列出所有任务和特性 |
-| `create` | 创建新特性文件 |
+| `create` | 创建新特性文件（文件名空格自动转换为 `-`）|
 | `delete` | 删除特性文件 |
 | `impl` | 实现特性（使用 kimi CLI）|
 | `dispatch` | 分发任务到新目录 |
 | `sync` | 同步任务回任务目录 |
+
+**特性文件创建说明**:
+- 文件名中的空格和下划线会自动转换为 `-`
+- `--content` 参数的内容会写入 `## 描述` section
+- 如果存在 `example-feature.md`，会将其作为模板
 
 **任务目录结构**:
 ```

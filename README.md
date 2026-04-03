@@ -81,10 +81,11 @@ spark task init
 # 列出所有任务和特性
 spark task list
 
-# 创建新特性文件
+# 创建新特性文件（文件名中的空格会自动转换为 -）
 spark task create my-feature
+spark task create "my feature name"  # 将创建 my-feature-name.md
 
-# 创建带内容的特性文件
+# 创建带内容的特性文件（内容将写入 ## 描述 section）
 spark task create my-feature --content "Custom description"
 
 # 删除特性文件

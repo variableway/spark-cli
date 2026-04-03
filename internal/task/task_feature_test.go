@@ -3,6 +3,7 @@ package task
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -94,6 +95,76 @@ func TestCreateFeature(t *testing.T) {
 	}
 }
 
+func TestCreateFeatureWithSpaces(t *testing.T) {
+	tempDir := t.TempDir()
+	mgr := NewManager(tempDir, "", "", false)
+	mgr.InitTaskStructure()
+
+	// Test creating feature with spaces in name
+	err := mgr.CreateFeature("make script issue", "")
+	if err != nil {
+		t.Fatalf("CreateFeature with spaces failed: %v", err)
+	}
+
+	// Check file was created with dashes instead of spaces
+	featurePath := filepath.Join(tempDir, "tasks", "features", "make-script-issue.md")
+	if _, err := os.Stat(featurePath); os.IsNotExist(err) {
+		t.Error("Feature file with normalized name not created")
+	}
+
+	// Check file with spaces does NOT exist
+	wrongPath := filepath.Join(tempDir, "tasks", "features", "make script issue.md")
+	if _, err := os.Stat(wrongPath); !os.IsNotExist(err) {
+		t.Error("Feature file with spaces should not exist")
+	}
+}
+
+func TestCreateFeatureWithContent(t *testing.T) {
+	tempDir := t.TempDir()
+	mgr := NewManager(tempDir, "", "", false)
+	mgr.InitTaskStructure()
+
+	customContent := "This is a custom description for the feature."
+	err := mgr.CreateFeature("custom-content", customContent)
+	if err != nil {
+		t.Fatalf("CreateFeature with content failed: %v", err)
+	}
+
+	featurePath := filepath.Join(tempDir, "tasks", "features", "custom-content.md")
+	content, err := os.ReadFile(featurePath)
+	if err != nil {
+		t.Fatalf("Failed to read feature file: %v", err)
+	}
+
+	// Check content is in the file
+	if !strings.Contains(string(content), customContent) {
+		t.Errorf("Feature content should contain '%s', got:\n%s", customContent, string(content))
+	}
+
+	// Check it's in the Description section
+	if !strings.Contains(string(content), "## Description") {
+		t.Error("Feature should have Description section")
+	}
+}
+
+func TestCreateFeatureWithUnderscores(t *testing.T) {
+	tempDir := t.TempDir()
+	mgr := NewManager(tempDir, "", "", false)
+	mgr.InitTaskStructure()
+
+	// Test creating feature with underscores
+	err := mgr.CreateFeature("my_feature_name", "")
+	if err != nil {
+		t.Fatalf("CreateFeature with underscores failed: %v", err)
+	}
+
+	// Check file was created with dashes instead of underscores
+	featurePath := filepath.Join(tempDir, "tasks", "features", "my-feature-name.md")
+	if _, err := os.Stat(featurePath); os.IsNotExist(err) {
+		t.Error("Feature file with dashes (normalized from underscores) not created")
+	}
+}
+
 func TestCreateFeatureDuplicate(t *testing.T) {
 	tempDir := t.TempDir()
 	mgr := NewManager(tempDir, "", "", false)
@@ -109,25 +180,24 @@ func TestCreateFeatureDuplicate(t *testing.T) {
 	}
 }
 
-func TestCreateFeatureWithContent(t *testing.T) {
+func TestCreateFeatureDuplicateWithSpaces(t *testing.T) {
 	tempDir := t.TempDir()
 	mgr := NewManager(tempDir, "", "", false)
 	mgr.InitTaskStructure()
 
-	customContent := "# Custom Feature\n\nThis is custom content."
-	err := mgr.CreateFeature("custom", customContent)
-	if err != nil {
-		t.Fatalf("CreateFeature with content failed: %v", err)
+	// Create first feature with spaces
+	mgr.CreateFeature("my feature", "")
+
+	// Try to create duplicate with same spaces
+	err := mgr.CreateFeature("my feature", "")
+	if err == nil {
+		t.Error("Expected error for duplicate feature name with spaces")
 	}
 
-	featurePath := filepath.Join(tempDir, "tasks", "features", "custom.md")
-	content, err := os.ReadFile(featurePath)
-	if err != nil {
-		t.Fatalf("Failed to read feature file: %v", err)
-	}
-
-	if string(content) != customContent {
-		t.Errorf("Feature content mismatch. Got:\n%s\nExpected:\n%s", string(content), customContent)
+	// Try to create duplicate with dashes (should also fail)
+	err = mgr.CreateFeature("my-feature", "")
+	if err == nil {
+		t.Error("Expected error for duplicate feature name (spaces vs dashes)")
 	}
 }
 
@@ -189,6 +259,27 @@ func TestDeleteFeature(t *testing.T) {
 	}
 }
 
+func TestDeleteFeatureWithSpaces(t *testing.T) {
+	tempDir := t.TempDir()
+	mgr := NewManager(tempDir, "", "", false)
+	mgr.InitTaskStructure()
+
+	// Create feature with spaces
+	mgr.CreateFeature("delete me", "")
+
+	// Delete using spaces (should be normalized)
+	err := mgr.DeleteFeature("delete me", true)
+	if err != nil {
+		t.Fatalf("DeleteFeature with spaces failed: %v", err)
+	}
+
+	// Verify it's gone
+	featurePath := filepath.Join(tempDir, "tasks", "features", "delete-me.md")
+	if _, err := os.Stat(featurePath); !os.IsNotExist(err) {
+		t.Error("Feature file still exists after deletion with spaces")
+	}
+}
+
 func TestDeleteFeatureNotFound(t *testing.T) {
 	tempDir := t.TempDir()
 	mgr := NewManager(tempDir, "", "", false)
@@ -226,6 +317,23 @@ func TestGetFeaturePath(t *testing.T) {
 	}
 }
 
+func TestGetFeaturePathWithSpaces(t *testing.T) {
+	tempDir := t.TempDir()
+	mgr := NewManager(tempDir, "", "", false)
+	mgr.InitTaskStructure()
+	mgr.CreateFeature("my test feature", "")
+
+	// Get path using spaces
+	path, err := mgr.GetFeaturePath("my test feature")
+	if err != nil {
+		t.Fatalf("GetFeaturePath with spaces failed: %v", err)
+	}
+	expectedPath := filepath.Join(tempDir, "tasks", "features", "my-test-feature.md")
+	if path != expectedPath {
+		t.Errorf("Path mismatch with spaces. Got %s, expected %s", path, expectedPath)
+	}
+}
+
 func TestGetFeaturePathNotFound(t *testing.T) {
 	tempDir := t.TempDir()
 	mgr := NewManager(tempDir, "", "", false)
@@ -251,6 +359,74 @@ func TestGenerateFeatureTemplate(t *testing.T) {
 	}
 	if !contains(template, "## Acceptance Criteria") {
 		t.Error("Template should contain Acceptance Criteria section")
+	}
+}
+
+func TestReplaceDescriptionContent(t *testing.T) {
+	template := `# Task: Test
+
+## Description
+
+Old description.
+
+## Acceptance Criteria
+
+- [ ] Criteria 1
+`
+
+	userContent := "New custom description."
+	result := replaceDescriptionContent(template, userContent)
+
+	// Check user content is in result
+	if !strings.Contains(result, userContent) {
+		t.Errorf("Result should contain user content '%s'", userContent)
+	}
+
+	// Check old placeholder is removed (it should be before the new content)
+	if strings.Contains(result, "Old description.") {
+		t.Error("Old placeholder should be removed")
+	}
+
+	// Check section structure is preserved
+	if !strings.Contains(result, "## Description") {
+		t.Error("Description section should be preserved")
+	}
+	if !strings.Contains(result, "## Acceptance Criteria") {
+		t.Error("Acceptance Criteria section should be preserved")
+	}
+}
+
+func TestReplaceDescriptionContentChinese(t *testing.T) {
+	template := `# 任务：测试
+
+## 描述
+
+旧描述。
+
+## 验收标准
+
+- [ ] 标准 1
+`
+
+	userContent := "新的自定义描述。"
+	result := replaceDescriptionContent(template, userContent)
+
+	// Check user content is in result
+	if !strings.Contains(result, userContent) {
+		t.Errorf("Result should contain user content '%s'", userContent)
+	}
+
+	// Check old placeholder is removed
+	if strings.Contains(result, "旧描述。") {
+		t.Error("Old placeholder should be removed")
+	}
+
+	// Check section structure is preserved
+	if !strings.Contains(result, "## 描述") {
+		t.Error("描述 section should be preserved")
+	}
+	if !strings.Contains(result, "## 验收标准") {
+		t.Error("验收标准 section should be preserved")
 	}
 }
 

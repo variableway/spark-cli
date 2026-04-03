@@ -20,8 +20,8 @@ endif
 
 all: build test
 
-build:
-	$(GO) build -o $(BINARY_NAME)$(BINARY_EXT) main.go
+build: clean
+	$(GO) build -ldflags="-s -w" -o $(BINARY_NAME)$(BINARY_EXT) main.go
 	@echo "Installing $(BINARY_NAME) to $(INSTALL_DIR)..."
 	@mkdir -p $(INSTALL_DIR)
 	@cp $(BINARY_NAME)$(BINARY_EXT) $(INSTALL_DIR)/$(BINARY_NAME)
