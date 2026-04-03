@@ -152,6 +152,14 @@ def main():
     try:
         issue = create_issue(repo, args.title, args.body, labels, token)
         
+        # Write active issue marker for hook integration
+        from pathlib import Path
+        try:
+            cwd = Path.cwd()
+            (cwd / ".github-task-workflow.active-issue").write_text(str(issue['number']))
+        except Exception:
+            pass
+        
         if args.output_json:
             print(json.dumps(issue, indent=2))
         else:

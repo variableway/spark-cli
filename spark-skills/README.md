@@ -61,7 +61,7 @@ ln -s $(pwd)/github-task-workflow ~/.claude/skills/github-task-workflow
 通过 GitHub Issues 管理任务全生命周期：从任务创建、实现跟踪到提交完成总结。
 
 > **注意**：这是一个 AI Agent Skill，支持三种使用方式：
-> 1. **Flow 模式（Kimi CLI）**：`/flow:github-task-workflow tasks/xxx.md`
+> 1. **普通对话模式（推荐）**：直接说"请执行 tasks/xxx.md"
 > 2. **普通对话模式**：直接说"执行 `tasks/xxx.md`"
 > 3. **编排器模式（跨 Agent）**：`python scripts/orchestrate.py init tasks/xxx.md`，然后 AI 实现，再 `python scripts/orchestrate.py finish`
 

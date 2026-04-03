@@ -2,3 +2,5 @@
 monolize
 go.sum
 spark
+__pycache__/
+**/__pycache__/

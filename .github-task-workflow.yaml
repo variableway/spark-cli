@@ -6,13 +6,38 @@ github:
   # token: ghp_xxxxxxxxxxxx
 
   # Repository for this project (auto-detected from git if not set)
-  # repo: variableway/spark-cli
+  repo: variableway/spark-cli
 
 # Task templates (optional)
-# templates:
-#   default: |
-#     ## Description
-#     {description}
-#
-#     ## Acceptance Criteria
-#     - [ ] Criteria 1
+templates:
+  default: |
+    ## Description
+    {description}
+
+    ## Acceptance Criteria
+    - [ ] Criteria 1
+    - [ ] Criteria 2
+
+  feature: |
+    ## Description
+    实现 {description}
+
+    ## Acceptance Criteria
+    - [ ] 功能实现
+    - [ ] 添加测试
+    - [ ] 更新文档
+
+  bugfix: |
+    ## Description
+    修复 {description}
+
+    ## Problem
+    描述问题现象
+
+    ## Solution
+    描述解决方案
+
+    ## Verification
+    - [ ] 复现问题
+    - [ ] 验证修复
+    - [ ] 回归测试

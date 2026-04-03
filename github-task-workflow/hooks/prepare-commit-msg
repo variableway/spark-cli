@@ -1,0 +1,17 @@
+#!/bin/sh
+# Git prepare-commit-msg hook: auto-append linked issue number to commit message.
+#
+# Install:
+#   cp hooks/prepare-commit-msg .git/hooks/prepare-commit-msg
+#   chmod +x .git/hooks/prepare-commit-msg
+#
+# Example: branch "42-feature-login" -> appends "\n\nRefs: #42" to commit msg.
+
+COMMIT_MSG_FILE=$1
+SOURCE=$2
+
+ISSUE=$(git branch --show-current | grep -oE '^[0-9]+' | head -n 1)
+
+if [ -n "$ISSUE" ] && [ "$SOURCE" != "commit" ]; then
+    printf "\n\nRefs: #%s" "$ISSUE" >> "$COMMIT_MSG_FILE"
+fi
