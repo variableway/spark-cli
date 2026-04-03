@@ -186,21 +186,31 @@ spark git clone-org variableway -o ./repos         # 指定输出目录
 | `-o, --output` | 输出目录 (默认: 当前目录) |
 
 #### `spark git update-org-status`
-获取 GitHub 组织的所有仓库信息，按 star 数量排序，并更新到 `.github/README.md`。
+获取 GitHub 组织的所有仓库信息，按 star 数量排序，并更新到 README.md。
 
 ```bash
-spark git update-org-status variableway                    # 使用组织名
+spark git update-org-status variableway                    # 更新本地 .github/README.md
+spark git update-org-status variableway --update-dot-github # 更新 .github 仓库
 spark git update-org-status https://github.com/variableway # 使用 URL
 spark git update-org-status variableway --dry-run          # 预览输出，不写入文件
 spark git update-org-status variableway -o ./docs/README.md # 指定输出路径
+spark git update-org-status variableway --section "Projects" # 指定 section 名称
+spark git update-org-status variableway --skip-push        # 跳过 git push
 ```
 
 | 选项 | 说明 |
 |------|------|
-| `--dry-run` | 预览 README 内容，不写入文件 |
-| `-o, --output` | 输出文件路径 (默认: `.github/README.md`) |
+| `--dry-run` | 预览内容，不写入文件 |
+| `-o, --output` | 本地模式输出路径 (默认: `.github/README.md`) |
+| `--update-dot-github` | 直接更新组织的 .github 仓库 |
+| `--section` | 要更新的 section 名称 (默认: "Project List") |
+| `--skip-push` | 跳过 git commit 和 push |
 
-该命令会自动执行 `git add`, `git commit`, `git push` 提交更改。
+**特性：**
+- 默认更新本地 `.github/README.md` 文件
+- 使用 `--update-dot-github` 直接更新组织的 `.github` 仓库
+- 只更新指定的 section，保留其他所有内容不变
+- 自动克隆、修改、提交并推送更改
 
 ### AI Agent 管理
 

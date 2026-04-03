@@ -48,6 +48,15 @@ spark git clone-org variableway -o ./repos
 
 # 更新组织项目列表到 .github/README.md
 spark git update-org-status variableway
+
+# 直接更新 .github 仓库的 README.md
+spark git update-org-status variableway --update-dot-github
+
+# 预览更新内容（不写入文件）
+spark git update-org-status variableway --dry-run
+
+# 只更新指定 section
+spark git update-org-status variableway --section "My Projects"
 ```
 
 ---
