@@ -90,40 +90,48 @@ Example:
 
 var taskListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all tasks in the task directory",
-	Long:  `List all tasks (directories) in the configured task directory.`,
+	Short: "List all tasks and features",
+	Long:  `List all tasks (directories) in the task directory and features in tasks/features.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if taskDir == "" {
-			return fmt.Errorf("task directory is required, use --task-dir or set in config")
+			taskDir = "."
 		}
 
 		mgr := task.NewManager(taskDir, githubOwner, workDir, false)
+
+		// List task directories
 		tasks, err := mgr.ListTasks()
 		if err != nil {
 			return err
 		}
 
-		if len(tasks) == 0 {
-			pterm.Info.Println("No tasks found.")
-			return nil
-		}
-
-		if useTUI {
-			pterm.DefaultHeader.WithFullWidth().Println("Task List")
-			pterm.Println()
-			var listItems []pterm.BulletListItem
-			for _, t := range tasks {
-				listItems = append(listItems, pterm.BulletListItem{Level: 0, Text: t})
-			}
-			pterm.DefaultBulletList.WithItems(listItems).Render()
-		} else {
-			pterm.DefaultSection.Printf("Tasks in %s", taskDir)
+		if len(tasks) > 0 {
+			pterm.DefaultSection.Println("Task Directories")
 			tableData := pterm.TableData{}
 			for i, t := range tasks {
 				tableData = append(tableData, []string{fmt.Sprintf("%d", i+1), t})
 			}
 			pterm.DefaultTable.WithHasHeader().WithData(pterm.TableData{{"#", "Task Name"}}).WithData(tableData).Render()
+			pterm.Println()
 		}
+
+		// List features
+		features, err := mgr.ListFeatures()
+		if err == nil && len(features) > 0 {
+			pterm.DefaultSection.Println("Feature Files")
+			tableData := pterm.TableData{}
+			for i, f := range features {
+				tableData = append(tableData, []string{fmt.Sprintf("%d", i+1), f})
+			}
+			pterm.DefaultTable.WithHasHeader().WithData(pterm.TableData{{"#", "Feature Name"}}).WithData(tableData).Render()
+		}
+
+		if len(tasks) == 0 && (err != nil || len(features) == 0) {
+			pterm.Info.Println("No tasks or features found.")
+			pterm.Println()
+			pterm.Println("Run 'spark task init' to initialize task structure.")
+		}
+
 		return nil
 	},
 }
@@ -212,6 +220,120 @@ func runSyncTUI(taskName string) error {
 	return mgr.SyncBack(taskName, workPath)
 }
 
+// Task Feature Commands
+
+var taskInitCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Initialize task directory structure",
+	Long: `Create the default task directory structure with example feature file.
+
+Creates the following directories:
+  - tasks/features/
+  - tasks/config/
+  - tasks/analysis/
+  - tasks/mindstorm/
+  - tasks/planning/
+  - tasks/prd/
+  - tasks/example-feature.md
+
+If directories already exist, they will be preserved.`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if taskDir == "" {
+			taskDir = "."
+		}
+
+		mgr := task.NewManager(taskDir, githubOwner, workDir, useTUI)
+		return mgr.InitTaskStructure()
+	},
+}
+
+var taskCreateCmd = &cobra.Command{
+	Use:   "create <feature-name>",
+	Short: "Create a new feature file",
+	Long: `Create a new feature file in tasks/features/ directory.
+
+The feature name will have .md extension added automatically if not provided.
+Uses example-feature.md as template.
+
+Example:
+  spark task create my-new-feature
+  spark task create my-new-feature --content "Custom description"`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if taskDir == "" {
+			taskDir = "."
+		}
+
+		featureName := args[0]
+		content, _ := cmd.Flags().GetString("content")
+
+		mgr := task.NewManager(taskDir, githubOwner, workDir, useTUI)
+		return mgr.CreateFeature(featureName, content)
+	},
+}
+
+var taskDeleteCmd = &cobra.Command{
+	Use:   "delete <feature-name>",
+	Short: "Delete a feature file",
+	Long: `Delete a feature file from tasks/features/ directory.
+
+Example:
+  spark task delete my-feature
+  spark task delete my-feature --force`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if taskDir == "" {
+			taskDir = "."
+		}
+
+		featureName := args[0]
+		force, _ := cmd.Flags().GetBool("force")
+
+		mgr := task.NewManager(taskDir, githubOwner, workDir, useTUI)
+
+		if !force && useTUI {
+			confirmed, err := tui.Confirm(fmt.Sprintf("Delete feature '%s'?", featureName))
+			if err != nil || !confirmed {
+				pterm.Info.Println("Delete cancelled.")
+				return nil
+			}
+		}
+
+		return mgr.DeleteFeature(featureName, force)
+	},
+}
+
+var taskImplCmd = &cobra.Command{
+	Use:   "impl <feature-name>",
+	Short: "Implement a feature",
+	Long: `Execute a feature implementation using kimi CLI and github-task-workflow.
+
+This command will:
+  1. Read the feature file
+  2. Create a GitHub issue
+  3. Execute the task using kimi CLI
+  4. Update the issue and commit changes
+
+Requirements:
+  - kim CLI must be installed
+  - github-task-workflow must be configured
+
+Example:
+  spark task impl my-feature
+  spark task impl my-feature --tui`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if taskDir == "" {
+			taskDir = "."
+		}
+
+		featureName := args[0]
+		mgr := task.NewManager(taskDir, githubOwner, workDir, useTUI)
+
+		return mgr.RunFeature(featureName, useTUI)
+	},
+}
+
 func init() {
 	taskCmd.PersistentFlags().StringVar(&taskDir, "task-dir", "", "Task directory containing all tasks")
 	taskCmd.PersistentFlags().StringVar(&githubOwner, "owner", "", "GitHub owner for creating repositories")
@@ -225,9 +347,17 @@ func init() {
 	taskDispatchCmd.Flags().String("dest", "", "Destination path for the dispatched task (default: <work-dir>/<task-name>)")
 	taskSyncCmd.Flags().String("work-path", "", "Working path of the task to sync (default: <work-dir>/<task-name>)")
 
+	// Feature command flags
+	taskCreateCmd.Flags().String("content", "", "Custom content for the feature file")
+	taskDeleteCmd.Flags().Bool("force", false, "Force deletion without confirmation")
+
 	taskCmd.AddCommand(taskDispatchCmd)
 	taskCmd.AddCommand(taskSyncCmd)
 	taskCmd.AddCommand(taskListCmd)
+	taskCmd.AddCommand(taskInitCmd)
+	taskCmd.AddCommand(taskCreateCmd)
+	taskCmd.AddCommand(taskDeleteCmd)
+	taskCmd.AddCommand(taskImplCmd)
 
 	rootCmd.AddCommand(taskCmd)
 }

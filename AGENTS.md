@@ -298,12 +298,51 @@ spark agent current                         # 查看当前项目使用的模板
 ### 任务管理
 
 #### `spark task`
-任务分发和同步管理（仅处理 `.md` Markdown 文件）。
+任务管理和特性实现命令。
 
 ```bash
-spark task list --task-dir ./tasks
-spark task dispatch my-task --task-dir ./tasks --owner myuser
-spark task sync my-task --task-dir ./tasks --work-path ./workspace
+# 初始化任务目录结构
+spark task init                    # 创建 tasks/ 目录结构
+
+# 列出所有任务和特性
+spark task list                    # 列出任务目录和特性文件
+
+# 创建新特性
+spark task create my-feature       # 创建 tasks/features/my-feature.md
+spark task create my-feature --content "Custom description"
+
+# 删除特性
+spark task delete my-feature       # 删除特性文件
+spark task delete my-feature --force  # 强制删除不提示
+
+# 实现特性（使用 kimi CLI）
+spark task impl my-feature         # 执行特性实现
+
+# 分发和同步任务
+spark task dispatch my-task --dest ./workspace
+spark task sync my-task --work-path ./workspace
+```
+
+| 子命令 | 说明 |
+|--------|------|
+| `init` | 初始化任务目录结构 |
+| `list` | 列出所有任务和特性 |
+| `create` | 创建新特性文件 |
+| `delete` | 删除特性文件 |
+| `impl` | 实现特性（使用 kimi CLI）|
+| `dispatch` | 分发任务到新目录 |
+| `sync` | 同步任务回任务目录 |
+
+**任务目录结构**:
+```
+tasks/
+├── example-feature.md     # 示例特性模板
+├── features/              # 特性文件目录
+├── config/                # 配置任务目录
+├── analysis/              # 分析任务目录
+├── mindstorm/             # 头脑风暴目录
+├── planning/              # 规划任务目录
+└── prd/                   # PRD 文档目录
 ```
 
 支持 `--tui` 标志启用交互式终端 UI。

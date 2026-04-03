@@ -71,6 +71,37 @@ spark script run list-dirs
 # 执行脚本并传递参数
 spark script run copy-template my-new-feature
 ```
+
+### 任务管理
+
+```bash
+# 初始化任务目录结构
+spark task init
+
+# 列出所有任务和特性
+spark task list
+
+# 创建新特性文件
+spark task create my-feature
+
+# 创建带内容的特性文件
+spark task create my-feature --content "Custom description"
+
+# 删除特性文件
+spark task delete my-feature
+
+# 强制删除（不提示）
+spark task delete my-feature --force
+
+# 实现特性（使用 kimi CLI）
+spark task impl my-feature
+
+# 分发任务到新目录
+spark task dispatch my-feature --dest ./workspace
+
+# 同步任务回任务目录
+spark task sync my-feature --work-path ./workspace
+```
 ```
 
 ---

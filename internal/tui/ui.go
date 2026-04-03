@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/pterm/pterm"
 )
 
@@ -76,4 +78,20 @@ func (u *UI) BulletList(items []string) {
 		listItems = append(listItems, pterm.BulletListItem{Level: 0, Text: item})
 	}
 	pterm.DefaultBulletList.WithItems(listItems).Render()
+}
+
+func (u *UI) Confirm(message string) bool {
+	if u.useTUI {
+		result, _ := pterm.DefaultInteractiveConfirm.Show(message)
+		return result
+	}
+	// CLI mode - simple prompt
+	fmt.Printf("%s [y/N]: ", message)
+	var response string
+	fmt.Scanln(&response)
+	return response == "y" || response == "Y"
+}
+
+func (u *UI) Scanln(a ...interface{}) {
+	fmt.Scanln(a...)
 }
