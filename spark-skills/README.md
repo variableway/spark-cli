@@ -79,6 +79,26 @@ kimi --agent-file github-task-workflow/agent/kimi-agent.yaml
 
 详见：[github-task-workflow/SKILL.md](github-task-workflow/SKILL.md)
 
+### `spark-task-init`
+
+为 spark-cli 初始化任务目录结构的 Skill。
+
+**功能**：
+- 创建任务目录结构（tasks/features/, tasks/config/ 等）
+- 创建示例特性模板文件
+- 可在任意目录执行
+
+**使用方式**：
+```bash
+# 方式一：使用 spark 命令
+spark task init
+
+# 方式二：使用 skill 直接执行
+kimi --agent-file spark-task-init-skill/SKILL.md
+```
+
+详见：[spark-task-init-skill/SKILL.md](spark-task-init-skill/SKILL.md)
+
 ## 仓库结构
 
 ```
@@ -94,6 +114,8 @@ spark-skills/
 │   │   └── update_issue.py
 │   └── references/                    # 详细参考文档
 │       └── workflow.md
+├── spark-task-init-skill/             # Skill: spark task 初始化
+│   └── SKILL.md                       # Skill 入口
 └── ...                                # 未来添加更多 skills
 ```
 

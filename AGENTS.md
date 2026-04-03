@@ -354,6 +354,43 @@ tasks/
 
 详细文档: [docs/usage/task.md](docs/usage/task.md)
 
+## Spark Skills
+
+个人 Skill 集合仓库，包含多个 AI Agent Skill，用于增强 spark-cli 的功能。
+
+**仓库地址**: `variableway/spark-cli` 中的 `spark-skills/` 目录
+
+### 已包含 Skills
+
+| Skill | 描述 | 路径 |
+|-------|------|------|
+| `github-task-workflow` | GitHub 任务工作流管理 | `spark-skills/github-task-workflow/` |
+| `spark-task-init` | spark task 初始化 | `spark-skills/spark-task-init-skill/` |
+
+### 使用方式
+
+```bash
+# 安装 skills 到各 Agent
+cd spark-skills
+./install.sh kimi
+./install.sh claude-code
+
+# 项目级一键配置
+bash spark-skills/setup-project.sh
+```
+
+### Skill 目录结构
+
+```
+spark-skills/
+├── github-task-workflow/     # GitHub 任务工作流 Skill
+├── spark-task-init-skill/    # Task 初始化 Skill
+├── install.sh                # 安装脚本
+└── README.md                 # 说明文档
+```
+
+详细文档: [spark-skills/README.md](spark-skills/README.md)
+
 ## 构建与测试
 
 ### 构建命令
