@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"monolize/internal/github"
+	"spark/internal/github"
 
 	"github.com/spf13/cobra"
 )

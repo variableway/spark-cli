@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"monolize/internal/task"
-	"monolize/internal/tui"
+	"spark/internal/task"
+	"spark/internal/tui"
 
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"

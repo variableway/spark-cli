@@ -2,7 +2,7 @@ package git
 
 import (
 	"fmt"
-	"monolize/internal/mono"
+	"spark/internal/mono"
 
 	"github.com/spf13/cobra"
 )

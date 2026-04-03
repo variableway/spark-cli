@@ -3,7 +3,7 @@ package task
 import (
 	"fmt"
 	"io"
-	"monolize/internal/tui"
+	"spark/internal/tui"
 	"os"
 	"os/exec"
 	"path/filepath"

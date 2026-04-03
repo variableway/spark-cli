@@ -1,7 +1,7 @@
 package task_test
 
 import (
-	"monolize/internal/task"
+	"spark/internal/task"
 	"os"
 	"path/filepath"
 

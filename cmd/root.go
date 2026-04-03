@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"monolize/cmd/git"
-	"monolize/cmd/magic"
-	"monolize/cmd/script"
+	"spark/cmd/git"
+	"spark/cmd/magic"
+	"spark/cmd/script"
 	"os"
 	"path/filepath"
 

@@ -1,7 +1,7 @@
 package config_test
 
 import (
-	"monolize/internal/config"
+	"spark/internal/config"
 	"os"
 
 	. "github.com/onsi/ginkgo/v2"

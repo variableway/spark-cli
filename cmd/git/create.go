@@ -2,8 +2,8 @@ package git
 
 import (
 	"fmt"
-	"monolize/internal/git"
-	"monolize/internal/mono"
+	"spark/internal/git"
+	"spark/internal/mono"
 	"os"
 	"path/filepath"
 

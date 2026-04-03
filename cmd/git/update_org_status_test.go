@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"monolize/internal/github"
+	"spark/internal/github"
 )
 
 func TestGenerateProjectListSection(t *testing.T) {

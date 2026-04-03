@@ -2,7 +2,7 @@ package mono
 
 import (
 	"fmt"
-	"monolize/internal/git"
+	"spark/internal/git"
 	"os"
 	"os/exec"
 	"path/filepath"

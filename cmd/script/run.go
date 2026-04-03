@@ -2,7 +2,7 @@ package script
 
 import (
 	"fmt"
-	"monolize/internal/script"
+	"spark/internal/script"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"

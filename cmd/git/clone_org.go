@@ -2,7 +2,7 @@ package git
 
 import (
 	"fmt"
-	"monolize/internal/github"
+	"spark/internal/github"
 	"os"
 	"os/exec"
 	"strings"

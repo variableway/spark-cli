@@ -1,7 +1,7 @@
 package git_test
 
 import (
-	"monolize/internal/git"
+	"spark/internal/git"
 	"os"
 	"path/filepath"
 
