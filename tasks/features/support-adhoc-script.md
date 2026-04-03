@@ -1,4 +1,4 @@
-# Task：为 spark-cli 添加项目列表更新到README的命令
+# Task 1: Support Adhoc script in command line
 
 ## 描述
 
