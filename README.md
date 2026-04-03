@@ -59,6 +59,20 @@ spark git update-org-status variableway --dry-run
 spark git update-org-status variableway --section "My Projects"
 ```
 
+### 脚本执行
+
+```bash
+# 列出所有可用脚本
+spark script list
+
+# 执行脚本
+spark script run list-dirs
+
+# 执行脚本并传递参数
+spark script run copy-template my-new-feature
+```
+```
+
 ---
 Following is not fully tested,under testing now.
 ---

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"monolize/cmd/git"
 	"monolize/cmd/magic"
+	"monolize/cmd/script"
 	"os"
 	"path/filepath"
 
@@ -15,11 +16,12 @@ var cfgFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "spark",
-	Short: "A CLI tool to manage multiple git repositories",
+	Short: "A CLI tool to manage multiple git repositories and scripts",
 	Long: `Spark is a CLI application that helps you:
 1. Update multiple git repositories to the latest version
 2. Create a mono repo with all repositories as submodules
-3. Manage all repositories with a single git command`,
+3. Manage all repositories with a single git command
+4. Execute custom scripts for automation`,
 }
 
 func Execute() {
@@ -36,6 +38,7 @@ func init() {
 	viper.BindPFlag("repo-path", rootCmd.PersistentFlags().Lookup("path"))
 	rootCmd.AddCommand(git.GitCmd)
 	rootCmd.AddCommand(magic.MagicCmd)
+	rootCmd.AddCommand(script.ScriptCmd)
 }
 
 func initConfig() {

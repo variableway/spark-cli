@@ -212,6 +212,62 @@ spark git update-org-status variableway --skip-push        # 跳过 git push
 - 只更新指定的 section，保留其他所有内容不变
 - 自动克隆、修改、提交并推送更改
 
+### 脚本管理
+
+#### `spark script`
+管理和执行自定义脚本。
+
+```bash
+spark script list                    # 列出所有可用脚本
+spark script run <script-name>       # 执行指定脚本
+```
+
+#### `spark script list`
+列出所有可用的脚本。
+
+```bash
+spark script list
+```
+
+脚本来源：
+1. `~/.spark.yaml` 中的 `spark.scripts` 配置
+2. 当前目录下 `scripts/` 文件夹中的脚本文件
+
+#### `spark script run`
+执行指定名称的脚本。
+
+```bash
+spark script run hello               # 执行 hello 脚本
+spark script run deploy prod         # 执行 deploy 脚本，传入参数 prod
+spark script run copy-template my-feature  # 复制模板文件
+```
+
+**配置文件示例** (`~/.spark.yaml`):
+
+```yaml
+spark:
+  scripts_dir: "scripts"  # 脚本目录，默认为 scripts/
+  scripts:
+    - name: hello
+      content: |
+        #!/bin/bash
+        echo "Hello, World!"
+    - name: deploy
+      content: |
+        #!/bin/bash
+        echo "Deploying to $1 environment..."
+```
+
+**支持的脚本类型**:
+- Shell: `.sh`, `.bash`, `.zsh`
+- Python: `.py`
+- Ruby: `.rb`
+- Perl: `.pl`
+- PowerShell: `.ps1`
+- Batch: `.bat`, `.cmd`
+
+**跨平台支持**: Mac、Linux、Windows
+
 ### AI Agent 管理
 
 #### `spark agent`
