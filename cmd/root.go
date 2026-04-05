@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"spark/cmd/docs"
 	"spark/cmd/git"
 	"spark/cmd/magic"
 	"spark/cmd/script"
@@ -39,6 +40,7 @@ func init() {
 	rootCmd.AddCommand(git.GitCmd)
 	rootCmd.AddCommand(magic.MagicCmd)
 	rootCmd.AddCommand(script.ScriptCmd)
+	rootCmd.AddCommand(docs.DocsCmd)
 }
 
 func initConfig() {
