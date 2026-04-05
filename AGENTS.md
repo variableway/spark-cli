@@ -10,9 +10,9 @@
 2. **Mono-repo 创建** - 将多个仓库整合为一个带有子模块的 Mono 仓库
 3. **子模块同步** - 同步 Mono 仓库中的所有子模块
 4. **Git 用户配置** - 配置仓库的 Git 用户信息
-5. **AI Agent 配置管理** - 管理多种 AI Agent（Claude Code、Codex、Kimi、GLM）的配置文件
-6. **任务管理** - 任务分发、同步和 GitHub 仓库创建
-7. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
+5. **任务管理** - 任务分发、同步和 GitHub 仓库创建
+6. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
+7. ~~**AI Agent 配置管理** - 管理多种 AI Agent（Claude Code、Codex、Kimi、GLM）的配置文件~~ (已禁用，待重新设计)
 
 ## 技术栈
 
@@ -268,7 +268,9 @@ spark:
 
 **跨平台支持**: Mac、Linux、Windows
 
-### AI Agent 管理
+### AI Agent 管理 (已禁用)
+
+> ⚠️ 此功能当前已禁用，命令入口已关闭（`cmd/agent.go` 中 `rootCmd.AddCommand(agentCmd)` 已注释）。待后续重新设计后再启用。
 
 #### `spark agent`
 管理多种 AI Agent 的配置文件。

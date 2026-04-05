@@ -1,4 +1,6 @@
-# spark agent — AI Agent 配置管理
+# spark agent — AI Agent 配置管理 (已禁用)
+
+> ⚠️ 此功能当前已禁用，命令入口已关闭。待后续重新设计后再启用。
 
 管理多种 AI Agent 的配置文件（Claude Code、Codex、Kimi、GLM）。
 

@@ -18,9 +18,10 @@ const (
 )
 
 type AgentConfig struct {
-	Name        AgentType
-	DisplayName string
-	ConfigFiles []string
+	Name             AgentType
+	DisplayName      string
+	ConfigFiles      []string
+	DefaultTemplates []string
 }
 
 var AgentConfigs = map[AgentType]AgentConfig{
@@ -32,12 +33,20 @@ var AgentConfigs = map[AgentType]AgentConfig{
 			".claude/settings.json",
 			".claude/settings.local.json",
 		},
+		DefaultTemplates: []string{
+			"{}",
+			"{\n  \"permissions\": {\n    \"allow\": [],\n    \"deny\": []\n  }\n}",
+			"{\n  \"permissions\": {\n    \"allow\": [],\n    \"deny\": []\n  }\n}",
+		},
 	},
 	AgentCodex: {
 		Name:        AgentCodex,
 		DisplayName: "OpenAI Codex",
 		ConfigFiles: []string{
 			".codex/config.toml",
+		},
+		DefaultTemplates: []string{
+			"# Codex configuration\n# model = \"codex-mini-latest\"\n",
 		},
 	},
 	AgentKimi: {
@@ -46,6 +55,9 @@ var AgentConfigs = map[AgentType]AgentConfig{
 		ConfigFiles: []string{
 			".kimi/config.toml",
 		},
+		DefaultTemplates: []string{
+			"# Kimi CLI configuration\n# model = \"kimi-latest\"\n",
+		},
 	},
 	AgentGLM: {
 		Name:        AgentGLM,
@@ -53,6 +65,10 @@ var AgentConfigs = map[AgentType]AgentConfig{
 		ConfigFiles: []string{
 			".claude.json",
 			".claude/settings.json",
+		},
+		DefaultTemplates: []string{
+			"{}",
+			"{\n  \"permissions\": {\n    \"allow\": [],\n    \"deny\": []\n  }\n}",
 		},
 	},
 }

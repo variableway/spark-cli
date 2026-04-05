@@ -22,6 +22,11 @@ func (m *Manager) GetProfilesDir() string {
 	return filepath.Join(m.homeDir, ".spark", "profiles")
 }
 
+func (m *Manager) DeleteProfile(name string) error {
+	dir := filepath.Join(m.GetProfilesDir(), name)
+	return os.RemoveAll(dir)
+}
+
 func (m *Manager) ListProfiles() ([]Profile, error) {
 	profilesDir := m.GetProfilesDir()
 
@@ -105,14 +110,20 @@ func (m *Manager) AddProfile(name string, agent AgentType) error {
 			return err
 		}
 
-		// Try to copy from global config
-		globalPath := configPaths[i]
-		if content, err := os.ReadFile(globalPath); err == nil {
-			os.WriteFile(targetPath, content, 0644)
-		} else {
-			// Create empty file
-			os.WriteFile(targetPath, []byte{}, 0644)
+		var content []byte
+		if globalPath := configPaths[i]; globalPath != "" {
+			if data, err := os.ReadFile(globalPath); err == nil && len(data) > 0 {
+				content = data
+			}
 		}
+		if len(content) == 0 && i < len(configDef.DefaultTemplates) {
+			content = []byte(configDef.DefaultTemplates[i])
+		}
+		if len(content) == 0 {
+			content = []byte{}
+		}
+
+		os.WriteFile(targetPath, content, 0644)
 	}
 
 	return nil

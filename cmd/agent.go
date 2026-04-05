@@ -204,5 +204,5 @@ func init() {
 	agentCmd.AddCommand(agentEditCmd)
 	agentCmd.AddCommand(agentResetCmd)
 
-	rootCmd.AddCommand(agentCmd)
+	// rootCmd.AddCommand(agentCmd)
 }

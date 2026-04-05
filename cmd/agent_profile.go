@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"spark/internal/agent"
 	"spark/internal/tui"
 
@@ -11,6 +12,8 @@ import (
 
 var profileType string
 var profileProject string
+var profileGlobal bool
+var profileForce bool
 
 var agentProfileCmd = &cobra.Command{
 	Use:   "profile",
@@ -53,7 +56,12 @@ var agentProfileListCmd = &cobra.Command{
 var agentProfileAddCmd = &cobra.Command{
 	Use:   "add <name>",
 	Short: "Add a new agent profile",
-	Args:  cobra.ExactArgs(1),
+	Long: `Add a new agent profile. Use --force to overwrite an existing profile.
+
+Examples:
+  spark agent profile add my-glm --type glm
+  spark agent profile add my-glm --type glm --force`,
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 
@@ -62,6 +70,12 @@ var agentProfileAddCmd = &cobra.Command{
 		}
 
 		agentType := agent.AgentType(profileType)
+
+		if profileForce {
+			if err := agentManager.DeleteProfile(name); err != nil && !os.IsNotExist(err) {
+				return fmt.Errorf("failed to remove existing profile: %w", err)
+			}
+		}
 
 		pterm.Info.Printf("Creating profile '%s' for agent '%s'...\n", name, agentType)
 		if err := agentManager.AddProfile(name, agentType); err != nil {
@@ -147,33 +161,61 @@ var agentProfileEditCmd = &cobra.Command{
 
 var agentUseCmd = &cobra.Command{
 	Use:   "use <profile-name>",
-	Short: "Apply a profile to the current project",
-	Args:  cobra.ExactArgs(1),
+	Short: "Apply a profile to the current project or system-wide",
+	Long: `Apply a profile to the current project or system-wide.
+
+By default, the profile is applied to the current project directory.
+Use --global (-g) to apply the profile to your home directory (system level).
+
+Examples:
+  spark agent use my-glm              # Apply to current project
+  spark agent use my-glm --global     # Apply to home directory (system level)
+  spark agent use my-glm -d /path     # Apply to a specific project directory`,
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 
 		projectDir := profileProject
-		if projectDir == "" {
+		if profileGlobal {
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("failed to get home directory: %w", err)
+			}
+			projectDir = homeDir
+		} else if projectDir == "" {
 			projectDir = "."
 		}
 
-		pterm.Info.Printf("Applying profile '%s' to project at '%s'...\n", name, projectDir)
+		scope := "project"
+		if profileGlobal {
+			scope = "system (global)"
+		}
+		pterm.Info.Printf("Applying profile '%s' to %s at '%s'...\n", name, scope, projectDir)
 
 		if err := agentManager.ApplyProfile(name, projectDir); err != nil {
 			return fmt.Errorf("failed to apply profile: %w", err)
 		}
 
-		pterm.Success.Println("Profile applied successfully!")
+		pterm.Success.Printf("Profile applied successfully to %s!\n", scope)
 		return nil
 	},
 }
 
 var agentCurrentCmd = &cobra.Command{
 	Use:   "current",
-	Short: "Show the current applied profile in the project",
+	Short: "Show the current applied profile in the project or system-wide",
+	Long: `Show the current applied profile in the project or system-wide.
+
+Use --global (-g) to check the profile at system level (home directory).`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectDir := profileProject
-		if projectDir == "" {
+		if profileGlobal {
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				return fmt.Errorf("failed to get home directory: %w", err)
+			}
+			projectDir = homeDir
+		} else if projectDir == "" {
 			projectDir = "."
 		}
 
@@ -183,7 +225,11 @@ var agentCurrentCmd = &cobra.Command{
 		}
 
 		if current == "" {
-			pterm.Warning.Println("No agent profile is currently applied to this project.")
+			scope := "this project"
+			if profileGlobal {
+				scope = "system (global)"
+			}
+			pterm.Warning.Printf("No agent profile is currently applied to %s.\n", scope)
 			pterm.Info.Println("Use 'spark agent use <profile-name>' to apply one.")
 			return nil
 		}
@@ -204,7 +250,10 @@ func init() {
 	agentProfileCmd.AddCommand(agentProfileEditCmd)
 
 	agentProfileAddCmd.Flags().StringVarP(&profileType, "type", "t", "", "Agent type (e.g. claude-code, glm)")
+	agentProfileAddCmd.Flags().BoolVarP(&profileForce, "force", "f", false, "Overwrite existing profile")
 
-	agentUseCmd.Flags().StringVarP(&profileProject, "project", "p", ".", "Project directory path")
-	agentCurrentCmd.Flags().StringVarP(&profileProject, "project", "p", ".", "Project directory path")
+	agentUseCmd.Flags().StringVarP(&profileProject, "project", "d", ".", "Project directory path")
+	agentUseCmd.Flags().BoolVarP(&profileGlobal, "global", "g", false, "Apply to home directory (system level)")
+	agentCurrentCmd.Flags().StringVarP(&profileProject, "project", "d", ".", "Project directory path")
+	agentCurrentCmd.Flags().BoolVarP(&profileGlobal, "global", "g", false, "Check system-level profile")
 }
