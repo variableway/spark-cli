@@ -1,184 +1,171 @@
-# Spark
+# Spark CLI
 
-一个用于管理多个 Git 仓库的 CLI 工具。
+A CLI tool for daily dev automation and AI skill integration.
 
-## 功能特性
+**Why Spark?** Deterministic tasks (file scaffolding, mirror switching, config management) can be automated by CLI to save token cost. Spark also provides a CLI app backend for AI skills — so agents can call `spark` instead of burning LLM tokens on repetitive operations.
 
-1. **多仓库更新** - 批量更新多个 Git 仓库到最新版本
-2. **Mono-repo 创建** - 将多个仓库整合为一个带有子模块的 Mono 仓库
-3. **子模块同步** - 同步 Mono 仓库中的所有子模块
-4. **Git 用户配置** - 配置仓库的 Git 用户信息
-5. **AI Agent 配置管理** - 管理多种 AI Agent（Claude Code、Codex、Kimi、GLM）的配置文件
-6. **任务管理** - 任务分发、同步和 GitHub 仓库创建
-7. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
+> Most code is AI-generated, all inspired by real daily workflows.
 
-## 安装
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | Go 1.25 |
+| CLI Framework | Cobra |
+| Config | Viper (`~/.spark.yaml`) |
+| TUI | PTerm + Bubble Tea |
+| Testing | Ginkgo / Gomega (BDD) |
+| Docs | docmd |
+
+## Architecture
+
+```
+main.go → cmd.Execute()
+├── cmd/                    Cobra command definitions
+│   ├── git/                Git repo management commands
+│   ├── magic/              System utilities (DNS, mirrors)
+│   ├── script/             Script management commands
+│   ├── agent.go            AI agent config management
+│   ├── agent_profile.go    Agent profile templates
+│   └── task.go             Task workflow commands
+├── internal/               Business logic by domain
+│   ├── agent/              AI agent config (Claude Code, Codex, Kimi, GLM)
+│   ├── config/             Config loading & migration
+│   ├── git/                Core git operations
+│   ├── github/             GitHub API interactions
+│   ├── mono/               Mono-repo & submodule management
+│   ├── script/             Script discovery & execution
+│   ├── task/               Task dispatch/sync/feature CRUD
+│   └── tui/                Shared terminal UI components
+├── docs/                   Documentation (docmd)
+└── scripts/                User-defined automation scripts
+```
+
+## Build
 
 ```bash
-make build          # 为当前系统编译
-make build-linux    # 交叉编译 Linux 版
-make build-darwin   # 交叉编译 macOS 版
+make build          # Build + install to ~/.local/bin/spark
+make build-linux    # Cross-compile Linux amd64
+make build-darwin   # Cross-compile macOS amd64
+make test           # Run all unit tests
+make test-bdd       # BDD-style tests (Ginkgo)
+make lint           # Static analysis (go vet)
+make clean          # Remove binary
 ```
 
-## 快速开始
-
-### Git 仓库管理
-
+Run a single test:
 ```bash
-# 更新多个仓库
-spark git update -p /path/to/repos
-
-# 创建 Mono 仓库
-spark git create -p /path/to/repos -n my-mono-repo -o ./output
-
-# 同步子模块
-spark git sync /path/to/mono-repo
-
-# 添加 Gitcode 远程
-spark git gitcode -p /path/to/repos
-
-# 配置 Git 用户
-spark git config --username foo --email bar@example.com
-
-# 获取仓库 URL
-spark git url
-
-# 克隆 GitHub 组织的所有仓库
-spark git clone-org variableway -o ./repos
-
-# 更新组织项目列表到 .github/README.md
-spark git update-org-status variableway
-
-# 直接更新 .github 仓库的 README.md
-spark git update-org-status variableway --update-dot-github
-
-# 预览更新内容（不写入文件）
-spark git update-org-status variableway --dry-run
-
-# 只更新指定 section
-spark git update-org-status variableway --section "My Projects"
+go test ./internal/git/... -v -run TestFunctionName
 ```
 
-### 脚本执行
+## Commands
 
-```bash
-# 列出所有可用脚本
-spark script list
+### Global Flags
 
-# 执行脚本
-spark script run list-dirs
-
-# 执行脚本并传递参数
-spark script run copy-template my-new-feature
-```
-
-### 任务管理
-
-```bash
-# 初始化任务目录结构
-spark task init
-
-# 列出所有任务和特性
-spark task list
-
-# 创建新特性文件（文件名中的空格会自动转换为 -）
-spark task create my-feature
-spark task create "my feature name"  # 将创建 my-feature-name.md
-
-# 创建带内容的特性文件（内容将写入 ## 描述 section）
-spark task create my-feature --content "Custom description"
-
-# 删除特性文件
-spark task delete my-feature
-
-# 强制删除（不提示）
-spark task delete my-feature --force
-
-# 实现特性（使用 kimi CLI）
-spark task impl my-feature
-
-# 分发任务到新目录
-spark task dispatch my-feature --dest ./workspace
-
-# 同步任务回任务目录
-spark task sync my-feature --work-path ./workspace
-```
-```
+| Flag | Description |
+|------|-------------|
+| `--config` | Config file (default `~/.spark.yaml`) |
+| `-p, --path` | Directory containing git repos |
 
 ---
-Following is not fully tested,under testing now.
+
+### spark git — Git Repository Management
+
+| Command | Description |
+|---------|-------------|
+| `spark git update` | Update all repos to latest version |
+| `spark git create -n <name> -o <path>` | Create mono-repo with submodules |
+| `spark git sync <mono-path>` | Sync all submodules to latest |
+| `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
+| `spark git config [--username --email]` | Configure git user for repo |
+| `spark git url [repo-path]` | Get remote URL of repository |
+| `spark git clone-org <org> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org |
+| `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
+
 ---
 
+### spark agent — AI Agent Configuration
 
-### AI Agent 配置
+| Command | Description |
+|---------|-------------|
+| `spark agent list` | List supported agents |
+| `spark agent view <agent>` | View agent config files |
+| `spark agent edit <agent> [index]` | Edit agent config in editor |
+| `spark agent reset <agent>` | Reset agent config |
+| `spark agent profile list` | List config profiles |
+| `spark agent profile add <name> -t <type>` | Add new profile |
+| `spark agent profile show <name>` | Show profile config |
+| `spark agent profile edit <name> [index]` | Edit profile config |
+| `spark agent use <profile> [-p <dir>]` | Apply profile to project |
+| `spark agent current [-p <dir>]` | Show active profile |
 
-```bash
-# 列出所有支持的 Agent
-spark agent list
+Supported agents: `claude-code`, `codex`, `kimi`, `glm`
 
-# 查看配置
-spark agent view claude-code
+---
 
-# 编辑配置
-spark agent edit kimi
+### spark task — Task Management
 
-# Profile 配置模板管理
-spark agent profile list
-spark agent profile add my-glm --type glm
-spark agent use my-glm
-```
+| Command | Description |
+|---------|-------------|
+| `spark task init` | Initialize task directory structure |
+| `spark task list` | List all tasks and features |
+| `spark task create <name> [--content <text>]` | Create feature file |
+| `spark task delete <name> [--force]` | Delete feature file |
+| `spark task impl <name>` | Implement feature via kimi CLI |
+| `spark task dispatch [name] [--dest <path>]` | Dispatch task to workspace |
+| `spark task sync [name] [--work-path <path>]` | Sync task back |
 
-### 任务管理
+Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
 
-```bash
-# 列出任务
-spark task list --task-dir ./tasks
+---
 
-# 分发任务
-spark task dispatch my-task --task-dir ./tasks --owner myuser
+### spark magic — System Utilities
 
-# 同步任务
-spark task sync my-task --task-dir ./tasks --work-path ./workspace
-```
+| Command | Description |
+|---------|-------------|
+| `spark magic flush-dns` | Flush DNS cache (macOS/Windows/Linux) |
 
-## 配置
+#### Mirror Switching (list / use / current)
 
-配置文件位于 `~/.spark.yaml`：
+| Command | Targets |
+|---------|---------|
+| `spark magic pip [list\|use\|current]` | Python pip mirrors (tsinghua, aliyun, douban, ustc, tencent) |
+| `spark magic go [list\|use\|current]` | Go module proxy (aliyun, tsinghua, goproxy, ustc, nju) |
+| `spark magic node [list\|use\|current]` | npm registry (taobao, aliyun, tencent, huawei, ustc) |
+
+---
+
+### spark script — Custom Scripts
+
+| Command | Description |
+|---------|-------------|
+| `spark script list` | List available scripts |
+| `spark script run <name> [args...]` | Execute a script |
+
+Scripts sourced from `~/.spark.yaml` (`spark.scripts`) and `scripts/` directory.
+
+## Configuration
+
+Config file: `~/.spark.yaml`
 
 ```yaml
 repo-path:
   - /path/to/repos
-  - /another/path
-
-task-dir: /path/to/tasks
-github-owner: your-username
-work-dir: ./workspace
-
 git:
-  username: your-name      # 默认 Git 用户名
-  email: your@email.com    # 默认 Git 邮箱
-```
-```
-  Configuration sections:
-   Section        Options                             Used By
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   repo-path      List of paths to scan for repos     git update, git create, git gitcode
-   git            username, email                     git config
-   task_dir       Task templates directory            task commands
-   github_owner   GitHub username for repo creation   task dispatch
-   work_dir       Working directory for tasks         task commands
-   General        path, default_branch, auto_commit   Various commands
-  Usage:
-```
-ßß
-## 开发
-
-```bash
-make test           # 运行所有单元测试
-make test-bdd       # 以 BDD 风格运行测试
-make lint           # 运行静态检查
+  username: your-name
+  email: your@email.com
+task_dir: /path/to/tasks
+github_owner: your-username
+work_dir: ./workspace
 ```
 
-## 文档
+## Documentation
 
-详细文档请参见 [AGENTS.md](AGENTS.md) 和 [docs/usage/](docs/usage/) 目录。
+Online docs: https://variableway.github.io/spark-cli/
+
+| Path | Content |
+|------|---------|
+| [docs/usage/](docs/usage/) | Per-command usage guides |
+| [docs/analysis/](docs/analysis/) | Architecture & RFC documents |
+| [AGENTS.md](AGENTS.md) | AI agent integration guide |
+| [CLAUDE.md](CLAUDE.md) | Claude Code development guide |

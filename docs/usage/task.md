@@ -1,4 +1,4 @@
-# monolize task
+# spark task
 
 任务管理命令：分发任务到新目录并同步回更改。
 
@@ -14,7 +14,7 @@
 ## 使用方法
 
 ```bash
-monolize task [command] [flags]
+spark task [command] [flags]
 ```
 
 ## 全局标志
@@ -33,17 +33,17 @@ monolize task [command] [flags]
 列出任务目录中的所有任务。
 
 ```bash
-monolize task list --task-dir ./tasks
+spark task list --task-dir ./tasks
 ```
 
 **示例**:
 
 ```bash
 # 基本列表
-monolize task list --task-dir ~/tasks
+spark task list --task-dir ~/tasks
 
 # TUI 模式
-monolize task list --task-dir ~/tasks --tui
+spark task list --task-dir ~/tasks --tui
 ```
 
 **输出示例**:
@@ -62,7 +62,7 @@ Tasks in /Users/you/tasks
 将任务分发到新的工作目录。
 
 ```bash
-monolize task dispatch [task-name] [flags]
+spark task dispatch [task-name] [flags]
 ```
 
 **参数**:
@@ -82,13 +82,13 @@ monolize task dispatch [task-name] [flags]
 
 ```bash
 # CLI 模式
-monolize task dispatch my-task \
+spark task dispatch my-task \
   --task-dir ./tasks \
   --owner myuser \
   --dest ./workspace/my-task
 
 # TUI 模式（交互选择任务）
-monolize task dispatch --tui \
+spark task dispatch --tui \
   --task-dir ./tasks \
   --owner myuser
 ```
@@ -123,7 +123,7 @@ Task dispatched successfully!
 将任务实现从工作目录同步回任务目录。
 
 ```bash
-monolize task sync [task-name] [flags]
+spark task sync [task-name] [flags]
 ```
 
 **参数**:
@@ -143,12 +143,12 @@ monolize task sync [task-name] [flags]
 
 ```bash
 # CLI 模式
-monolize task sync my-task \
+spark task sync my-task \
   --task-dir ./tasks \
   --work-path ./workspace
 
 # TUI 模式
-monolize task sync --tui \
+spark task sync --tui \
   --task-dir ./tasks \
   --work-path ./workspace
 ```
@@ -210,7 +210,7 @@ workspace/
 - **进度指示器**: 显示操作进度
 
 ```bash
-monolize task dispatch --tui --task-dir ./tasks --owner myuser
+spark task dispatch --tui --task-dir ./tasks --owner myuser
 ```
 
 ## 配置文件
@@ -226,9 +226,9 @@ work-dir: /Users/you/workspace
 配置后可以简化命令：
 
 ```bash
-monolize task list
-monolize task dispatch my-task
-monolize task sync my-task
+spark task list
+spark task dispatch my-task
+spark task sync my-task
 ```
 
 ## 前置条件

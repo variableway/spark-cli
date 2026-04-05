@@ -1,4 +1,4 @@
-# monolize sync
+# spark sync
 
 同步 Mono 仓库中的所有子模块到最新版本。
 
@@ -9,7 +9,7 @@
 ## 使用方法
 
 ```bash
-monolize sync <mono-repo-path>
+spark sync <mono-repo-path>
 ```
 
 ## 参数
@@ -23,13 +23,13 @@ monolize sync <mono-repo-path>
 ### 同步 Mono 仓库
 
 ```bash
-monolize sync ./mono-repo
+spark sync ./mono-repo
 ```
 
 ### 使用绝对路径
 
 ```bash
-monolize sync /Users/you/repos/my-projects
+spark sync /Users/you/repos/my-projects
 ```
 
 ## 工作流程
@@ -64,7 +64,7 @@ All submodules synced successfully!
 
 ```bash
 # 每日同步
-monolize sync ~/repos/mono-repo
+spark sync ~/repos/mono-repo
 ```
 
 ### 团队协作
@@ -74,7 +74,7 @@ monolize sync ~/repos/mono-repo
 ```bash
 # 在 Mono 仓库中工作前先同步
 cd ~/repos/mono-repo
-monolize sync .
+spark sync .
 ```
 
 ### CI/CD 集成
@@ -83,7 +83,7 @@ monolize sync .
 
 ```bash
 # 在构建前同步所有依赖
-monolize sync ./dependencies
+spark sync ./dependencies
 ```
 
 ## 故障排除

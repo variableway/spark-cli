@@ -1,4 +1,4 @@
-# monolize create
+# spark create
 
 创建一个 Mono 仓库，将多个 Git 仓库整合为子模块。
 
@@ -9,7 +9,7 @@
 ## 使用方法
 
 ```bash
-monolize create [flags]
+spark create [flags]
 ```
 
 ## 标志
@@ -26,7 +26,7 @@ monolize create [flags]
 ### 创建默认 Mono 仓库
 
 ```bash
-monolize create -p ~/workspace
+spark create -p ~/workspace
 ```
 
 这将在当前目录创建名为 `mono-repo` 的文件夹。
@@ -34,7 +34,7 @@ monolize create -p ~/workspace
 ### 指定名称和输出路径
 
 ```bash
-monolize create -p ~/workspace -n my-projects -o ~/repos
+spark create -p ~/workspace -n my-projects -o ~/repos
 ```
 
 这将在 `~/repos/my-projects` 创建 Mono 仓库。
@@ -42,7 +42,7 @@ monolize create -p ~/workspace -n my-projects -o ~/repos
 ### 从多个目录收集仓库
 
 ```bash
-monolize create -p ~/work -p ~/personal -p ~/opensource -n all-projects
+spark create -p ~/work -p ~/personal -p ~/opensource -n all-projects
 ```
 
 ## 工作流程
@@ -113,7 +113,7 @@ To update all submodules, run:
 
 2. **使用 sync 命令**:
    ```bash
-   monolize sync ./mono-repo
+   spark sync ./mono-repo
    ```
 
 ## 相关命令

@@ -7,23 +7,23 @@
 ### 1. 更新所有仓库
 扫描指定目录下的所有 Git 仓库并拉取最新更改。支持指定多个路径。
 ```bash
-monolize update --path /your/repos/path1 --path /your/repos/path2
+spark update --path /your/repos/path1 --path /your/repos/path2
 ```
 
 ### 2. 创建 Mono-repo
 将指定目录下的所有仓库作为子模块添加到一个新的 Mono-repo 中。支持单个仓库路径或包含多个仓库的目录。
 ```bash
 # 包含多个仓库的目录
-monolize create --path ./my-projects --name my-mono-repo
+spark create --path ./my-projects --name my-mono-repo
 
 # 指定多个源（可以是单仓路径或多仓目录）
-monolize create -p ./repo1 -p ./projects-dir -n my-mono-repo
+spark create -p ./repo1 -p ./projects-dir -n my-mono-repo
 ```
 
 ### 3. 同步子模块
 在 Mono-repo 根目录下运行，一次性更新所有子模块到远程最新版本。
 ```bash
-monolize sync
+spark sync
 ```
 
 ## Makefile 使用

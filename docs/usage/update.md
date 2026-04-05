@@ -1,4 +1,4 @@
-# monolize update
+# spark update
 
 批量更新多个 Git 仓库到最新版本。
 
@@ -9,7 +9,7 @@
 ## 使用方法
 
 ```bash
-monolize update [flags]
+spark update [flags]
 ```
 
 ## 标志
@@ -24,19 +24,19 @@ monolize update [flags]
 ### 更新当前目录下的所有仓库
 
 ```bash
-monolize update
+spark update
 ```
 
 ### 更新指定目录下的所有仓库
 
 ```bash
-monolize update -p ~/workspace
+spark update -p ~/workspace
 ```
 
 ### 更新多个目录下的仓库
 
 ```bash
-monolize update -p ~/workspace -p ~/projects -p ~/opensource
+spark update -p ~/workspace -p ~/projects -p ~/opensource
 ```
 
 ### 使用配置文件
@@ -52,7 +52,7 @@ path:
 然后直接运行：
 
 ```bash
-monolize update
+spark update
 ```
 
 ## 工作流程

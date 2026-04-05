@@ -1,4 +1,4 @@
-# monolize agent
+# spark agent
 
 管理多种 AI Agent 的配置文件。
 
@@ -18,7 +18,7 @@
 ## 使用方法
 
 ```bash
-monolize agent [command]
+spark agent [command]
 ```
 
 ## 子命令
@@ -28,7 +28,7 @@ monolize agent [command]
 列出所有支持的 AI Agent 及其配置状态。
 
 ```bash
-monolize agent list
+spark agent list
 ```
 
 **输出示例**:
@@ -53,14 +53,14 @@ glm           GLM (Zhipu AI)   .claude.json                    ❌ Not configure
 查看指定 Agent 的配置文件内容。
 
 ```bash
-monolize agent view <agent>
+spark agent view <agent>
 ```
 
 **示例**:
 
 ```bash
-monolize agent view claude-code
-monolize agent view kimi
+spark agent view claude-code
+spark agent view kimi
 ```
 
 **输出示例**:
@@ -83,7 +83,7 @@ File: /Users/you/.claude.json
 编辑指定 Agent 的配置文件。
 
 ```bash
-monolize agent edit <agent> [config-index] [flags]
+spark agent edit <agent> [config-index] [flags]
 ```
 
 **参数**:
@@ -103,13 +103,13 @@ monolize agent edit <agent> [config-index] [flags]
 
 ```bash
 # 编辑第一个配置文件
-monolize agent edit claude-code
+spark agent edit claude-code
 
 # 编辑指定索引的配置文件
-monolize agent edit claude-code 1
+spark agent edit claude-code 1
 
 # 使用 TUI 选择要编辑的配置文件
-monolize agent edit claude-code --tui
+spark agent edit claude-code --tui
 ```
 
 **编辑器选择**:
@@ -134,7 +134,7 @@ monolize agent edit claude-code --tui
 列出所有已创建的配置模板。
 
 ```bash
-monolize agent profile list
+spark agent profile list
 ```
 
 ### `agent profile add`
@@ -142,17 +142,17 @@ monolize agent profile list
 创建一个新的配置模板。
 
 ```bash
-monolize agent profile add <name> --type <agent-type>
+spark agent profile add <name> --type <agent-type>
 ```
 
 **示例**:
 
 ```bash
 # 创建一个名为 my-glm 的模板，类型为 glm
-monolize agent profile add my-glm --type glm
+spark agent profile add my-glm --type glm
 
 # 创建一个名为 claude-opus 的模板，类型为 claude-code
-monolize agent profile add claude-opus --type claude-code
+spark agent profile add claude-opus --type claude-code
 ```
 
 ### `agent profile edit`
@@ -160,7 +160,7 @@ monolize agent profile add claude-opus --type claude-code
 编辑配置模板的内容。
 
 ```bash
-monolize agent profile edit <name> [config-index]
+spark agent profile edit <name> [config-index]
 ```
 
 ### `agent use`
@@ -168,14 +168,14 @@ monolize agent profile edit <name> [config-index]
 将指定的配置模板应用到当前项目。这会将模板中的配置文件复制到当前项目目录下。
 
 ```bash
-monolize agent use <profile-name> [--project <path>]
+spark agent use <profile-name> [--project <path>]
 ```
 
 **示例**:
 
 ```bash
 cd my-project
-monolize agent use my-glm
+spark agent use my-glm
 ```
 
 ### `agent current`
@@ -183,7 +183,7 @@ monolize agent use my-glm
 查看当前项目正在使用的配置模板。
 
 ```bash
-monolize agent current [--project <path>]
+spark agent current [--project <path>]
 ```
 
 ## 完整示例
@@ -191,47 +191,47 @@ monolize agent current [--project <path>]
 ### 查看所有 Agent 状态
 
 ```bash
-monolize agent list
+spark agent list
 ```
 
 ### 查看并编辑 Claude Code 配置
 
 ```bash
 # 查看当前配置
-monolize agent view claude-code
+spark agent view claude-code
 
 # 编辑配置
-monolize agent edit claude-code --tui
+spark agent edit claude-code --tui
 ```
 
 ### 在不同项目中使用不同模型
 
 ```bash
 # 1. 创建两个配置模板
-monolize agent profile add my-claude --type claude-code
-monolize agent profile add my-glm --type glm
+spark agent profile add my-claude --type claude-code
+spark agent profile add my-glm --type glm
 
 # 2. 分别编辑它们的配置
-monolize agent profile edit my-claude
-monolize agent profile edit my-glm
+spark agent profile edit my-claude
+spark agent profile edit my-glm
 
 # 3. 在项目 A 中使用 Claude
 cd ~/workspace/project-a
-monolize agent use my-claude
+spark agent use my-claude
 
 # 4. 在项目 B 中使用 GLM
 cd ~/workspace/project-b
-monolize agent use my-glm
+spark agent use my-glm
 ```
 
 ### 配置新的 AI Agent
 
 ```bash
 # 查看需要配置的文件
-monolize agent view kimi
+spark agent view kimi
 
 # 创建/编辑配置文件
-monolize agent edit kimi
+spark agent edit kimi
 ```
 
 ## 配置文件格式

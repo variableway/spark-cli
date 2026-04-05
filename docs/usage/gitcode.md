@@ -1,4 +1,4 @@
-# monolize gitcode
+# spark gitcode
 
 为 GitHub 仓库添加 Gitcode 作为远程地址。
 
@@ -9,7 +9,7 @@
 ## 使用方法
 
 ```bash
-monolize gitcode [flags]
+spark gitcode [flags]
 ```
 
 ## 标志
@@ -40,7 +40,7 @@ monolize gitcode [flags]
 ### 基本使用
 
 ```bash
-monolize gitcode -p ~/workspace
+spark gitcode -p ~/workspace
 ```
 
 **输出示例**:
@@ -66,13 +66,13 @@ Processing: /Users/you/workspace/project-c
 ### 扫描多个目录
 
 ```bash
-monolize gitcode -p ~/work -p ~/personal -p ~/opensource
+spark gitcode -p ~/work -p ~/personal -p ~/opensource
 ```
 
 ### 使用自定义 Gitcode URL
 
 ```bash
-monolize gitcode -p ~/workspace --url https://custom.gitcode.net/user/repo.git
+spark gitcode -p ~/workspace --url https://custom.gitcode.net/user/repo.git
 ```
 
 ## 验证结果
@@ -116,7 +116,7 @@ git push gitcode --tags
 
 ```bash
 # 添加 Gitcode 远程
-monolize gitcode -p ~/workspace
+spark gitcode -p ~/workspace
 
 # 在每个仓库中推送到两个远程
 cd ~/workspace/my-project
