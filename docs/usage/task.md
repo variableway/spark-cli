@@ -1,280 +1,126 @@
-# spark task
+# spark task — 任务管理
 
-任务管理命令：分发任务到新目录并同步回更改。
+管理开发任务的创建、分发、同步和实现。
 
-## 概述
-
-`task` 命令用于管理开发任务的工作流程：
-1. **Dispatch**: 将任务目录中的所有 Markdown 文件复制到工作目录，初始化 Git 仓库并创建 GitHub 远程仓库
-2. **Sync**: 将工作目录中的所有 Markdown 文件同步回原始任务目录
-3. **List**: 列出任务目录中的所有任务
-
-**注意**: `dispatch` 和 `sync` 命令只会复制 `.md` (Markdown) 文件，其他类型的文件会被忽略。
-
-## 使用方法
+## 命令速查
 
 ```bash
-spark task [command] [flags]
+spark task init                               # 初始化任务目录结构
+spark task list [--task-dir <dir>]            # 列出所有任务和特性
+spark task create <name> [--content <text>]   # 创建特性文件
+spark task delete <name> [--force]            # 删除特性文件
+spark task impl <name>                        # 实现特性
+spark task dispatch <name> [--dest <path>]    # 分发任务
+spark task sync <name> [--work-path <path>]   # 同步任务
 ```
 
-## 全局标志
+全局标志: `--task-dir`, `--owner`, `--work-dir`, `--tui`
+
+---
+
+## spark task init
+
+初始化任务目录结构，创建 `tasks/features/` 等目录。
+
+```bash
+spark task init                               # 在当前目录初始化
+spark task init --task-dir /path/to/tasks     # 指定任务目录
+```
+
+---
+
+## spark task list
+
+列出任务目录中的所有任务和特性文件。
+
+```bash
+spark task list                               # 列出当前目录的任务
+spark task list --task-dir ./my-tasks         # 指定目录
+```
+
+---
+
+## spark task create
+
+在 `tasks/features/` 下创建新的特性文件。文件名中的空格自动转为 `-`。
 
 | 标志 | 默认值 | 说明 |
 |------|--------|------|
-| `--task-dir` | | 任务目录路径（必需） |
-| `--owner` | | GitHub 用户名（dispatch 必需） |
-| `--work-path` | `.` | 工作目录路径 |
-| `--tui` | `false` | 启用交互式终端 UI |
-
-## 子命令
-
-### `task list`
-
-列出任务目录中的所有任务。
+| `--content` | | 自定义内容 |
 
 ```bash
-spark task list --task-dir ./tasks
+spark task create my-feature                  # 创建 tasks/features/my-feature.md
+spark task create "my feature"                # 文件名: my-feature.md
+spark task create my-feature --content "Description here"
 ```
 
-**示例**:
+---
+
+## spark task delete
+
+删除特性文件。
+
+| 标志 | 默认值 | 说明 |
+|------|--------|------|
+| `--force` | `false` | 跳过确认直接删除 |
 
 ```bash
-# 基本列表
-spark task list --task-dir ~/tasks
-
-# TUI 模式
-spark task list --task-dir ~/tasks --tui
+spark task delete my-feature                  # 删除（需确认）
+spark task delete my-feature --force          # 强制删除
 ```
 
-**输出示例**:
+---
 
-```
-Tasks in /Users/you/tasks
-#  Task Name
-1  feature-auth
-2  feature-payment
-3  bugfix-login
-4  refactor-api
-```
+## spark task impl
 
-### `task dispatch`
-
-将任务分发到新的工作目录。
+使用 `kimi` CLI 实现特性。
 
 ```bash
-spark task dispatch [task-name] [flags]
+spark task impl my-feature                    # 实现 my-feature
+spark task impl my-feature --tui              # 交互模式
 ```
 
-**参数**:
+---
 
-| 参数 | 必填 | 说明 |
-|------|------|------|
-| `task-name` | CLI 模式必填 | 任务名称 |
+## spark task dispatch
 
-**标志**:
+将任务分发到新的工作目录，初始化 Git 并创建 GitHub 仓库。
 
-| 标志 | 说明 |
-|------|------|
-| `--dest` | 目标路径 |
-| `--tui` | 启用 TUI 模式交互选择任务 |
-
-**示例**:
+| 标志 | 默认值 | 说明 |
+|------|--------|------|
+| `--dest` | `<work-dir>/<name>` | 目标路径 |
 
 ```bash
-# CLI 模式
-spark task dispatch my-task \
-  --task-dir ./tasks \
-  --owner myuser \
-  --dest ./workspace/my-task
-
-# TUI 模式（交互选择任务）
-spark task dispatch --tui \
-  --task-dir ./tasks \
-  --owner myuser
+spark task dispatch my-feature                # 分发到默认路径
+spark task dispatch my-feature --dest ./ws    # 指定目标路径
+spark task dispatch --tui                     # 交互选择
 ```
 
-**工作流程**:
+---
 
-1. **复制 Markdown 文件**: 将任务目录中的所有 `.md` 文件复制到工作目录（保持目录结构）
-2. **初始化 Git**: 在工作目录中初始化 Git 仓库
-3. **创建 GitHub 仓库**: 使用 `gh repo create` 创建远程仓库
-4. **推送代码**: 将代码推送到 GitHub
+## spark task sync
 
-**输出示例**:
+将工作目录中的实现同步回任务目录。
 
-```
-Copying markdown files...
-  From: /Users/you/tasks/my-task
-  To:   /Users/you/workspace/my-task
-
-Initializing git repository...
-  ✓ Done
-
-Creating GitHub repository myuser/my-task...
-  ✓ Done
-
-Task dispatched successfully!
-  Location: /Users/you/workspace/my-task
-  GitHub:   https://github.com/myuser/my-task
-```
-
-### `task sync`
-
-将任务实现从工作目录同步回任务目录。
+| 标志 | 默认值 | 说明 |
+|------|--------|------|
+| `--work-path` | `<work-dir>/<name>` | 工作路径 |
 
 ```bash
-spark task sync [task-name] [flags]
+spark task sync my-feature                    # 同步默认路径
+spark task sync my-feature --work-path ./ws   # 指定工作路径
+spark task sync --tui                         # 交互选择
 ```
 
-**参数**:
-
-| 参数 | 必填 | 说明 |
-|------|------|------|
-| `task-name` | CLI 模式必填 | 任务名称 |
-
-**标志**:
-
-| 标志 | 说明 |
-|------|------|
-| `--work-path` | 工作目录路径 |
-| `--tui` | 启用 TUI 模式交互选择任务 |
-
-**示例**:
-
-```bash
-# CLI 模式
-spark task sync my-task \
-  --task-dir ./tasks \
-  --work-path ./workspace
-
-# TUI 模式
-spark task sync --tui \
-  --task-dir ./tasks \
-  --work-path ./workspace
-```
-
-**工作流程**:
-
-1. **查找工作目录**: 在工作目录中查找任务实现
-2. **复制 Markdown 文件**: 将工作目录中的所有 `.md` 文件复制回原始任务目录（保持目录结构）
-
-**输出示例**:
+## 工作流程
 
 ```
-Syncing markdown files...
-  From: /Users/you/workspace/my-task
-  To:   /Users/you/tasks/my-task
-
-Task synced successfully!
-  Location: /Users/you/tasks/my-task
+create → impl → dispatch → (开发) → sync
+  ↑                                        ↓
+  └──────── tasks/features/*.md ←──────────┘
 ```
 
-## 目录结构
+## 相关命令
 
-### 任务目录
-
-```
-tasks/
-├── feature-auth/        # 任务文件夹
-│   ├── README.md       # 任务说明（会被 dispatch）
-│   ├── specs.md        # 规格文档（会被 dispatch）
-│   └── notes.txt       # 其他文件（会被忽略）
-├── feature-payment/
-│   └── ...
-└── bugfix-login/
-    └── ...
-```
-
-### 工作目录（Dispatch 后）
-
-```
-workspace/
-├── feature-auth/        # 分发后的任务
-│   ├── .git/           # Git 仓库
-│   ├── README.md       # 从任务目录复制的 Markdown 文件
-│   └── specs.md        # 从任务目录复制的 Markdown 文件
-└── ...
-```
-
-**说明**:
-- `dispatch` 命令只会复制 `.md` 文件到工作目录
-- `sync` 命令只会同步 `.md` 文件回任务目录
-- 其他类型的文件（如 `.txt`, `.json` 等）不会被处理
-
-## TUI 模式
-
-使用 `--tui` 标志启用交互式终端 UI：
-
-- **任务选择**: 使用方向键导航，回车选择
-- **确认对话框**: 确认或取消操作
-- **进度指示器**: 显示操作进度
-
-```bash
-spark task dispatch --tui --task-dir ./tasks --owner myuser
-```
-
-## 配置文件
-
-在 `~/.spark.yaml` 中配置默认值：
-
-```yaml
-task-dir: /Users/you/tasks
-github-owner: your-username
-work-dir: /Users/you/workspace
-```
-
-配置后可以简化命令：
-
-```bash
-spark task list
-spark task dispatch my-task
-spark task sync my-task
-```
-
-## 前置条件
-
-- **GitHub CLI (`gh`)**: 必须安装并登录
-  ```bash
-  brew install gh
-  gh auth login
-  ```
-
-- **Git**: 必须配置用户信息
-  ```bash
-  git config --global user.name "Your Name"
-  git config --global user.email "your@email.com"
-  ```
-
-## 故障排除
-
-### GitHub CLI 未安装
-
-```
-Error: gh command not found
-```
-
-解决: 安装 GitHub CLI
-
-### 未登录 GitHub
-
-```
-Error: not logged in to gh
-```
-
-解决: 运行 `gh auth login`
-
-### 任务目录不存在
-
-```
-Error: task directory is required
-```
-
-解决: 使用 `--task-dir` 指定目录或在配置文件中设置
-
-### 任务不存在
-
-```
-Error: task not found: my-task
-```
-
-解决: 检查任务名称或使用 `task list` 查看可用任务
+- [Git 管理](./git.md)
+- [Agent 配置](./agent.md)

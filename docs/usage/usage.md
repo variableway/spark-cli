@@ -1,47 +1,46 @@
-# Monolize 使用指南
+# Spark CLI 使用指南
 
-`Monolize` 是一个用于管理多个 Git 仓库的命令行工具，支持将其合并为单仓（Mono-repo）并同步子模块。
+Spark 是一个用于日常开发自动化和 AI Skill 集成的 CLI 工具。
 
-## 基础命令
+## 命令总览
 
-### 1. 更新所有仓库
-扫描指定目录下的所有 Git 仓库并拉取最新更改。支持指定多个路径。
-```bash
-spark update --path /your/repos/path1 --path /your/repos/path2
-```
+| 命令组 | 说明 |
+|--------|------|
+| `spark git` | Git 仓库管理（更新、Mono-repo、子模块同步、Gitcode） |
+| `spark agent` | AI Agent 配置管理（Claude Code、Codex、Kimi、GLM） |
+| `spark task` | 任务管理（创建、分发、同步、实现） |
+| `spark script` | 自定义脚本管理 |
+| `spark magic` | 系统工具（DNS 刷新、镜像源切换） |
+| `spark docs` | 文档管理（初始化结构、站点配置） |
 
-### 2. 创建 Mono-repo
-将指定目录下的所有仓库作为子模块添加到一个新的 Mono-repo 中。支持单个仓库路径或包含多个仓库的目录。
-```bash
-# 包含多个仓库的目录
-spark create --path ./my-projects --name my-mono-repo
+## 全局标志
 
-# 指定多个源（可以是单仓路径或多仓目录）
-spark create -p ./repo1 -p ./projects-dir -n my-mono-repo
-```
+| 标志 | 简写 | 默认值 | 说明 |
+|------|------|--------|------|
+| `--config` | | `~/.spark.yaml` | 配置文件路径 |
+| `--path` | `-p` | `.` | 扫描目录（可多次指定） |
 
-### 3. 同步子模块
-在 Mono-repo 根目录下运行，一次性更新所有子模块到远程最新版本。
-```bash
-spark sync
-```
+## 配置文件
 
-## Makefile 使用
-项目提供了跨平台的 `Makefile` 以简化日常操作：
+配置文件位于 `~/.spark.yaml`：
 
-| 命令 | 说明 |
-| :--- | :--- |
-| `make build` | 根据当前系统编译二进制文件 |
-| `make test` | 运行所有单元测试 |
-| `make test-bdd` | 以 BDD 模式运行测试（输出更详细） |
-| `make build-linux` | 交叉编译 Linux 版本 |
-| `make build-darwin` | 交叉编译 macOS 版本 |
-| `make clean` | 清理编译产物 |
-
-## 配置说明
-可以通过 `~/.spark.yaml` 进行持久化配置：
 ```yaml
-path: /default/path
-default_branch: main
-auto_commit: true
+repo-path:
+  - ~/workspace
+  - ~/projects
+git:
+  username: your-name
+  email: your@email.com
+task_dir: ./tasks
+github_owner: your-username
+work_dir: ./workspace
 ```
+
+## 详细用法
+
+- [Git 仓库管理](./git.md)
+- [AI Agent 配置](./agent.md)
+- [任务管理](./task.md)
+- [系统工具](./magic.md)
+- [脚本管理](./script.md)
+- [文档管理](./docs-cmd.md)
