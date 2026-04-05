@@ -1,0 +1,67 @@
+# Git 仓库管理
+
+## 功能概述
+
+`spark git` 提供多仓库 Git 管理能力，涵盖批量更新、Mono-repo 创建与同步、Gitcode 远程配置、组织仓库克隆等功能。
+
+## 核心能力
+
+### 多仓库批量更新
+
+扫描配置目录下所有 Git 仓库，执行批量 `git pull`。适合同时维护多个仓库的日常更新。
+
+```bash
+spark git update -p ~/workspace
+```
+
+### Mono-repo 管理
+
+将多个独立仓库作为 Submodule 合并为一个 Mono-repo，方便统一管理和版本控制。
+
+```bash
+# 创建 Mono-repo
+spark git create -n my-mono -o ./output
+
+# 同步所有 Submodule 到最新
+spark git sync ./my-mono
+```
+
+### Gitcode 远程集成
+
+为仓库自动添加 Gitcode（https://gitcode.com）远程仓库，实现 GitHub ↔ Gitcode 双向同步。
+
+```bash
+spark git gitcode -p ~/workspace
+```
+
+### 组织仓库管理
+
+克隆 GitHub 组织下所有仓库，或更新组织 README 中的仓库状态列表。
+
+```bash
+# 克隆组织仓库
+spark git clone-org variableway -o ./repos
+
+# 更新组织状态
+spark git update-org-status variableway --update-dot-github
+```
+
+## 使用参数
+
+| 参数 | 说明 |
+|------|------|
+| `-p, --path` | 指定扫描目录（支持多个），默认 `["."]` |
+| `-n, --name` | Mono-repo 名称，默认 `mono-repo` |
+| `-o, --output` | 输出路径 |
+| `--ssh` | 使用 SSH 克隆（clone-org） |
+| `--include` / `--exclude` | 包含/排除匹配模式（clone-org） |
+
+## 依赖
+
+- `git` 命令行工具
+- `gh` CLI（clone-org、update-org-status 需要 GitHub API 访问）
+
+## 相关文档
+
+- [Git 命令规格](../spec/git.md)
+- [Git 使用指南](../usage/git.md)
