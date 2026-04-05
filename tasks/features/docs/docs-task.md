@@ -15,3 +15,9 @@
 
 - 更新文档的spec目录，主要是把目前每一个sub-command的使用和参数说明清楚，包括参数的类型，参数的默认值，参数的必填项等
 - 更新文档的features目录，主要是把目前每一个feature的介绍，包括feature的功能，feature的使用，feature的参数等
+
+## Task 3: 项目README总结还不够突出特点
+
+Spark-cli的特点是：
+1. 设置AI 项目开发模版，从tasks，docs，docs-site这样的功能方便让每一个开发项目进行快速启动
+2. 日常使用功能比较多，比如git，agent，task，magic，script，docs等
