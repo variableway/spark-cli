@@ -40,7 +40,7 @@ This command will:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		input := args[0]
 
-		orgName, err := github.ParseOrgFromURL(input)
+		orgName, err := github.ParseAccountFromURL(input)
 		if err != nil {
 			return err
 		}

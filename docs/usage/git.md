@@ -11,7 +11,7 @@ spark git sync <mono-path>                    # 同步子模块
 spark git gitcode                             # 添加 Gitcode 远程
 spark git config [--username --email]         # 配置 Git 用户
 spark git url [repo-path]                     # 查看远程 URL
-spark git clone-org <org> [-o <dir>]          # 克隆组织所有仓库
+spark git batch-clone <account> [-o <dir>]    # 克隆用户/组织所有仓库
 spark git update-org-status <org> [--dry-run] # 更新组织 README
 ```
 
@@ -101,9 +101,9 @@ spark git url /path/to/repo                   # 指定仓库
 
 ---
 
-## spark git clone-org
+## spark git batch-clone
 
-克隆 GitHub 组织的所有仓库。
+克隆 GitHub 组织或用户的所有仓库。自动检测账号类型（组织或用户）。
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -114,10 +114,11 @@ spark git url /path/to/repo                   # 指定仓库
 | `--output` | `-o` | `.` | 输出目录 |
 
 ```bash
-spark git clone-org variableway               # 克隆组织所有仓库
-spark git clone-org variableway --ssh         # 使用 SSH
-spark git clone-org variableway --include spark --exclude test
-spark git clone-org variableway -o ./repos    # 指定输出目录
+spark git batch-clone variableway               # 克隆组织所有仓库
+spark git batch-clone jackwener                 # 克隆用户所有仓库
+spark git batch-clone variableway --ssh         # 使用 SSH
+spark git batch-clone variableway --include spark --exclude test
+spark git batch-clone variableway -o ./repos    # 指定输出目录
 ```
 
 ---

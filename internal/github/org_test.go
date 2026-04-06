@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestParseOrgFromURL(t *testing.T) {
+func TestParseAccountFromURL(t *testing.T) {
 	tests := []struct {
 		name    string
 		url     string
@@ -12,7 +12,7 @@ func TestParseOrgFromURL(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:    "simple org name",
+			name:    "simple account name",
 			url:     "variableway",
 			want:    "variableway",
 			wantErr: false,
@@ -30,9 +30,15 @@ func TestParseOrgFromURL(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "github URL with org and extra path",
+			name:    "github URL with account and extra path",
 			url:     "https://github.com/variableway/repos",
 			want:    "variableway",
+			wantErr: false,
+		},
+		{
+			name:    "personal account URL",
+			url:     "https://github.com/jackwener",
+			want:    "jackwener",
 			wantErr: false,
 		},
 		{
@@ -51,13 +57,13 @@ func TestParseOrgFromURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ParseOrgFromURL(tt.url)
+			got, err := ParseAccountFromURL(tt.url)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseOrgFromURL() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ParseAccountFromURL() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("ParseOrgFromURL() = %v, want %v", got, tt.want)
+				t.Errorf("ParseAccountFromURL() = %v, want %v", got, tt.want)
 			}
 		})
 	}

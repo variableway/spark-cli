@@ -96,7 +96,7 @@ spark git sync       # 同步子模块
 spark git gitcode    # 添加 Gitcode 远程
 spark git config     # 配置 Git 用户
 spark git url        # 获取仓库 URL
-spark git clone-org  # 克隆组织所有仓库
+spark git batch-clone  # 克隆用户/组织所有仓库
 ```
 
 #### `spark git update`

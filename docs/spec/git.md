@@ -114,12 +114,12 @@ spark git url [repo-path]
 
 ---
 
-## spark git clone-org
+## spark git batch-clone
 
-克隆 GitHub 组织下的所有仓库。
+克隆 GitHub 组织或用户下的所有仓库。自动检测账号类型。
 
 ```
-spark git clone-org <org-name-or-url> [--ssh] [--include <pattern>] [--exclude <pattern>] [-o <dir>]
+spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exclude <pattern>] [-o <dir>]
 ```
 
 | 标志 | 类型 | 默认值 | 必填 | 说明 |
@@ -132,7 +132,7 @@ spark git clone-org <org-name-or-url> [--ssh] [--include <pattern>] [--exclude <
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `org-name-or-url` | string | 是 | 组织名或 URL |
+| `account-name-or-url` | string | 是 | 组织名、用户名或 URL |
 
 ---
 

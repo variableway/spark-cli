@@ -30,7 +30,7 @@ github_owner: your-username
 ```bash
 spark git update -p ~/workspace               # 更新所有仓库
 spark git create -n my-mono -o ./output       # 创建 Mono-repo
-spark git clone-org variableway -o ./repos    # 克隆组织仓库
+spark git batch-clone variableway -o ./repos  # 克隆组织仓库
 ```
 
 ### 镜像源切换

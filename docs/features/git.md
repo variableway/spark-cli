@@ -34,13 +34,16 @@ spark git sync ./my-mono
 spark git gitcode -p ~/workspace
 ```
 
-### 组织仓库管理
+### 批量克隆
 
-克隆 GitHub 组织下所有仓库，或更新组织 README 中的仓库状态列表。
+克隆 GitHub 组织或用户下所有仓库，或更新 README 中的仓库状态列表。
 
 ```bash
 # 克隆组织仓库
-spark git clone-org variableway -o ./repos
+spark git batch-clone variableway -o ./repos
+
+# 克隆用户仓库
+spark git batch-clone jackwener -o ./repos
 
 # 更新组织状态
 spark git update-org-status variableway --update-dot-github
@@ -53,13 +56,13 @@ spark git update-org-status variableway --update-dot-github
 | `-p, --path` | 指定扫描目录（支持多个），默认 `["."]` |
 | `-n, --name` | Mono-repo 名称，默认 `mono-repo` |
 | `-o, --output` | 输出路径 |
-| `--ssh` | 使用 SSH 克隆（clone-org） |
-| `--include` / `--exclude` | 包含/排除匹配模式（clone-org） |
+| `--ssh` | 使用 SSH 克隆（batch-clone） |
+| `--include` / `--exclude` | 包含/排除匹配模式（batch-clone） |
 
 ## 依赖
 
 - `git` 命令行工具
-- `gh` CLI（clone-org、update-org-status 需要 GitHub API 访问）
+- `gh` CLI（batch-clone、update-org-status 需要 GitHub API 访问）
 
 ## 相关文档
 

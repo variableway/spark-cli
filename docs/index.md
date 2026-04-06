@@ -84,7 +84,7 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
-| `spark git clone-org <org> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org |
+| `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
 | `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
 
 ---
