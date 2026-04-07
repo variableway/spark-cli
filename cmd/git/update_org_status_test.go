@@ -1,6 +1,8 @@
 package git
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -257,4 +259,120 @@ func TestSectionNameCustom(t *testing.T) {
 
 	// Reset to default
 	updateOrgStatusSection = "Project List"
+}
+
+func TestWriteReadmeFile(t *testing.T) {
+	updateOrgStatusSection = "Project List"
+	sectionContent := "## Project List\n\nNew project data.\n"
+
+	t.Run("creates new file when not exists", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		readmePath := filepath.Join(tmpDir, "README.md")
+
+		err := writeReadmeFile(readmePath, "testorg", sectionContent)
+		if err != nil {
+			t.Fatalf("writeReadmeFile failed: %v", err)
+		}
+
+		content, err := os.ReadFile(readmePath)
+		if err != nil {
+			t.Fatalf("failed to read created file: %v", err)
+		}
+
+		if !strings.Contains(string(content), "# Testorg") {
+			t.Error("Should contain generated title for new file")
+		}
+		if !strings.Contains(string(content), "New project data.") {
+			t.Error("Should contain section content")
+		}
+	})
+
+	t.Run("updates existing file section", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		readmePath := filepath.Join(tmpDir, "README.md")
+
+		existing := "# Test Org\n\n## Project List\nOld data.\n\n## Other\nOther section.\n"
+		os.WriteFile(readmePath, []byte(existing), 0644)
+
+		err := writeReadmeFile(readmePath, "testorg", sectionContent)
+		if err != nil {
+			t.Fatalf("writeReadmeFile failed: %v", err)
+		}
+
+		content, err := os.ReadFile(readmePath)
+		if err != nil {
+			t.Fatalf("failed to read updated file: %v", err)
+		}
+
+		result := string(content)
+		if strings.Contains(result, "Old data.") {
+			t.Error("Should replace old section content")
+		}
+		if !strings.Contains(result, "New project data.") {
+			t.Error("Should contain new section content")
+		}
+		if !strings.Contains(result, "## Other") {
+			t.Error("Should preserve other sections")
+		}
+	})
+
+	t.Run("creates directory if not exists", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		readmePath := filepath.Join(tmpDir, "profile", "README.md")
+
+		err := writeReadmeFile(readmePath, "testorg", sectionContent)
+		if err != nil {
+			t.Fatalf("writeReadmeFile failed: %v", err)
+		}
+
+		if _, err := os.Stat(readmePath); os.IsNotExist(err) {
+			t.Error("profile/README.md should be created")
+		}
+	})
+}
+
+func TestUpdateLocalFileUpdatesBothPaths(t *testing.T) {
+	updateOrgStatusSection = "Project List"
+	updateOrgStatusSkipPush = true
+
+	tmpDir := t.TempDir()
+
+	// Create .github directory structure
+	githubDir := filepath.Join(tmpDir, ".github")
+	profileDir := filepath.Join(githubDir, "profile")
+	os.MkdirAll(profileDir, 0755)
+
+	// Write existing files
+	readmeContent := "# Test\n\n## Project List\nOld.\n"
+	os.WriteFile(filepath.Join(githubDir, "README.md"), []byte(readmeContent), 0644)
+	os.WriteFile(filepath.Join(profileDir, "README.md"), []byte(readmeContent), 0644)
+
+	// Override output to use tmpDir
+	oldOutput := updateOrgStatusOutput
+	updateOrgStatusOutput = filepath.Join(githubDir, "README.md")
+	defer func() { updateOrgStatusOutput = oldOutput }()
+
+	sectionContent := "## Project List\n\nUpdated data.\n"
+	err := updateLocalFile("testorg", sectionContent)
+	if err != nil {
+		t.Fatalf("updateLocalFile failed: %v", err)
+	}
+
+	// Check README.md is updated
+	mainReadme, err := os.ReadFile(filepath.Join(githubDir, "README.md"))
+	if err != nil {
+		t.Fatalf("failed to read README.md: %v", err)
+	}
+	if !strings.Contains(string(mainReadme), "Updated data.") {
+		t.Error("README.md should be updated with new section content")
+	}
+
+	// Check profile/README.md is also updated
+	profileReadme, err := os.ReadFile(filepath.Join(profileDir, "README.md"))
+	if err != nil {
+		t.Fatalf("failed to read profile/README.md: %v", err)
+	}
+	if !strings.Contains(string(profileReadme), "Updated data.") {
+		t.Error("profile/README.md should also be updated with new section content")
+	}
 }
