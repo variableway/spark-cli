@@ -2,9 +2,12 @@
 monolize
 go.sum
 spark
+spark_*
 __pycache__/
 **/__pycache__/
 .github-task-workflow.active-issue
 node_modules/
 site/
 package-lock.json
+.task/
+spark.exe

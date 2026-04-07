@@ -5,7 +5,7 @@ GO=go
 GINKGO=$(GO) run github.com/onsi/ginkgo/v2/ginkgo
 
 # Install directory
-INSTALL_DIR=/Users/patrick/.local/bin
+INSTALL_DIR=~/.local/bin
 
 # Detect OS
 ifeq ($(OS),Windows_NT)

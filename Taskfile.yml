@@ -1,0 +1,138 @@
+version: '3'
+
+vars:
+  BINARY_NAME: spark
+  GO: go
+
+env:
+  CGO_ENABLED: 0
+
+tasks:
+  default:
+    cmds:
+      - task: build
+
+  build:
+    desc: Build for current OS and install
+    cmds:
+      - task: clean
+      - '{{.GO}} build -ldflags="-s -w" -o {{.BINARY_NAME}}{{exeExt}} main.go'
+      - cmd: powershell -Command "New-Item -ItemType Directory -Force -Path \"$HOME\\.local\\bin\" | Out-Null; Copy-Item -Force spark.exe \"$HOME\\.local\\bin\\spark\""
+        platforms: [windows]
+      - cmd: 'mkdir -p ~/.local/bin && cp {{.BINARY_NAME}}{{exeExt}} ~/.local/bin/{{.BINARY_NAME}}'
+        platforms: [linux, darwin]
+      - echo 'Installed {{.BINARY_NAME}} to ~/.local/bin'
+    sources:
+      - '**/*.go'
+      - go.mod
+    generates:
+      - '{{.BINARY_NAME}}{{exeExt}}'
+
+  build:linux:
+    desc: Cross-compile for Linux (amd64)
+    cmds:
+      - task: cross-build
+        vars:
+          GOOS: linux
+          GOARCH: amd64
+          OUTPUT: '{{.BINARY_NAME}}_linux'
+
+  build:linux:arm64:
+    desc: Cross-compile for Linux (arm64)
+    cmds:
+      - task: cross-build
+        vars:
+          GOOS: linux
+          GOARCH: arm64
+          OUTPUT: '{{.BINARY_NAME}}_linux_arm64'
+
+  build:darwin:
+    desc: Cross-compile for macOS (amd64)
+    cmds:
+      - task: cross-build
+        vars:
+          GOOS: darwin
+          GOARCH: amd64
+          OUTPUT: '{{.BINARY_NAME}}_darwin'
+
+  build:darwin:arm64:
+    desc: Cross-compile for macOS (arm64/Apple Silicon)
+    cmds:
+      - task: cross-build
+        vars:
+          GOOS: darwin
+          GOARCH: arm64
+          OUTPUT: '{{.BINARY_NAME}}_darwin_arm64'
+
+  build:windows:
+    desc: Cross-compile for Windows (amd64)
+    cmds:
+      - task: cross-build
+        vars:
+          GOOS: windows
+          GOARCH: amd64
+          OUTPUT: '{{.BINARY_NAME}}_windows.exe'
+
+  build:windows:arm64:
+    desc: Cross-compile for Windows (arm64)
+    cmds:
+      - task: cross-build
+        vars:
+          GOOS: windows
+          GOARCH: arm64
+          OUTPUT: '{{.BINARY_NAME}}_windows_arm64.exe'
+
+  build:all:
+    desc: Cross-compile for all platforms
+    cmds:
+      - task: build:linux
+      - task: build:linux:arm64
+      - task: build:darwin
+      - task: build:darwin:arm64
+      - task: build:windows
+      - task: build:windows:arm64
+
+  test:
+    desc: Run all tests
+    cmds:
+      - '{{.GO}} test ./... -v'
+
+  test-bdd:
+    desc: Run BDD tests with Ginkgo
+    cmds:
+      - '{{.GO}} run github.com/onsi/ginkgo/v2/ginkgo -v ./internal/...'
+
+  lint:
+    desc: Run go vet
+    cmds:
+      - '{{.GO}} vet ./...'
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - cmd: powershell -Command "Remove-Item -Force -ErrorAction SilentlyContinue spark.exe,spark_windows.exe,spark_windows_arm64.exe,spark_linux,spark_linux_arm64,spark_darwin,spark_darwin_arm64; exit 0"
+        platforms: [windows]
+      - cmd: 'rm -f {{.BINARY_NAME}} {{.BINARY_NAME}}.exe {{.BINARY_NAME}}_linux {{.BINARY_NAME}}_linux_arm64 {{.BINARY_NAME}}_darwin {{.BINARY_NAME}}_darwin_arm64 {{.BINARY_NAME}}_windows.exe {{.BINARY_NAME}}_windows_arm64.exe'
+        platforms: [linux, darwin]
+      - '{{.GO}} clean'
+
+  install:
+    desc: Build and install to ~/.local/bin
+    cmds:
+      - task: build
+
+  run:
+    desc: Build and run
+    cmds:
+      - task: build
+      - './{{.BINARY_NAME}}{{exeExt}} --help'
+
+  cross-build:
+    internal: true
+    requires:
+      vars: [GOOS, GOARCH, OUTPUT]
+    cmds:
+      - cmd: '{{.GO}} build -ldflags="-s -w" -o {{.OUTPUT}} main.go'
+        env:
+          GOOS: '{{.GOOS}}'
+          GOARCH: '{{.GOARCH}}'
