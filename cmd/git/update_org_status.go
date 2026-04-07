@@ -142,32 +142,19 @@ func updateLocalFile(orgName, sectionContent string) error {
 		outputPath = ".github/README.md"
 	}
 
-	// Ensure directory exists
-	dir := filepath.Dir(outputPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("failed to create directory %s: %w", dir, err)
+	// Update the specified output file
+	if err := writeReadmeFile(outputPath, orgName, sectionContent); err != nil {
+		return err
 	}
 
-	// Read existing content or create new
-	var newContent string
-	if _, err := os.Stat(outputPath); err == nil {
-		// File exists, update section
-		existingContent, err := os.ReadFile(outputPath)
-		if err != nil {
-			return fmt.Errorf("failed to read existing file: %w", err)
+	// Also update profile/README.md if output is under a .github directory
+	outputDir := filepath.Dir(outputPath)
+	if filepath.Base(outputDir) == ".github" {
+		profilePath := filepath.Join(outputDir, "profile", "README.md")
+		if err := writeReadmeFile(profilePath, orgName, sectionContent); err != nil {
+			return err
 		}
-		newContent = updateSectionInContent(string(existingContent), sectionContent, updateOrgStatusSection)
-	} else {
-		// File doesn't exist, create full README
-		newContent = generateFullREADME(orgName, sectionContent)
 	}
-
-	// Write file
-	if err := os.WriteFile(outputPath, []byte(newContent), 0644); err != nil {
-		return fmt.Errorf("failed to write README: %w", err)
-	}
-
-	fmt.Printf("Updated: %s\n", outputPath)
 
 	// Git operations (unless skipped)
 	if !updateOrgStatusSkipPush {
@@ -198,35 +185,17 @@ func updateDotGitHubRepo(orgName, sectionContent string) error {
 		return fmt.Errorf("failed to clone .github repository: %w\nNote: Make sure the .github repository exists and is accessible", err)
 	}
 
-	// Determine README path (profile/README.md or README.md)
-	readmePath := filepath.Join(repoDir, "profile", "README.md")
-	if _, err := os.Stat(readmePath); os.IsNotExist(err) {
-		readmePath = filepath.Join(repoDir, "README.md")
+	// Update both README.md and profile/README.md
+	paths := []string{
+		filepath.Join(repoDir, "README.md"),
+		filepath.Join(repoDir, "profile", "README.md"),
 	}
 
-	// Read existing content or create new
-	var newContent string
-	if _, err := os.Stat(readmePath); err == nil {
-		existingContent, err := os.ReadFile(readmePath)
-		if err != nil {
-			return fmt.Errorf("failed to read existing README: %w", err)
+	for _, readmePath := range paths {
+		if err := writeReadmeFile(readmePath, orgName, sectionContent); err != nil {
+			return err
 		}
-		newContent = updateSectionInContent(string(existingContent), sectionContent, updateOrgStatusSection)
-	} else {
-		newContent = generateFullREADME(orgName, sectionContent)
 	}
-
-	// Ensure directory exists
-	if err := os.MkdirAll(filepath.Dir(readmePath), 0755); err != nil {
-		return fmt.Errorf("failed to create directory: %w", err)
-	}
-
-	// Write file
-	if err := os.WriteFile(readmePath, []byte(newContent), 0644); err != nil {
-		return fmt.Errorf("failed to write README: %w", err)
-	}
-
-	fmt.Printf("Updated: %s\n", readmePath)
 
 	// Git operations in .github repo
 	if updateOrgStatusSkipPush {
@@ -270,6 +239,31 @@ func updateDotGitHubRepo(orgName, sectionContent string) error {
 	}
 
 	fmt.Println("Successfully committed and pushed changes to .github repository.")
+	return nil
+}
+
+func writeReadmeFile(readmePath, orgName, sectionContent string) error {
+	// Ensure directory exists
+	if err := os.MkdirAll(filepath.Dir(readmePath), 0755); err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
+	var newContent string
+	if _, err := os.Stat(readmePath); err == nil {
+		existingContent, err := os.ReadFile(readmePath)
+		if err != nil {
+			return fmt.Errorf("failed to read existing README: %w", err)
+		}
+		newContent = updateSectionInContent(string(existingContent), sectionContent, updateOrgStatusSection)
+	} else {
+		newContent = generateFullREADME(orgName, sectionContent)
+	}
+
+	if err := os.WriteFile(readmePath, []byte(newContent), 0644); err != nil {
+		return fmt.Errorf("failed to write README: %w", err)
+	}
+
+	fmt.Printf("Updated: %s\n", readmePath)
 	return nil
 }
 
