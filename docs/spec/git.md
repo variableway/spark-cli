@@ -28,30 +28,28 @@ spark git update [-p <path>]
 
 ---
 
-## spark git create
+## spark git mono add
 
-创建 Mono-repo，将指定目录下的所有仓库作为 Git Submodule 添加。
+将目录下已有的 Git 仓库添加为子模块，无需重新克隆。
 
 ```
-spark git create -n <name> -o <path> [-p <path>]
+spark git mono add [-p <path>]
 ```
 
 | 标志 | 类型 | 默认值 | 必填 | 说明 |
 |------|------|--------|------|------|
-| `-n, --name` | string | `mono-repo` | 否 | Mono-repo 目录名 |
-| `-o, --output` | string | 同源路径 | 否 | 输出路径 |
-| `-p, --path` | stringSlice | `["."]` | 否 | 包含 Git 仓库的目录路径 |
+| `-p, --path` | string | `.` | 否 | 包含 Git 仓库的目录路径 |
 
 无参数。
 
 ---
 
-## spark git sync
+## spark git mono sync
 
 同步 Mono-repo 中所有 Submodule 到最新版本。
 
 ```
-spark git sync <mono-repo-path>
+spark git mono sync <mono-repo-path>
 ```
 
 | 参数 | 类型 | 必填 | 说明 |

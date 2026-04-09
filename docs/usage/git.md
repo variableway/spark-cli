@@ -6,8 +6,8 @@
 
 ```bash
 spark git update                              # 更新所有仓库
-spark git create -n <name> -o <path>          # 创建 Mono-repo
-spark git sync <mono-path>                    # 同步子模块
+spark git mono add [-p <path>]                # 添加现有仓库为子模块
+spark git mono sync <mono-path>               # 同步子模块
 spark git gitcode                             # 添加 Gitcode 远程
 spark git config [--username --email]         # 配置 Git 用户
 spark git url [repo-path]                     # 查看远程 URL
@@ -31,29 +31,27 @@ spark git update -p ~/ws -p ~/projects        # 多个目录
 
 ---
 
-## spark git create
+## spark git mono add
 
-将多个仓库整合为一个带有子模块的 Mono 仓库。
+将当前目录下已有的 Git 仓库添加为子模块，无需重新克隆。适用于研究场景：先将多个仓库克隆到同一目录，再统一转为 Mono 仓库。
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
-| `--name` | `-n` | `mono-repo` | Mono 仓库名称 |
-| `--output` | `-o` | 源路径 | 输出路径 |
+| `--path` | `-p` | `.` | 包含 Git 仓库的目录 |
 
 ```bash
-spark git create                              # 默认创建 mono-repo
-spark git create -n my-mono -o ./output       # 指定名称和输出路径
-spark git create -p ~/workspace -n projects   # 从指定目录创建
+spark git mono add                              # 添加当前目录下的仓库
+spark git mono add -p /path/to/repos            # 添加指定目录下的仓库
 ```
 
 ---
 
-## spark git sync
+## spark git mono sync
 
 同步 Mono 仓库中所有子模块到最新版本。
 
 ```bash
-spark git sync ./my-mono-repo                 # 同步指定 Mono 仓库
+spark git mono sync ./my-mono-repo                 # 同步指定 Mono 仓库
 ```
 
 ---
