@@ -11,8 +11,7 @@ var GitCmd = &cobra.Command{
 
 This includes:
 - update: Update multiple git repositories
-- create: Create a mono repo with submodules
-- sync: Sync submodules in a mono repo
+- mono: Mono repo management (add/sync submodules)
 - gitcode: Add Gitcode as remote
 - config: Configure git user for repository
 - url: Get repository remote URL

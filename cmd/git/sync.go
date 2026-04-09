@@ -27,5 +27,5 @@ var syncCmd = &cobra.Command{
 }
 
 func init() {
-	GitCmd.AddCommand(syncCmd)
+	MonoCmd.AddCommand(syncCmd)
 }
