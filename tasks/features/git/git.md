@@ -110,3 +110,51 @@ spark git mono add -p /path/to/folder
 # Sync submodules after adding
 spark git mono sync /path/to/mono-repo
 ``` 
+
+## Task 3: Add a remote git repo into mono repo
+
+1. make sure add command support remote git url to add this repo as submodule
+2. modify all the documents about add command to support remote git url
+3. the submodule path could be defined by input parameter, default is the repo name
+
+## Status: ✅ Completed
+
+### Changes Made
+
+1. **internal/mono/adder.go**
+   - Added `ExtractRepoName()` function to extract repo name from git URL
+   - Added `AddRemoteRepoAsSubmodule()` function to add remote repos as submodules
+   - Supports HTTPS and SSH URL formats
+   - Supports custom submodule path via parameter
+
+2. **cmd/git/mono_add.go**
+   - Updated to support both local directory mode and remote URL mode
+   - Added `--url`/`-u` flag for specifying remote URL
+   - Added `--name`/`-n` flag for custom submodule path
+   - Added argument support: `spark git mono add <repo-url>`
+   - Added `isValidGitURL()` helper function for URL validation
+
+3. **Updated Documentation**
+   - `docs/usage/git.md` - Added remote mode documentation with examples
+   - `docs/spec/git.md` - Added remote mode specification
+   - `docs/features/git.md` - Updated feature description
+   - `AGENTS.md` - Updated command reference with both modes
+
+### Usage Examples
+
+```bash
+# Add remote repository with default path (repo name)
+spark git mono add https://github.com/user/repo
+
+# Add remote repository with custom path
+spark git mono add https://github.com/user/repo --name my-submodule
+
+# Using SSH URL
+spark git mono add git@github.com:user/repo.git
+
+# Using URL flag instead of argument
+spark git mono add --url https://github.com/user/repo --name custom-name
+
+# Add local repos (existing behavior)
+spark git mono add -p /path/to/local/repos
+```

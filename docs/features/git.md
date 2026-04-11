@@ -19,8 +19,12 @@ spark git update -p ~/workspace
 将多个独立仓库作为 Submodule 合并为一个 Mono-repo，方便统一管理和版本控制。
 
 ```bash
-# 添加现有仓库为子模块
+# 添加现有本地仓库为子模块
 spark git mono add -p /path/to/repos
+
+# 添加远程仓库为子模块
+spark git mono add https://github.com/user/repo
+spark git mono add https://github.com/user/repo --name custom-folder
 
 # 同步所有 Submodule 到最新
 spark git mono sync ./my-mono
@@ -55,6 +59,7 @@ spark git update-org-status variableway --update-dot-github
 |------|------|
 | `-p, --path` | 指定扫描目录（支持多个），默认 `["."]` |
 | `-p, --path` | 包含 Git 仓库的目录，默认 `.` |
+| `-n, --name` | 子模块路径名称（远程模式），默认仓库名 |
 | `-o, --output` | 输出路径 |
 | `--ssh` | 使用 SSH 克隆（batch-clone） |
 | `--include` / `--exclude` | 包含/排除匹配模式（batch-clone） |

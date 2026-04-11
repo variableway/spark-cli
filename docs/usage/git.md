@@ -7,6 +7,7 @@
 ```bash
 spark git update                              # 更新所有仓库
 spark git mono add [-p <path>]                # 添加现有仓库为子模块
+spark git mono add <repo-url> [-n <name>]     # 添加远程仓库为子模块
 spark git mono sync <mono-path>               # 同步子模块
 spark git gitcode                             # 添加 Gitcode 远程
 spark git config [--username --email]         # 配置 Git 用户
@@ -33,7 +34,11 @@ spark git update -p ~/ws -p ~/projects        # 多个目录
 
 ## spark git mono add
 
-将当前目录下已有的 Git 仓库添加为子模块，无需重新克隆。适用于研究场景：先将多个仓库克隆到同一目录，再统一转为 Mono 仓库。
+将本地 Git 仓库添加为子模块，或将远程仓库克隆为子模块。
+
+### 模式 1：添加本地仓库为子模块
+
+扫描指定目录中的 Git 仓库，将它们添加为子模块，无需重新克隆。
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
@@ -42,6 +47,29 @@ spark git update -p ~/ws -p ~/projects        # 多个目录
 ```bash
 spark git mono add                              # 添加当前目录下的仓库
 spark git mono add -p /path/to/repos            # 添加指定目录下的仓库
+```
+
+### 模式 2：添加远程仓库为子模块
+
+克隆远程 Git 仓库并将其添加为子模块。
+
+| 标志 | 简写 | 默认值 | 说明 |
+|------|------|--------|------|
+| `--path` | `-p` | `.` | Mono-repo 目录（默认当前目录） |
+| `--name` | `-n` | 仓库名 | 子模块路径名称 |
+
+```bash
+# 添加远程仓库（使用默认路径名）
+spark git mono add https://github.com/user/repo
+
+# 添加远程仓库并指定路径名
+spark git mono add https://github.com/user/repo --name my-submodule
+
+# 使用 SSH URL
+spark git mono add git@github.com:user/repo.git
+
+# 使用简写格式（GitHub）
+spark git mono add user/repo
 ```
 
 ---
@@ -129,7 +157,7 @@ spark git batch-clone variableway -o ./repos    # 指定输出目录
 |------|------|--------|------|
 | `--output` | `-o` | `.github/README.md` | 输出文件路径 |
 | `--dry-run` | | `false` | 预览不写入 |
-| `--update-dot-github` | | `false` | 直接更新 .github 仓库 |
+| `--update-dot-github` | | `false` | 直接更新组织的 .github 仓库 |
 | `--section` | | `Project List` | 更新的 section 名称 |
 | `--skip-push` | | `false` | 跳过 git push |
 

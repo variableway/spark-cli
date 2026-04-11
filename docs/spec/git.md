@@ -30,7 +30,12 @@ spark git update [-p <path>]
 
 ## spark git mono add
 
-将目录下已有的 Git 仓库添加为子模块，无需重新克隆。
+添加 Git 仓库为子模块。支持两种模式：
+
+1. 本地模式：将目录下已有的 Git 仓库添加为子模块，无需重新克隆
+2. 远程模式：将远程 Git 仓库克隆并添加为子模块
+
+### 本地模式
 
 ```
 spark git mono add [-p <path>]
@@ -41,6 +46,21 @@ spark git mono add [-p <path>]
 | `-p, --path` | string | `.` | 否 | 包含 Git 仓库的目录路径 |
 
 无参数。
+
+### 远程模式
+
+```
+spark git mono add <repo-url> [-n <name>] [-p <path>]
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `repo-url` | string | 是 | 远程仓库 URL（HTTPS 或 SSH） |
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-n, --name` | string | 仓库名 | 否 | 子模块路径名称 |
+| `-p, --path` | string | `.` | 否 | Mono-repo 目录路径 |
 
 ---
 
