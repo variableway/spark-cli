@@ -53,6 +53,21 @@ spark git batch-clone jackwener -o ./repos
 spark git update-org-status variableway --update-dot-github
 ```
 
+### 批量创建 Issue
+
+从文件夹中的 Markdown 文档批量创建 GitHub Issue。每个文档对应一个 Issue，标题自动提取自文档的首行标题。
+
+```bash
+# 从文档创建 Issue
+spark git batch-issue variableway/spark-cli -d ./docs
+
+# 预览模式
+spark git batch-issue owner/repo -d ./issues --dry-run
+
+# 添加标签
+spark git batch-issue owner/repo -d ./docs --label "documentation"
+```
+
 ## 使用参数
 
 | 参数 | 说明 |

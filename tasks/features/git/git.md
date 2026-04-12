@@ -158,3 +158,46 @@ spark git mono add --url https://github.com/user/repo --name custom-name
 # Add local repos (existing behavior)
 spark git mono add -p /path/to/local/repos
 ```
+## Task 4: Support Github Issue creation by title and a folder of documents
+
+1. support create issue with a folder of docs
+2. every single document is an issue content
+3. the issue title is the document name or the Headline of document, headline of the document is the default option if it is a markdown file.
+4. the issue body is the document content.
+
+## Status: ✅ Completed
+
+### Changes Made
+
+1. **internal/github/issue.go** (new)
+   - `IssueInput` struct with Title and Body fields
+   - `CreateIssue()` — creates a GitHub issue via `gh` CLI
+   - `ReadDocsAsIssues()` — reads all `.md` files from a folder, extracts title and body
+   - `extractTitle()` — extracts title from first `# heading`, falls back to filename
+
+2. **internal/github/issue_test.go** (new)
+   - Tests for `extractTitle`: h1 heading, filename fallback, h2 skip, leading spaces, empty file
+   - Tests for `ReadDocsAsIssues`: multiple files, empty directory, non-md file filtering
+
+3. **cmd/git/batch_issue.go** (new)
+   - `spark git batch-issue <repo>` command
+   - Flags: `-d/--docs` (docs folder), `--dry-run` (preview), `-l/--label` (labels)
+   - Prints summary of created/failed issues
+
+4. **Updated Documentation**
+   - `cmd/git/git.go` — added batch-issue to command list
+   - `docs/usage/git.md` — added batch-issue section with flags and examples
+   - `docs/features/git.md` — added batch issue feature description
+
+### Usage Examples
+
+```bash
+# Create issues from a folder of markdown docs
+spark git batch-issue variableway/spark-cli -d ./docs
+
+# Preview without creating
+spark git batch-issue owner/repo -d ./issues --dry-run
+
+# Add labels to all issues
+spark git batch-issue owner/repo -d ./docs --label "documentation,enhancement"
+```

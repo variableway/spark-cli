@@ -15,7 +15,8 @@ This includes:
 - gitcode: Add Gitcode as remote
 - config: Configure git user for repository
 - url: Get repository remote URL
-- batch-clone: Clone all repos from a GitHub organization or user`,
+- batch-clone: Clone all repos from a GitHub organization or user
+- batch-issue: Create GitHub issues from a folder of markdown documents`,
 }
 
 func init() {

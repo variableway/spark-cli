@@ -14,6 +14,7 @@ spark git config [--username --email]         # 配置 Git 用户
 spark git url [repo-path]                     # 查看远程 URL
 spark git batch-clone <account> [-o <dir>]    # 克隆用户/组织所有仓库
 spark git update-org-status <org> [--dry-run] # 更新组织 README
+spark git batch-issue <repo> [-d <docs-dir>]    # 从文档批量创建 Issue
 ```
 
 ---
@@ -166,6 +167,28 @@ spark git update-org-status variableway                    # 更新本地 README
 spark git update-org-status variableway --dry-run          # 预览
 spark git update-org-status variableway --update-dot-github # 直接推送
 spark git update-org-status variableway --section "My Projects"
+```
+
+---
+
+## spark git batch-issue
+
+从文件夹中的 Markdown 文档批量创建 GitHub Issue。每个文档对应一个 Issue。
+
+| 标志 | 简写 | 默认值 | 说明 |
+|------|------|--------|------|
+| `--docs` | `-d` | `.` | 包含 Markdown 文档的目录 |
+| `--dry-run` | | `false` | 预览不创建 |
+| `--label` | `-l` | | 为所有 Issue 添加标签（逗号分隔） |
+
+**标题规则**：
+- 优先使用文档中的第一个 `# 标题`
+- 无标题时使用文件名（去掉 `.md` 后缀）
+
+```bash
+spark git batch-issue variableway/spark-cli -d ./docs
+spark git batch-issue owner/repo -d ./issues --dry-run
+spark git batch-issue owner/repo -d ./docs --label "documentation,enhancement"
 ```
 
 ## 相关命令
