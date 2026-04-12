@@ -30,6 +30,29 @@ Platform-specific commands used:
 	},
 }
 
+func getDNSCommands(osName string) ([][]string, error) {
+	switch osName {
+	case "darwin":
+		return [][]string{
+			{"sudo", "dscacheutil", "-flushcache"},
+			{"sudo", "killall", "-HUP", "mDNSResponder"},
+		}, nil
+	case "windows":
+		return [][]string{
+			{"ipconfig", "/flushdns"},
+		}, nil
+	case "linux":
+		return [][]string{
+			{"sudo", "systemctl", "restart", "systemd-resolved"},
+			{"sudo", "service", "nscd", "restart"},
+			{"sudo", "service", "dnsmasq", "restart"},
+			{"sudo", "rndc", "flush"},
+		}, nil
+	default:
+		return nil, fmt.Errorf("unsupported operating system: %s", osName)
+	}
+}
+
 func flushDNS() error {
 	osName := runtime.GOOS
 
@@ -51,10 +74,7 @@ func flushDNS() error {
 func flushDNSMac() error {
 	pterm.Info.Println("Flushing DNS cache on macOS...")
 
-	commands := [][]string{
-		{"sudo", "dscacheutil", "-flushcache"},
-		{"sudo", "killall", "-HUP", "mDNSResponder"},
-	}
+	commands, _ := getDNSCommands("darwin")
 
 	for _, cmdArgs := range commands {
 		cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
@@ -74,7 +94,10 @@ func flushDNSMac() error {
 func flushDNSWindows() error {
 	pterm.Info.Println("Flushing DNS cache on Windows...")
 
-	cmd := exec.Command("ipconfig", "/flushdns")
+	commands, _ := getDNSCommands("windows")
+	cmdArgs := commands[0]
+
+	cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -89,15 +112,10 @@ func flushDNSWindows() error {
 func flushDNSLinux() error {
 	pterm.Info.Println("Flushing DNS cache on Linux...")
 
-	flushMethods := [][]string{
-		{"sudo", "systemctl", "restart", "systemd-resolved"},
-		{"sudo", "service", "nscd", "restart"},
-		{"sudo", "service", "dnsmasq", "restart"},
-		{"sudo", "rndc", "flush"},
-	}
+	commands, _ := getDNSCommands("linux")
 
 	var lastErr error
-	for _, cmdArgs := range flushMethods {
+	for _, cmdArgs := range commands {
 		cmd := exec.Command(cmdArgs[0], cmdArgs[1:]...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
