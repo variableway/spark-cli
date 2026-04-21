@@ -6,10 +6,10 @@
 
 ```bash
 spark task init                               # 初始化任务目录结构
-spark task list [--task-dir <dir>]            # 列出所有任务和特性
-spark task create <name> [--content <text>]   # 创建特性文件
-spark task delete <name> [--force]            # 删除特性文件
-spark task impl <name>                        # 实现特性
+spark task list [--task-dir <dir>]            # 列出所有任务和 issue
+spark task create <name> [--content <text>]   # 创建 issue 文件
+spark task delete <name> [--force]            # 删除 issue 文件
+spark task impl <name>                        # 实现 issue
 spark task dispatch <name> [--dest <path>]    # 分发任务
 spark task sync <name> [--work-path <path>]   # 同步任务
 ```
@@ -20,7 +20,7 @@ spark task sync <name> [--work-path <path>]   # 同步任务
 
 ## spark task init
 
-初始化任务目录结构，创建 `tasks/features/` 等目录。
+初始化任务目录结构，创建 `tasks/issues/` 等目录与 `tasks/example-issue.md` 模板文件。
 
 ```bash
 spark task init                               # 在当前目录初始化
@@ -31,7 +31,7 @@ spark task init --task-dir /path/to/tasks     # 指定任务目录
 
 ## spark task list
 
-列出任务目录中的所有任务和特性文件。
+列出任务目录中的所有任务和 issue 文件。
 
 ```bash
 spark task list                               # 列出当前目录的任务
@@ -42,14 +42,14 @@ spark task list --task-dir ./my-tasks         # 指定目录
 
 ## spark task create
 
-在 `tasks/features/` 下创建新的特性文件。文件名中的空格自动转为 `-`。
+在 `tasks/issues/` 下创建新的 issue 文件。文件名中的空格和下划线会自动转为 `-`。
 
 | 标志 | 默认值 | 说明 |
 |------|--------|------|
 | `--content` | | 自定义内容 |
 
 ```bash
-spark task create my-feature                  # 创建 tasks/features/my-feature.md
+spark task create my-feature                  # 创建 tasks/issues/my-feature.md
 spark task create "my feature"                # 文件名: my-feature.md
 spark task create my-feature --content "Description here"
 ```
@@ -58,7 +58,7 @@ spark task create my-feature --content "Description here"
 
 ## spark task delete
 
-删除特性文件。
+删除 issue 文件。
 
 | 标志 | 默认值 | 说明 |
 |------|--------|------|
@@ -73,10 +73,10 @@ spark task delete my-feature --force          # 强制删除
 
 ## spark task impl
 
-使用 `kimi` CLI 实现特性。
+使用 `kimi` CLI 实现 issue。
 
 ```bash
-spark task impl my-feature                    # 实现 my-feature
+spark task impl my-feature                    # 实现 issue
 spark task impl my-feature --tui              # 交互模式
 ```
 
@@ -117,7 +117,7 @@ spark task sync --tui                         # 交互选择
 ```
 create → impl → dispatch → (开发) → sync
   ↑                                        ↓
-  └──────── tasks/features/*.md ←──────────┘
+  └──────── tasks/issues/*.md ←────────────┘
 ```
 
 ## 相关命令

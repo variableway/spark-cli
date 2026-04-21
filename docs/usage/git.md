@@ -14,7 +14,7 @@ spark git config [--username --email]         # 配置 Git 用户
 spark git url [repo-path]                     # 查看远程 URL
 spark git batch-clone <account> [-o <dir>]    # 克隆用户/组织所有仓库
 spark git update-org-status <org> [--dry-run] # 更新组织 README
-spark git batch-issue <repo> [-d <docs-dir>]    # 从文档批量创建 Issue
+spark git issues [-r <owner/repo>] (-d <dir> | -f <file>) # 从文档/任务创建 Issue
 ```
 
 ---
@@ -171,24 +171,32 @@ spark git update-org-status variableway --section "My Projects"
 
 ---
 
-## spark git batch-issue
+## spark git issues
 
-从文件夹中的 Markdown 文档批量创建 GitHub Issue。每个文档对应一个 Issue。
+从 Markdown 文档创建 GitHub Issue，支持两种模式：
+
+- 目录模式：`-d` 指定目录，目录下每个 `.md` 文件创建一个 Issue
+- 任务模式：`-f` 指定单文件，按 `# Task <id>` 或 `## Task <id>` 分段创建多个 Issue
+
+仓库参数可通过 `-r` 显式指定；未指定时自动从当前仓库 `origin` 解析 `owner/repo`。
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
-| `--docs` | `-d` | `.` | 包含 Markdown 文档的目录 |
-| `--dry-run` | | `false` | 预览不创建 |
-| `--label` | `-l` | | 为所有 Issue 添加标签（逗号分隔） |
-
-**标题规则**：
-- 优先使用文档中的第一个 `# 标题`
-- 无标题时使用文件名（去掉 `.md` 后缀）
+| `--repo` | `-r` | 自动检测 | 目标仓库（`owner/repo`） |
+| `--dir` | `-d` | | Markdown 目录（目录模式） |
+| `--file` | `-f` | | 任务文件（任务模式） |
+| `--labels` | `-l` | | 为所有 Issue 添加标签（逗号分隔） |
+| `--dry-run` | | `false` | 预览，不创建 Issue |
 
 ```bash
-spark git batch-issue variableway/spark-cli -d ./docs
-spark git batch-issue owner/repo -d ./issues --dry-run
-spark git batch-issue owner/repo -d ./docs --label "documentation,enhancement"
+# 目录模式：每个 Markdown 文件创建一个 Issue
+spark git issues -d ./docs -r variableway/spark-cli
+
+# 任务模式：从任务文件按 Task 段落创建 Issue
+spark git issues -f tasks/features/task-bug-fix.md -r variableway/spark-cli
+
+# 自动从当前仓库解析 owner/repo
+spark git issues -f tasks/features/task-bug-fix.md --dry-run
 ```
 
 ## 相关命令

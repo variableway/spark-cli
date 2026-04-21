@@ -54,7 +54,7 @@ spark agent use my-profile                    # 应用到当前项目
 
 ```bash
 spark task init                               # 初始化任务目录
-spark task create my-feature                  # 创建特性文件
+spark task create my-feature                  # 创建 issue 文件
 spark task dispatch my-feature                # 分发到工作目录
 spark task sync my-feature                    # 同步回任务目录
 ```

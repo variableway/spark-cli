@@ -35,7 +35,7 @@ main.go → cmd.Execute()
 │   ├── github/             GitHub API interactions
 │   ├── mono/               Mono-repo & submodule management
 │   ├── script/             Script discovery & execution
-│   ├── task/               Task dispatch/sync/feature CRUD
+│   ├── task/               Task dispatch/sync/issue CRUD
 │   └── tui/                Shared terminal UI components
 ├── docs/                   Documentation (docmd)
 └── scripts/                User-defined automation scripts
@@ -81,6 +81,7 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git url [repo-path]` | Get remote URL of repository |
 | `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
 | `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
+| `spark git issues [-r <owner/repo>] (-d <dir> \| -f <file>) [--dry-run] [-l <labels>]` | Create GitHub issues from markdown docs/tasks |
 
 ---
 
@@ -108,10 +109,10 @@ Supported agents: `claude-code`, `codex`, `kimi`, `glm`
 | Command | Description |
 |---------|-------------|
 | `spark task init` | Initialize task directory structure |
-| `spark task list` | List all tasks and features |
-| `spark task create <name> [--content <text>]` | Create feature file |
-| `spark task delete <name> [--force]` | Delete feature file |
-| `spark task impl <name>` | Implement feature via kimi CLI |
+| `spark task list` | List all tasks and issues |
+| `spark task create <name> [--content <text>]` | Create issue file |
+| `spark task delete <name> [--force]` | Delete issue file |
+| `spark task impl <name>` | Implement issue via kimi CLI |
 | `spark task dispatch [name] [--dest <path>]` | Dispatch task to workspace |
 | `spark task sync [name] [--work-path <path>]` | Sync task back |
 

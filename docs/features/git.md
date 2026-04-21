@@ -53,19 +53,22 @@ spark git batch-clone jackwener -o ./repos
 spark git update-org-status variableway --update-dot-github
 ```
 
-### 批量创建 Issue
+### Markdown 创建 Issue
 
-从文件夹中的 Markdown 文档批量创建 GitHub Issue。每个文档对应一个 Issue，标题自动提取自文档的首行标题。
+统一使用 `spark git issues` 命令创建 GitHub Issue，支持两种输入模式：
+
+- 目录模式：读取目录下所有 Markdown 文件，每个文件创建一个 Issue
+- 任务模式：读取单个任务文件，按 `# Task <id>` / `## Task <id>` 分段创建多个 Issue
 
 ```bash
-# 从文档创建 Issue
-spark git batch-issue variableway/spark-cli -d ./docs
+# 目录模式
+spark git issues -d ./docs -r variableway/spark-cli
 
-# 预览模式
-spark git batch-issue owner/repo -d ./issues --dry-run
+# 任务模式
+spark git issues -f tasks/features/task-bug-fix.md -r variableway/spark-cli
 
-# 添加标签
-spark git batch-issue owner/repo -d ./docs --label "documentation"
+# 自动识别当前仓库 + 预览
+spark git issues -f tasks/features/task-bug-fix.md --dry-run
 ```
 
 ## 使用参数
@@ -78,11 +81,16 @@ spark git batch-issue owner/repo -d ./docs --label "documentation"
 | `-o, --output` | 输出路径 |
 | `--ssh` | 使用 SSH 克隆（batch-clone） |
 | `--include` / `--exclude` | 包含/排除匹配模式（batch-clone） |
+| `-r, --repo` | 目标仓库（未指定时自动从当前仓库解析） |
+| `-d, --dir` | 文档目录（目录模式） |
+| `-f, --file` | 任务文件（任务模式） |
+| `-l, --labels` | Issue 标签（逗号分隔） |
+| `--dry-run` | 仅预览，不创建 Issue |
 
 ## 依赖
 
 - `git` 命令行工具
-- `gh` CLI（batch-clone、update-org-status 需要 GitHub API 访问）
+- `gh` CLI（issues、batch-clone、update-org-status 需要 GitHub API 访问）
 
 ## 相关文档
 

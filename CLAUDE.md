@@ -21,7 +21,7 @@ go test ./internal/git/... -v -run TestFunctionName
 
 ## Architecture
 
-Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Git repositories, AI agent configs, scripts, and task workflows. Built with **Cobra** (CLI), **Viper** (config), **PTerm** + **Bubble Tea** (TUI), tested with **Ginkgo/Gomega** (BDD).
+Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Git repositories, scripts, and task workflows. Built with **Cobra** (CLI), **Viper** (config), **PTerm** + **Bubble Tea** (TUI), tested with **Ginkgo/Gomega** (BDD).
 
 ### Code Structure
 
@@ -30,15 +30,15 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
   - `cmd/git/` — Git repo management commands
   - `cmd/magic/` — System utility commands (DNS flush, mirror switching)
   - `cmd/script/` — Script management commands
-  - `cmd/agent.go`, `cmd/agent_profile.go`, `cmd/task.go` — Top-level commands in the root `cmd/` package
+  - `cmd/task.go` — Top-level task commands in the root `cmd/` package
 - **`internal/`** — Business logic, separated by domain:
-  - `agent/` — AI agent config management (Claude Code, Codex, Kimi, GLM) and profile templates
+  - `agent/` — AI agent config management module (currently command entry disabled)
   - `config/` — Configuration loading and management
   - `git/` — Core Git operations (find repos, update, remote management, URL conversion)
   - `github/` — GitHub API interactions (list org repos, parse org URLs)
   - `mono/` — Mono-repo creation and submodule management
   - `script/` — Script discovery (from config and `scripts/` dir) and execution
-  - `task/` — Task init/dispatch/sync, feature CRUD, and implementation via `kimi` CLI
+  - `task/` — Task init/dispatch/sync, issue CRUD, and implementation via `kimi` CLI
   - `tui/` — Shared terminal UI components (spinner, dialogs, selector)
 - **`docs/usage/`** — Usage documentation per command
 
@@ -46,9 +46,8 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
 
 ```
 spark
-├── git [update|mono|gitcode|config|url|batch-clone|update-org-status]
+├── git [update|mono|gitcode|config|url|batch-clone|issues|update-org-status]
 │   └── mono [add|sync]
-├── agent [list|view|edit|reset] + agent profile [list|add|edit]
 ├── task [list|init|dispatch|sync|create|delete|impl]
 ├── script [list|run]
 └── magic [flush-dns|pip|go|node]     # Mirror source switching + DNS
@@ -56,7 +55,7 @@ spark
 
 ### Key Patterns
 
-- **TUI mode**: `task`, `agent`, and other commands accept `--tui` flag for interactive mode with Bubble Tea selectors and PTerm spinners. CLI mode is the default.
+- **TUI mode**: `task` and other commands accept `--tui` flag for interactive mode with Bubble Tea selectors and PTerm spinners. CLI mode is the default.
 - **Config binding**: Flags are bound to Viper via `viper.BindPFlag()` in `init()` functions. Config keys use snake_case in YAML but camelCase in struct tags.
 - **Script sources**: Scripts can come from `~/.spark.yaml` (`spark.scripts` or top-level `scripts`) or from a `scripts/` directory. Config scripts take precedence.
 

@@ -19,7 +19,7 @@ spark task [--task-dir <dir>] [--owner <owner>] [--work-dir <dir>] [--tui]
 
 ## spark task init
 
-初始化任务目录结构，创建 `tasks/features/` 等目录。
+初始化任务目录结构，创建 `tasks/issues/` 等目录，并生成 `tasks/example-issue.md`。
 
 ```
 spark task init
@@ -47,7 +47,7 @@ spark task list [--task-dir <dir>]
 
 ## spark task create
 
-在 `tasks/features/` 下创建新的特性文件。文件名中的空格自动转为 `-`。
+在 `tasks/issues/` 下创建新的 issue 文件。文件名中的空格和下划线自动转为 `-`。
 
 ```
 spark task create <feature-name> [--content <text>]
@@ -59,13 +59,13 @@ spark task create <feature-name> [--content <text>]
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `feature-name` | string | 是 | 特性名称（作为文件名） |
+| `feature-name` | string | 是 | issue 名称（作为文件名） |
 
 ---
 
 ## spark task delete
 
-删除特性文件。
+删除 issue 文件。
 
 ```
 spark task delete <feature-name> [--force]
@@ -77,13 +77,13 @@ spark task delete <feature-name> [--force]
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `feature-name` | string | 是 | 特性名称 |
+| `feature-name` | string | 是 | issue 名称 |
 
 ---
 
 ## spark task impl
 
-使用 `kimi` CLI 实现特性。
+使用 `kimi` CLI 实现 issue。
 
 ```
 spark task impl <feature-name>
@@ -91,7 +91,7 @@ spark task impl <feature-name>
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `feature-name` | string | 是 | 特性名称 |
+| `feature-name` | string | 是 | issue 名称 |
 
 无标志（除父命令 `--tui`）。
 

@@ -8,7 +8,7 @@
 
 ### 任务初始化
 
-在项目中创建标准的任务目录结构（`tasks/features/`）。
+在项目中创建标准的任务目录结构（`tasks/issues/`）。
 
 ```bash
 spark task init
@@ -16,10 +16,10 @@ spark task init
 
 ### 特性文件管理
 
-创建、列出、删除特性描述文件。特性文件是 Markdown 格式的任务描述。
+创建、列出、删除 issue 描述文件。issue 文件是 Markdown 格式的任务描述。
 
 ```bash
-spark task create my-feature                     # 创建
+spark task create my-feature                     # 创建 issue
 spark task create my-feature --content "描述"    # 带内容创建
 spark task list                                  # 列出
 spark task delete my-feature                     # 删除
@@ -27,7 +27,7 @@ spark task delete my-feature                     # 删除
 
 ### AI 实现
 
-通过 `kimi` CLI 自动实现特性描述中的任务。
+通过 `kimi` CLI 自动实现 issue 描述中的任务。
 
 ```bash
 spark task impl my-feature
@@ -51,7 +51,7 @@ spark task sync my-feature
 ```
 create → impl → dispatch → (开发) → sync
   ↑                                      ↓
-  └────── tasks/features/*.md ←─────────┘
+  └────── tasks/issues/*.md ←───────────┘
 ```
 
 ## 使用参数
