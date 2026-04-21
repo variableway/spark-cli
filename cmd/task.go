@@ -228,7 +228,7 @@ var taskInitCmd = &cobra.Command{
 	Long: `Create the default task directory structure with example feature file.
 
 Creates the following directories:
-  - tasks/features/
+  - tasks/issues/
   - tasks/config/
   - tasks/analysis/
   - tasks/mindstorm/
@@ -274,8 +274,8 @@ Example:
 
 var taskDeleteCmd = &cobra.Command{
 	Use:   "delete <feature-name>",
-	Short: "Delete a feature file",
-	Long: `Delete a feature file from tasks/features/ directory.
+	Short: "Delete a issues file",
+	Long: `Delete a issues file from tasks/issues/ directory.
 
 Example:
   spark task delete my-feature
@@ -292,7 +292,7 @@ Example:
 		mgr := task.NewManager(taskDir, githubOwner, workDir, useTUI)
 
 		if !force && useTUI {
-			confirmed, err := tui.Confirm(fmt.Sprintf("Delete feature '%s'?", featureName))
+			confirmed, err := tui.Confirm(fmt.Sprintf("Delete Issue '%s'?", featureName))
 			if err != nil || !confirmed {
 				pterm.Info.Println("Delete cancelled.")
 				return nil

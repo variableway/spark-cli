@@ -22,7 +22,7 @@ type TaskParser struct {
 // NewTaskParser creates a new task parser
 func NewTaskParser() *TaskParser {
 	return &TaskParser{
-		taskPattern: regexp.MustCompile(`(?m)^##\s+Task\s+(\d+)[\s:]*(.+)?$`),
+		taskPattern: regexp.MustCompile(`(?m)^#{1,2}\s+Task\s+(\d+)[\s:]*(.+)?$`),
 	}
 }
 

@@ -21,3 +21,16 @@
 - [] 支持参数话直接Update .github仓库上面的README.md文档，当然确保只更新更新在Section Project List这部分内容。
 - [] 添加对应的单元测试
 - [] 默认参数是直接udpate readme.md文件
+
+## Task 3: Skill fro golang-cli-app
+
+1. please give the code example of golang-cli-app skill for references
+2. please provide install script for this skill for users
+3. make sure tui version is easy to use
+4. make sure the subcommand rule is easy to understand
+
+
+## Task 4: move skill outside this project
+
+1. move golang-cli-app skill outside of this project
+2. make it looks like a real skill，then move to ../fire-skills/dev 目录

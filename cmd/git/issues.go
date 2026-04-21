@@ -11,16 +11,15 @@ import (
 )
 
 var (
-	issuesRepo       string
-	issuesFile       string
-	issuesDir        string
-	issuesLabels     []string
-	issuesDryRun     bool
-	issuesFromTasks  bool
+	issuesRepo   string
+	issuesFile   string
+	issuesDir    string
+	issuesLabels []string
+	issuesDryRun bool
 )
 
 var issuesCmd = &cobra.Command{
-	Use:   "issues [repo]",
+	Use:   "issues",
 	Short: "Create GitHub issues from markdown files or tasks",
 	Long: `Create GitHub issues from markdown files or tasks.
 
@@ -30,37 +29,34 @@ This command supports two modes:
    spark git issues -d ./docs
 
 2. Task mode (single file): Create issues from tasks in a markdown file
-   spark git issues -f tasks.md --from-tasks
+   spark git issues -f tasks.md
 
-The repository can be specified as an argument or auto-detected from the current git repo.
+The repository can be specified with -r flag or auto-detected from the current git repo.
 
 Examples:
   # Create issues from all markdown files in a folder
   spark git issues -d ./docs
 
   # Create issues from tasks in a single file
-  spark git issues -f tasks/features/my-feature.md --from-tasks
+  spark git issues -f tasks/features/my-feature.md
 
   # Specify repo explicitly
-  spark git issues owner/repo -d ./docs
+  spark git issues -r owner/repo -d ./docs
 
   # Create with labels
   spark git issues -d ./docs -l bug,enhancement
 
   # Preview without creating
   spark git issues -d ./docs --dry-run`,
-	Args: cobra.MaximumNArgs(1),
+	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Determine repository
 		repo := issuesRepo
-		if len(args) > 0 {
-			repo = args[0]
-		}
 		if repo == "" {
 			var err error
 			repo, err = getCurrentRepo()
 			if err != nil {
-				return fmt.Errorf("repository is required. Provide as argument, use -r flag, or run from within a git repository: %w", err)
+				return fmt.Errorf("repository is required. Use -r flag or run from within a git repository with GitHub remote: %w", err)
 			}
 		}
 
@@ -72,7 +68,7 @@ Examples:
 			return fmt.Errorf("cannot use both -d and -f flags at the same time")
 		}
 
-		if issuesFromTasks || issuesFile != "" {
+		if issuesFile != "" {
 			return createIssuesFromTasks(repo)
 		}
 		return createIssuesFromDir(repo)
@@ -96,7 +92,7 @@ func getCurrentRepo() (string, error) {
 
 func extractRepoFromURL(url string) string {
 	url = strings.TrimSuffix(url, ".git")
-	
+
 	// Handle HTTPS: https://github.com/owner/repo
 	if strings.Contains(url, "://") {
 		parts := strings.Split(url, "/")
@@ -104,7 +100,7 @@ func extractRepoFromURL(url string) string {
 			return parts[len(parts)-2] + "/" + parts[len(parts)-1]
 		}
 	}
-	
+
 	// Handle SSH: git@github.com:owner/repo
 	if strings.Contains(url, ":") {
 		parts := strings.Split(url, ":")
@@ -116,7 +112,7 @@ func extractRepoFromURL(url string) string {
 			}
 		}
 	}
-	
+
 	return ""
 }
 
@@ -220,7 +216,6 @@ func init() {
 	issuesCmd.Flags().StringVarP(&issuesDir, "dir", "d", "", "Path to directory containing markdown documents")
 	issuesCmd.Flags().StringSliceVarP(&issuesLabels, "labels", "l", []string{}, "Comma-separated list of labels to apply")
 	issuesCmd.Flags().BoolVar(&issuesDryRun, "dry-run", false, "Preview without creating issues")
-	issuesCmd.Flags().BoolVar(&issuesFromTasks, "from-tasks", false, "Parse file as tasks (## Task <id> format)")
 
 	GitCmd.AddCommand(issuesCmd)
 }

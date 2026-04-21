@@ -10,7 +10,7 @@ import (
 
 // DefaultTaskStructure defines the default task directory structure
 var DefaultTaskStructure = []string{
-	"tasks/features",
+	"tasks/issues",
 	"tasks/config",
 	"tasks/analysis",
 	"tasks/mindstorm",
@@ -54,14 +54,14 @@ func (m *Manager) InitTaskStructure() error {
 	}
 
 	// Create example-feature.md in tasks/ directory
-	examplePath := filepath.Join(m.TaskDir, "tasks", "example-feature.md")
+	examplePath := filepath.Join(m.TaskDir, "tasks", "example-issue.md")
 	if _, err := os.Stat(examplePath); os.IsNotExist(err) {
 		if err := os.WriteFile(examplePath, []byte(DefaultExampleFeature), 0644); err != nil {
-			return fmt.Errorf("failed to create example-feature.md: %w", err)
+			return fmt.Errorf("failed to create example-issue.md: %w", err)
 		}
-		created = append(created, "tasks/example-feature.md")
+		created = append(created, "tasks/example-issue.md")
 	} else {
-		existing = append(existing, "tasks/example-feature.md")
+		existing = append(existing, "tasks/example-issue.md")
 	}
 
 	// Print summary
@@ -84,15 +84,15 @@ func (m *Manager) InitTaskStructure() error {
 
 // ListFeatures lists all features in the tasks/features directory
 func (m *Manager) ListFeatures() ([]string, error) {
-	featuresDir := filepath.Join(m.TaskDir, "tasks", "features")
+	featuresDir := filepath.Join(m.TaskDir, "tasks", "issues")
 
 	if _, err := os.Stat(featuresDir); os.IsNotExist(err) {
-		return nil, fmt.Errorf("features directory not found: %s", featuresDir)
+		return nil, fmt.Errorf("issues directory not found: %s", featuresDir)
 	}
 
 	entries, err := os.ReadDir(featuresDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read features directory: %w", err)
+		return nil, fmt.Errorf("failed to read issues directory: %w", err)
 	}
 
 	var features []string
@@ -107,10 +107,10 @@ func (m *Manager) ListFeatures() ([]string, error) {
 
 // CreateFeature creates a new feature file
 func (m *Manager) CreateFeature(name string, content string) error {
-	featuresDir := filepath.Join(m.TaskDir, "tasks", "features")
+	issuesDir := filepath.Join(m.TaskDir, "tasks", "issues")
 
 	// Ensure features directory exists
-	if err := os.MkdirAll(featuresDir, 0755); err != nil {
+	if err := os.MkdirAll(issuesDir, 0755); err != nil {
 		return fmt.Errorf("failed to create features directory: %w", err)
 	}
 
@@ -124,7 +124,7 @@ func (m *Manager) CreateFeature(name string, content string) error {
 		name = name + ".md"
 	}
 
-	featurePath := filepath.Join(featuresDir, name)
+	featurePath := filepath.Join(issuesDir, name)
 
 	// Check if file already exists
 	if _, err := os.Stat(featurePath); err == nil {
@@ -136,10 +136,10 @@ func (m *Manager) CreateFeature(name string, content string) error {
 
 	// Write file
 	if err := os.WriteFile(featurePath, []byte(fileContent), 0644); err != nil {
-		return fmt.Errorf("failed to create feature file: %w", err)
+		return fmt.Errorf("failed to create issue file: %w", err)
 	}
 
-	m.UI.Success(fmt.Sprintf("Created feature: %s", name))
+	m.UI.Success(fmt.Sprintf("Created issue: %s", name))
 	m.UI.Printf("  Path: %s\n", featurePath)
 
 	return nil
@@ -147,7 +147,7 @@ func (m *Manager) CreateFeature(name string, content string) error {
 
 // DeleteFeature deletes a feature file
 func (m *Manager) DeleteFeature(name string, force bool) error {
-	featuresDir := filepath.Join(m.TaskDir, "tasks", "features")
+	issueDir := filepath.Join(m.TaskDir, "tasks", "issues")
 
 	// Normalize filename: replace spaces with dashes
 	name = strings.TrimSpace(name)
@@ -159,15 +159,15 @@ func (m *Manager) DeleteFeature(name string, force bool) error {
 		name = name + ".md"
 	}
 
-	featurePath := filepath.Join(featuresDir, name)
+	issuePath := filepath.Join(issueDir, name)
 
 	// Check if file exists
-	if _, err := os.Stat(featurePath); os.IsNotExist(err) {
+	if _, err := os.Stat(issuePath); os.IsNotExist(err) {
 		return fmt.Errorf("feature file not found: %s", name)
 	}
 
 	// Delete file
-	if err := os.Remove(featurePath); err != nil {
+	if err := os.Remove(issuePath); err != nil {
 		return fmt.Errorf("failed to delete feature file: %w", err)
 	}
 
@@ -207,7 +207,7 @@ func generateFeatureTemplate(name string) string {
 
 ## Description
 
-Describe your feature here.
+Describe your Issue here.
 
 ## Acceptance Criteria
 
@@ -228,43 +228,43 @@ Add any additional notes here.
 func generateFeatureContent(name string, userContent string) string {
 	// Try to read example-feature.md template
 	templateContent := ""
-	examplePath := filepath.Join("tasks", "example-feature.md")
-	
+	examplePath := filepath.Join("tasks", "example-issue.md")
+
 	// Try different paths to find example-feature.md
 	possiblePaths := []string{
 		examplePath,
 		filepath.Join("..", examplePath),
 		filepath.Join(".", examplePath),
 	}
-	
+
 	for _, path := range possiblePaths {
 		if data, err := os.ReadFile(path); err == nil {
 			templateContent = string(data)
 			break
 		}
 	}
-	
+
 	// If template not found, use default
 	if templateContent == "" {
 		templateContent = DefaultExampleFeature
 	}
-	
+
 	// Replace title placeholder
 	baseName := strings.TrimSuffix(name, ".md")
 	baseName = strings.ReplaceAll(baseName, "-", " ")
 	baseName = strings.Title(baseName)
-	
+
 	content := strings.ReplaceAll(templateContent, "Example Feature", baseName)
 	content = strings.ReplaceAll(content, "# Task: Example Feature", fmt.Sprintf("# Task: %s", baseName))
-	
+
 	// If user provided content, replace or insert into Description section
 	if userContent != "" {
 		content = replaceDescriptionContent(content, userContent)
 	}
-	
+
 	// Add creation timestamp
 	content = content + fmt.Sprintf("\n---\n*Created: %s*\n", time.Now().Format("2006-01-02 15:04:05"))
-	
+
 	return content
 }
 
@@ -273,10 +273,10 @@ func replaceDescriptionContent(template string, userContent string) string {
 	// Support both English and Chinese section headers
 	// Find ## Description or ## 描述 section
 	descMarkers := []string{"## Description", "## 描述"}
-	
+
 	var descIndex int = -1
 	var foundMarker string
-	
+
 	for _, marker := range descMarkers {
 		if idx := strings.Index(template, marker); idx != -1 {
 			descIndex = idx
@@ -284,7 +284,7 @@ func replaceDescriptionContent(template string, userContent string) string {
 			break
 		}
 	}
-	
+
 	if descIndex == -1 {
 		// No description section found, append at end
 		return template + "\n\n## Description\n\n" + userContent + "\n"
@@ -292,11 +292,11 @@ func replaceDescriptionContent(template string, userContent string) string {
 
 	// Find the start of content after the marker
 	contentStart := descIndex + len(foundMarker)
-	
+
 	// Find the next section (any line starting with ##)
 	lines := strings.Split(template[contentStart:], "\n")
 	contentEndOffset := 0
-	
+
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if i > 0 && strings.HasPrefix(trimmed, "## ") {
@@ -307,17 +307,15 @@ func replaceDescriptionContent(template string, userContent string) string {
 			break
 		}
 	}
-	
+
 	if contentEndOffset == 0 {
 		// No next section found, use rest of template
 		contentEndOffset = len(template) - contentStart
 	}
-	
+
 	// Build new content
 	before := template[:contentStart] // Include marker
 	after := template[contentStart+contentEndOffset:]
-	
+
 	return before + "\n\n" + userContent + "\n" + after
 }
-
-
