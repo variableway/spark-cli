@@ -159,26 +159,9 @@ github_owner: your-username
 work_dir: ./workspace
 ```
 
-## Skills
+## Related Projects
 
-Spark provides AI agent skills for Go CLI app development:
-
-### golang-cli-app Skill
-
-Code templates and best practices for building Go CLI apps with Cobra/Viper/PTerm/Bubble Tea.
-
-```bash
-# Install the skill
-./skills/golang-cli-app/scripts/install.sh --system          # All agents
-./skills/golang-cli-app/scripts/install.sh --project         # Current project only
-./skills/golang-cli-app/scripts/install.sh --system --agent claude-code  # Specific agent
-```
-
-Includes:
-- SKILL.md with complete code examples (Cobra commands, Viper config, PTerm/Bubble Tea TUI)
-- TUI patterns reference (`references/tui-patterns.md`)
-- Subcommand design rules (`references/subcommand-rules.md`)
-- Install scripts for macOS/Linux and Windows
+- [golang-cli-app skill](https://github.com/variableway/fire-skills/tree/main/dev/golang-cli-app) - Go CLI app code templates and best practices (Cobra/Viper/PTerm/Bubble Tea)
 
 ## Documentation
 
