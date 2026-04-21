@@ -92,20 +92,7 @@ go test ./internal/git/... -v -run TestFunctionName
 
 ### spark agent — AI Agent Configuration
 
-| Command | Description |
-|---------|-------------|
-| `spark agent list` | List supported agents |
-| `spark agent view <agent>` | View agent config files |
-| `spark agent edit <agent> [index]` | Edit agent config in editor |
-| `spark agent reset <agent>` | Reset agent config |
-| `spark agent profile list` | List config profiles |
-| `spark agent profile add <name> -t <type>` | Add new profile |
-| `spark agent profile show <name>` | Show profile config |
-| `spark agent profile edit <name> [index]` | Edit profile config |
-| `spark agent use <profile> [-p <dir>]` | Apply profile to project |
-| `spark agent current [-p <dir>]` | Show active profile |
-
-Supported agents: `claude-code`, `codex`, `kimi`, `glm`
+Currently disabled in command registration. The `spark agent` entry is not added to root command.
 
 ---
 

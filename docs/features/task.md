@@ -2,7 +2,7 @@
 
 ## 功能概述
 
-`spark task` 提供任务的全生命周期管理：创建、实现、分发、同步。支持通过 AI Agent（kimi CLI）自动实现特性，并将任务分发到独立工作目录进行开发。
+`spark task` 提供任务的全生命周期管理：创建、实现、分发、同步。支持通过 AI Agent（kimi CLI）自动实现 issue，并将任务分发到独立工作目录进行开发。
 
 ## 核心能力
 
@@ -14,7 +14,7 @@
 spark task init
 ```
 
-### 特性文件管理
+### Issue 文件管理
 
 创建、列出、删除 issue 描述文件。issue 文件是 Markdown 格式的任务描述。
 

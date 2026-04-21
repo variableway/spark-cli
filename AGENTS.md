@@ -98,6 +98,7 @@ spark git gitcode      # 添加 Gitcode 远程
 spark git config       # 配置 Git 用户
 spark git url          # 获取仓库 URL
 spark git batch-clone  # 克隆用户/组织所有仓库
+spark git issues       # 从 Markdown 文档/任务创建 GitHub Issue
 ```
 
 #### `spark git update`
@@ -173,14 +174,14 @@ spark git url              # 当前目录
 spark git url /path/to/repo
 ```
 
-#### `spark git clone-org`
-克隆 GitHub 组织的所有仓库到本地。
+#### `spark git batch-clone`
+克隆 GitHub 组织或个人账号的所有仓库到本地。
 
 ```bash
-spark git clone-org variableway                    # 使用组织名
-spark git clone-org https://github.com/variableway # 使用 URL
-spark git clone-org variableway --ssh              # 使用 SSH
-spark git clone-org variableway -o ./repos         # 指定输出目录
+spark git batch-clone variableway                    # 使用组织名
+spark git batch-clone https://github.com/variableway # 使用 URL
+spark git batch-clone variableway --ssh              # 使用 SSH
+spark git batch-clone variableway -o ./repos         # 指定输出目录
 ```
 
 | 选项 | 说明 |
@@ -190,6 +191,28 @@ spark git clone-org variableway -o ./repos         # 指定输出目录
 | `--exclude` | 排除匹配模式的仓库 (逗号分隔) |
 | `--include-forks` | 包含 fork 的仓库 |
 | `-o, --output` | 输出目录 (默认: 当前目录) |
+
+#### `spark git issues`
+从 Markdown 创建 GitHub Issue，支持目录模式和任务文件模式。
+
+```bash
+# 目录模式：目录下每个 .md 文件创建一个 Issue
+spark git issues -d ./docs -r owner/repo
+
+# 任务模式：按 # Task / ## Task 分段创建 Issue
+spark git issues -f tasks/issues/task-bug-fix.md -r owner/repo
+
+# 自动从当前仓库解析 owner/repo
+spark git issues -f tasks/issues/task-bug-fix.md --dry-run
+```
+
+| 选项 | 说明 |
+|------|------|
+| `-r, --repo` | 目标仓库（`owner/repo`），未指定时自动解析 |
+| `-d, --dir` | Markdown 目录（目录模式） |
+| `-f, --file` | 任务文件（任务模式） |
+| `-l, --labels` | Issue 标签（逗号分隔） |
+| `--dry-run` | 仅预览，不创建 Issue |
 
 #### `spark git update-org-status`
 获取 GitHub 组织的所有仓库信息，按 star 数量排序，并更新到 README.md。
@@ -276,7 +299,7 @@ spark:
 
 ### AI Agent 管理 (已禁用)
 
-> ⚠️ 此功能当前已禁用，命令入口已关闭（`cmd/agent.go` 中 `rootCmd.AddCommand(agentCmd)` 已注释）。待后续重新设计后再启用。
+> NOTE: 此功能当前已禁用，命令入口已关闭（`cmd/agent.go` 中 `rootCmd.AddCommand(agentCmd)` 已注释）。待后续重新设计后再启用。
 
 #### `spark agent`
 管理多种 AI Agent 的配置文件。
@@ -306,25 +329,25 @@ spark agent current                         # 查看当前项目使用的模板
 ### 任务管理
 
 #### `spark task`
-任务管理和特性实现命令。
+任务管理和 issue 实现命令。
 
 ```bash
 # 初始化任务目录结构
 spark task init                    # 创建 tasks/ 目录结构
 
-# 列出所有任务和特性
-spark task list                    # 列出任务目录和特性文件
+# 列出所有任务和 issue
+spark task list                    # 列出任务目录和 issue 文件
 
-# 创建新特性
-spark task create my-feature       # 创建 tasks/features/my-feature.md
+# 创建新 issue
+spark task create my-feature       # 创建 tasks/issues/my-feature.md
 spark task create my-feature --content "Custom description"
 
-# 删除特性
-spark task delete my-feature       # 删除特性文件
+# 删除 issue
+spark task delete my-feature       # 删除 issue 文件
 spark task delete my-feature --force  # 强制删除不提示
 
-# 实现特性（使用 kimi CLI）
-spark task impl my-feature         # 执行特性实现
+# 实现 issue（使用 kimi CLI）
+spark task impl my-feature         # 执行 issue 实现
 
 # 分发和同步任务
 spark task dispatch my-task --dest ./workspace
@@ -334,23 +357,23 @@ spark task sync my-task --work-path ./workspace
 | 子命令 | 说明 |
 |--------|------|
 | `init` | 初始化任务目录结构 |
-| `list` | 列出所有任务和特性 |
-| `create` | 创建新特性文件（文件名空格自动转换为 `-`）|
-| `delete` | 删除特性文件 |
-| `impl` | 实现特性（使用 kimi CLI）|
+| `list` | 列出所有任务和 issue |
+| `create` | 创建新 issue 文件（文件名空格自动转换为 `-`）|
+| `delete` | 删除 issue 文件 |
+| `impl` | 实现 issue（使用 kimi CLI）|
 | `dispatch` | 分发任务到新目录 |
 | `sync` | 同步任务回任务目录 |
 
-**特性文件创建说明**:
+**Issue 文件创建说明**:
 - 文件名中的空格和下划线会自动转换为 `-`
 - `--content` 参数的内容会写入 `## 描述` section
-- 如果存在 `example-feature.md`，会将其作为模板
+- 如果存在 `example-issue.md`，会将其作为模板
 
 **任务目录结构**:
 ```
 tasks/
-├── example-feature.md     # 示例特性模板
-├── features/              # 特性文件目录
+├── example-issue.md       # 示例 issue 模板
+├── issues/                # issue 文件目录
 ├── config/                # 配置任务目录
 ├── analysis/              # 分析任务目录
 ├── mindstorm/             # 头脑风暴目录

@@ -193,10 +193,10 @@ spark git update-org-status variableway --section "My Projects"
 spark git issues -d ./docs -r variableway/spark-cli
 
 # 任务模式：从任务文件按 Task 段落创建 Issue
-spark git issues -f tasks/features/task-bug-fix.md -r variableway/spark-cli
+spark git issues -f tasks/issues/task-bug-fix.md -r variableway/spark-cli
 
 # 自动从当前仓库解析 owner/repo
-spark git issues -f tasks/features/task-bug-fix.md --dry-run
+spark git issues -f tasks/issues/task-bug-fix.md --dry-run
 ```
 
 ## 相关命令

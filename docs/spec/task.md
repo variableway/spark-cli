@@ -31,7 +31,7 @@ spark task init
 
 ## spark task list
 
-列出任务目录中的所有任务和特性文件。
+列出任务目录中的所有任务和 issue 文件。
 
 ```
 spark task list [--task-dir <dir>]

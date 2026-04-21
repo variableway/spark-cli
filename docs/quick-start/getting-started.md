@@ -43,12 +43,7 @@ spark magic node use taobao                   # Node → 淘宝源
 
 ### AI Agent 配置
 
-```bash
-spark agent list                              # 查看支持的 Agent
-spark agent view claude-code                  # 查看 Claude Code 配置
-spark agent profile add my-profile -t glm     # 创建 Profile
-spark agent use my-profile                    # 应用到当前项目
-```
+当前版本已禁用 `spark agent` 命令入口，待后续重新设计后再启用。
 
 ### 任务管理
 
