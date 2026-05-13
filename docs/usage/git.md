@@ -10,6 +10,7 @@ spark git mono add [-p <path>]                # 添加现有仓库为子模块
 spark git mono add <repo-url> [-n <name>]     # 添加远程仓库为子模块
 spark git mono sync <mono-path>               # 同步子模块
 spark git gitcode                             # 添加 Gitcode 远程
+spark git init [--owner <owner>] [--skip-gh]   # 初始化仓库并创建 GitHub 远程
 spark git config [--username --email]         # 配置 Git 用户
 spark git url [repo-path]                     # 查看远程 URL
 spark git batch-clone <account> [-o <dir>]    # 克隆用户/组织所有仓库
@@ -124,6 +125,42 @@ spark git config /path/to/repo                # 配置指定仓库
 ```bash
 spark git url                                 # 当前目录
 spark git url /path/to/repo                   # 指定仓库
+```
+
+---
+
+## spark git init
+
+初始化当前目录为 Git 仓库并创建 GitHub 远程。
+
+**流程**:
+1. `git init` — 初始化本地仓库
+2. `git config user.name/email` — 从 `~/.spark.yaml` 读取并配置
+3. 扫描子目录中的 GitHub 仓库，自动添加为 `git submodule`
+4. `gh repo create` — 创建 GitHub 远程仓库并推送
+5. 生成 `.gitignore` — 包含常见忽略规则
+
+```bash
+spark git init --owner variableway              # 初始化并创建远程仓库
+spark git init --owner variableway --private    # 创建私有仓库
+spark git init --skip-gh --owner variableway    # 仅本地初始化
+```
+
+| 标志 | 默认值 | 说明 |
+|------|--------|------|
+| `--owner` | 配置文件中的 `github-owner` | GitHub 所有者 |
+| `-r, --repo` | 当前目录名 | 仓库名称 |
+| `--private` | `false` | 创建私有仓库 |
+| `--skip-gh` | `false` | 跳过 `gh repo create` |
+
+**配置文件** (`~/.spark.yaml`):
+
+```yaml
+github-owner: your-username
+
+git:
+  username: Your Name
+  email: your@email.com
 ```
 
 ---

@@ -77,6 +77,7 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git mono add [-p <path>]` | Add existing repos as submodules |
 | `spark git mono sync <mono-path>` | Sync all submodules to latest |
 | `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
+| `spark git init [--owner <owner>] [--skip-gh]` | Initialize git repo, create GitHub remote |
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
 | `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
