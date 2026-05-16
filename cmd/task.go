@@ -22,7 +22,8 @@ var taskCmd = &cobra.Command{
 	Short: "Task management commands",
 	Long: `Manage tasks: dispatch tasks to new directories and sync back changes.
 
-Use --tui flag to enable interactive terminal UI mode with:
+TUI mode is enabled by default. Use --no-tui to disable.
+Features in TUI mode:
 - Task selection list (arrow keys to navigate)
 - Confirmation dialogs
 - Progress spinners`,
@@ -38,7 +39,7 @@ In TUI mode, you can interactively select the task to dispatch.
 
 Example:
   spark task dispatch my-task --dest ./workspace/my-task
-  spark task dispatch --tui`,
+  spark task dispatch`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if taskDir == "" {
@@ -69,7 +70,7 @@ In TUI mode, you can interactively select the task to sync.
 
 Example:
   spark task sync my-task --work-path ./workspace/my-task
-  spark task sync --tui`,
+  spark task sync`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if taskDir == "" {
@@ -97,7 +98,7 @@ var taskListCmd = &cobra.Command{
 			taskDir = "."
 		}
 
-		mgr := task.NewManager(taskDir, githubOwner, workDir, false)
+		mgr := task.NewManager(taskDir, githubOwner, workDir, useTUI)
 
 		// List task directories
 		tasks, err := mgr.ListTasks()
@@ -319,8 +320,7 @@ Requirements:
   - github-task-workflow must be configured
 
 Example:
-  spark task impl my-feature
-  spark task impl my-feature --tui`,
+  spark task impl my-feature`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if taskDir == "" {
@@ -338,7 +338,7 @@ func init() {
 	taskCmd.PersistentFlags().StringVar(&taskDir, "task-dir", "", "Task directory containing all tasks")
 	taskCmd.PersistentFlags().StringVar(&githubOwner, "owner", "", "GitHub owner for creating repositories")
 	taskCmd.PersistentFlags().StringVar(&workDir, "work-dir", ".", "Working directory for dispatched tasks")
-	taskCmd.PersistentFlags().BoolVar(&useTUI, "tui", false, "Enable interactive TUI mode")
+	taskCmd.PersistentFlags().BoolVar(&useTUI, "tui", true, "Disable TUI mode")
 
 	viper.BindPFlag("task_dir", taskCmd.PersistentFlags().Lookup("task-dir"))
 	viper.BindPFlag("github_owner", taskCmd.PersistentFlags().Lookup("owner"))

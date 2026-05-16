@@ -24,7 +24,7 @@ var agentCmd = &cobra.Command{
 
 You can view, edit, and reset configurations for each agent.
 
-Use --tui flag for interactive mode.`,
+TUI mode is enabled by default. Use --no-tui to disable.`,
 }
 
 var agentListCmd = &cobra.Command{
@@ -197,7 +197,7 @@ Example:
 }
 
 func init() {
-	agentCmd.PersistentFlags().BoolVar(&agentUseTUI, "tui", false, "Enable interactive TUI mode")
+	agentCmd.PersistentFlags().BoolVar(&agentUseTUI, "tui", true, "Disable TUI mode")
 
 	agentCmd.AddCommand(agentListCmd)
 	agentCmd.AddCommand(agentViewCmd)
