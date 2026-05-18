@@ -33,7 +33,7 @@ main.go → cmd.Execute()
 │   ├── config/             Config loading & migration
 │   ├── git/                Core git operations
 │   ├── github/             GitHub API interactions
-│   ├── mono/               Mono-repo & submodule management
+
 │   ├── script/             Script discovery & execution
 │   ├── task/               Task dispatch/sync/issue CRUD
 │   └── tui/                Shared terminal UI components
@@ -74,8 +74,8 @@ go test ./internal/git/... -v -run TestFunctionName
 | Command | Description |
 |---------|-------------|
 | `spark git update` | Update all repos to latest version |
-| `spark git mono add [-p <path>]` | Add existing repos as submodules |
-| `spark git mono sync <mono-path>` | Sync all submodules to latest |
+| `spark git submodule add [-p <path>]` | Add existing repos as submodules |
+| `spark git sync [repo]` | Sync all submodules to latest |
 | `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
 | `spark git init [--owner <owner>] [--skip-gh]` | Initialize git repo, create GitHub remote |
 | `spark git config [--username --email]` | Configure git user for repo |

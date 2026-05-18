@@ -1,14 +1,14 @@
 # spark git — Git 仓库管理
 
-管理多个 Git 仓库、创建 Mono-repo、同步子模块。
+管理多个 Git 仓库、初始化项目、同步子模块。
 
 ## 命令速查
 
 ```bash
 spark git update                              # 更新所有仓库
-spark git mono add [-p <path>]                # 添加现有仓库为子模块
-spark git mono add <repo-url> [-n <name>]     # 添加远程仓库为子模块
-spark git mono sync <mono-path>               # 同步子模块
+spark git submodule add [-p <path>]                # 添加现有仓库为子模块
+spark git submodule add <repo-url> [-n <name>]     # 添加远程仓库为子模块
+spark git sync [./repo]                   # 同步子模块
 spark git gitcode                             # 添加 Gitcode 远程
 spark git init [--owner <owner>] [--skip-gh]   # 初始化仓库并创建 GitHub 远程
 spark git config [--username --email]         # 配置 Git 用户
@@ -34,7 +34,7 @@ spark git update -p ~/ws -p ~/projects        # 多个目录
 
 ---
 
-## spark git mono add
+## spark git submodule add
 
 将本地 Git 仓库添加为子模块，或将远程仓库克隆为子模块。
 
@@ -44,11 +44,11 @@ spark git update -p ~/ws -p ~/projects        # 多个目录
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
-| `--path` | `-p` | `.` | 包含 Git 仓库的目录 |
+
 
 ```bash
-spark git mono add                              # 添加当前目录下的仓库
-spark git mono add -p /path/to/repos            # 添加指定目录下的仓库
+spark git submodule add ./repos                       # 将本地文件夹中所有 GitHub 仓库添加为 submodule
+spark git submodule add https://github.com/user/repo  # 添加远程仓库
 ```
 
 ### 模式 2：添加远程仓库为子模块
@@ -57,31 +57,30 @@ spark git mono add -p /path/to/repos            # 添加指定目录下的仓库
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
-| `--path` | `-p` | `.` | Mono-repo 目录（默认当前目录） |
-| `--name` | `-n` | 仓库名 | 子模块路径名称 |
+| `-n, --name` | string | repo 名 | 否 | 子模块路径名称（远程模式） |
 
 ```bash
 # 添加远程仓库（使用默认路径名）
-spark git mono add https://github.com/user/repo
+spark git submodule add https://github.com/user/repo
 
 # 添加远程仓库并指定路径名
-spark git mono add https://github.com/user/repo --name my-submodule
+spark git submodule add https://github.com/user/repo --name my-submodule
 
 # 使用 SSH URL
-spark git mono add git@github.com:user/repo.git
+spark git submodule add git@github.com:user/repo.git
 
 # 使用简写格式（GitHub）
-spark git mono add user/repo
+spark git submodule add user/repo
 ```
 
 ---
 
-## spark git mono sync
+## spark git sync
 
 同步 Mono 仓库中所有子模块到最新版本。
 
 ```bash
-spark git mono sync ./my-mono-repo                 # 同步指定 Mono 仓库
+spark git sync ./my-repo                       # 同步指定仓库
 ```
 
 ---

@@ -2,30 +2,50 @@ package git
 
 import (
 	"fmt"
-	"spark/internal/mono"
+	"os"
+	"os/exec"
 
 	"github.com/spf13/cobra"
 )
 
 var syncCmd = &cobra.Command{
-	Use:   "sync [mono-repo-path]",
-	Short: "Sync all submodules in the mono repo to the latest version",
-	Long:  `Update all submodules in the mono repository to their latest versions using a single git command.`,
-	Args:  cobra.ExactArgs(1),
+	Use:   "sync",
+	Short: "Sync all submodules to their latest versions",
+	Long: `Update all submodules in the current repository to the latest versions.
+
+Fetches the latest changes and merges them into the current branch.
+
+Examples:
+  spark git sync              # sync current directory
+  spark git sync ./my-repo    # sync specific repo`,
+	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		monoRepoPath := args[0]
-
-		fmt.Printf("Syncing all submodules in: %s\n", monoRepoPath)
-
-		if err := mono.SyncSubmodules(monoRepoPath); err != nil {
-			return fmt.Errorf("failed to sync submodules: %w", err)
+		repoPath := "."
+		if len(args) > 0 {
+			repoPath = args[0]
 		}
 
-		fmt.Println("All submodules synced successfully!")
+		fmt.Printf("Fetching all remotes...\n")
+		fetchCmd := exec.Command("git", "fetch", "--all")
+		fetchCmd.Dir = repoPath
+		fetchCmd.Stdout = os.Stdout
+		fetchCmd.Stderr = os.Stderr
+		fetchCmd.Run()
+
+		fmt.Printf("Updating submodules to latest versions...\n")
+		updateCmd := exec.Command("git", "submodule", "update", "--remote", "--merge")
+		updateCmd.Dir = repoPath
+		updateCmd.Stdout = os.Stdout
+		updateCmd.Stderr = os.Stderr
+		if err := updateCmd.Run(); err != nil {
+			return fmt.Errorf("failed to update submodules: %w", err)
+		}
+
+		fmt.Println("All submodules synced!")
 		return nil
 	},
 }
 
 func init() {
-	MonoCmd.AddCommand(syncCmd)
+	GitCmd.AddCommand(syncCmd)
 }

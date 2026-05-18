@@ -2,7 +2,7 @@
 
 ## 功能概述
 
-`spark git` 提供多仓库 Git 管理能力，涵盖批量更新、Mono-repo 创建与同步、Gitcode 远程配置、组织仓库克隆等功能。
+`spark git` 提供多仓库 Git 管理能力，涵盖批量更新、仓库初始化、子模块管理、Gitcode 远程配置、组织仓库克隆等功能。
 
 ## 核心能力
 
@@ -14,20 +14,20 @@
 spark git update -p ~/workspace
 ```
 
-### Mono-repo 管理
+### Submodule 管理
 
-将多个独立仓库作为 Submodule 合并为一个 Mono-repo，方便统一管理和版本控制。
+将本地 GitHub 仓库或远程 URL 添加为 Submodule，支持不重新 clone 的原地转换方式。
 
 ```bash
 # 添加现有本地仓库为子模块
-spark git mono add -p /path/to/repos
+spark git submodule add -p /path/to/repos
 
 # 添加远程仓库为子模块
-spark git mono add https://github.com/user/repo
-spark git mono add https://github.com/user/repo --name custom-folder
+spark git submodule add https://github.com/user/repo
+spark git submodule add https://github.com/user/repo --name custom-folder
 
 # 同步所有 Submodule 到最新
-spark git mono sync ./my-mono
+spark git sync ./my-mono
 ```
 
 ### Gitcode 远程集成

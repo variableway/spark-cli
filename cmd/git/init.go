@@ -21,12 +21,15 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a git repository and create a GitHub remote",
 	Long: `Initialize the current directory as a git repository:
-1. Run 'git init'
+1. Run 'git init' (skipped if already a git repo with GitHub remote)
 2. Configure git user (name/email)
 3. Add child GitHub repos as git submodules
 4. Generate a .gitignore with common patterns
 5. Create an initial commit
 6. Create a GitHub remote repository via 'gh repo create --push'
+
+If the current directory is already a git repository with a GitHub remote,
+steps 1, 4, 5, and 6 are skipped — only submodules are added and committed.
 
 The repo name defaults to the current directory name.
 Owner defaults to the 'github-owner' config value in ~/.spark.yaml.`,
@@ -36,9 +39,6 @@ Owner defaults to the 'github-owner' config value in ~/.spark.yaml.`,
 		owner := initOwner
 		if owner == "" {
 			owner = viper.GetString("github-owner")
-		}
-		if owner == "" {
-			return fmt.Errorf("GitHub owner is required. Set --owner flag or 'github-owner' in ~/.spark.yaml")
 		}
 
 		repoName := initRepo
@@ -50,15 +50,24 @@ Owner defaults to the 'github-owner' config value in ~/.spark.yaml.`,
 			}
 		}
 
-		fmt.Printf("Initializing git repository: %s/%s\n", owner, repoName)
-		fmt.Println()
+		alreadyGitRepo := git.IsGitRepository(repoPath)
+		hasGitHub, _ := git.IsGitHubRepo(repoPath)
 
-		fmt.Println("Step 1/6: Running git init...")
-		if err := git.InitRepo(repoPath); err != nil {
-			return fmt.Errorf("git init failed: %w", err)
+		if alreadyGitRepo && hasGitHub {
+			fmt.Printf("Existing GitHub repository detected: %s\n\n", repoPath)
+			fmt.Println("Step 1/3: Configuring git user...")
+		} else {
+			if owner == "" {
+				return fmt.Errorf("GitHub owner is required. Set --owner flag or 'github-owner' in ~/.spark.yaml")
+			}
+			fmt.Printf("Initializing git repository: %s/%s\n\n", owner, repoName)
+			fmt.Println("Step 1/6: Running git init...")
+			if err := git.InitRepo(repoPath); err != nil {
+				return fmt.Errorf("git init failed: %w", err)
+			}
+			fmt.Println("Step 2/6: Configuring git user...")
 		}
 
-		fmt.Println("Step 2/6: Configuring git user...")
 		username := viper.GetString("git.username")
 		email := viper.GetString("git.email")
 		if username != "" && email != "" {
@@ -70,6 +79,20 @@ Owner defaults to the 'github-owner' config value in ~/.spark.yaml.`,
 			}
 		} else {
 			fmt.Println("  No git user configured in ~/.spark.yaml. Skipping.")
+		}
+
+		if alreadyGitRepo && hasGitHub {
+			fmt.Println("Step 2/3: Scanning for child GitHub repos to add as submodules...")
+			if err := git.AddChildReposAsSubmodules(repoPath); err != nil {
+				fmt.Printf("Warning: %v\n", err)
+			}
+			fmt.Println("Step 3/3: Committing submodule changes...")
+			if err := git.InitialCommit(repoPath, "chore: add existing repos as submodules"); err != nil {
+				fmt.Printf("Warning: commit failed: %v\n", err)
+			}
+			fmt.Println()
+			fmt.Println("Done! Submodules added to existing repository.")
+			return nil
 		}
 
 		fmt.Println("Step 3/6: Scanning for child GitHub repos to add as submodules...")

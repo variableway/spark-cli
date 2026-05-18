@@ -49,7 +49,7 @@ spark git init [--owner <owner>] [--repo <name>] [--private] [--skip-gh]
 
 ---
 
-## spark git mono add
+## spark git submodule add
 
 添加 Git 仓库为子模块。支持两种模式：
 
@@ -59,7 +59,7 @@ spark git init [--owner <owner>] [--repo <name>] [--private] [--skip-gh]
 ### 本地模式
 
 ```
-spark git mono add [-p <path>]
+spark git submodule add [-p <path>]
 ```
 
 | 标志 | 类型 | 默认值 | 必填 | 说明 |
@@ -71,7 +71,7 @@ spark git mono add [-p <path>]
 ### 远程模式
 
 ```
-spark git mono add <repo-url> [-n <name>] [-p <path>]
+spark git submodule add <repo-url> [-n <name>] [-p <path>]
 ```
 
 | 参数 | 类型 | 必填 | 说明 |
@@ -81,23 +81,19 @@ spark git mono add <repo-url> [-n <name>] [-p <path>]
 | 标志 | 类型 | 默认值 | 必填 | 说明 |
 |------|------|--------|------|------|
 | `-n, --name` | string | 仓库名 | 否 | 子模块路径名称 |
-| `-p, --path` | string | `.` | 否 | Mono-repo 目录路径 |
-
 ---
 
-## spark git mono sync
+## spark git sync
 
-同步 Mono-repo 中所有 Submodule 到最新版本。
+同步当前仓库中所有 Submodule 到最新版本。
 
 ```
-spark git mono sync <mono-repo-path>
+spark git sync [repo-path]
 ```
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `mono-repo-path` | string | 是 | Mono-repo 路径 |
-
-无标志。
+| 参数 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `repo-path` | string | `.` | 否 | 仓库路径 |
 
 ---
 

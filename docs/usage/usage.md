@@ -6,7 +6,7 @@ Spark 是一个用于日常开发自动化和 AI Skill 集成的 CLI 工具。
 
 | 命令组 | 说明 |
 |--------|------|
-| `spark git` | Git 仓库管理（更新、Mono-repo、子模块同步、Gitcode） |
+| `spark git` | Git 仓库管理（更新、初始化、子模块管理、Gitcode） |
 | `spark agent` | AI Agent 配置管理（Claude Code、Codex、Kimi、GLM） |
 | `spark task` | 任务管理（创建、分发、同步、实现） |
 | `spark script` | 自定义脚本管理 |

@@ -20,8 +20,8 @@ var rootCmd = &cobra.Command{
 	Short: "A CLI tool to manage multiple git repositories and scripts",
 	Long: `Spark is a CLI application that helps you:
 1. Update multiple git repositories to the latest version
-2. Create a mono repo with all repositories as submodules
-3. Manage all repositories with a single git command
+2. Initialize a git repo and create a GitHub remote
+3. Add local repos or URLs as submodules
 4. Execute custom scripts for automation`,
 }
 

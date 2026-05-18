@@ -21,7 +21,7 @@ Spark CLI 是一个 Go 语言编写的命令行工具，定位为日常开发自
 
 | 模块 | 命令 | 功能 |
 |------|------|------|
-| Git 管理 | `spark git` | 多仓库更新、Mono-repo 创建、子模块同步、Gitcode 远程、组织克隆 |
+| Git 管理 | `spark git` | 多仓库更新、仓库初始化、子模块管理、Gitcode 远程、组织克隆 |
 | Agent 配置 | `spark agent` | 多种 AI Agent（Claude Code、Codex、Kimi、GLM）的配置管理和 Profile 切换 |
 | 任务管理 | `spark task` | 任务创建、分发、同步、AI 实现 |
 | 系统工具 | `spark magic` | DNS 刷新、pip/go/node 镜像源切换 |
@@ -47,7 +47,6 @@ main.go → cmd.Execute()
     ├── config/             # 配置加载与迁移
     ├── git/                # Git 核心操作
     ├── github/             # GitHub API 交互
-    ├── mono/               # Mono-repo 管理
     ├── script/             # 脚本发现与执行
     ├── task/               # 任务工作流
     └── tui/                # 终端 UI 组件

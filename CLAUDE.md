@@ -34,9 +34,8 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
 - **`internal/`** — Business logic, separated by domain:
   - `agent/` — AI agent config management module (currently command entry disabled)
   - `config/` — Configuration loading and management
-  - `git/` — Core Git operations (find repos, update, remote management, URL conversion)
+  - `git/` — Core Git operations (find repos, update, remote management, submodule, URL conversion)
   - `github/` — GitHub API interactions (list org repos, parse org URLs)
-  - `mono/` — Mono-repo creation and submodule management
   - `script/` — Script discovery (from config and `scripts/` dir) and execution
   - `task/` — Task init/dispatch/sync, issue CRUD, and implementation via `kimi` CLI
   - `tui/` — Shared terminal UI components (spinner, dialogs, selector)
@@ -46,8 +45,7 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
 
 ```
 spark
-├── git [init|update|mono|gitcode|config|url|batch-clone|issues|update-org-status]
-│   └── mono [add|sync]
+├── git [init|update|submodule|sync|gitcode|config|url|batch-clone|issues|update-org-status]
 ├── task [list|init|dispatch|sync|create|delete|impl]
 ├── script [list|run]
 └── magic [flush-dns|pip|go|node]     # Mirror source switching + DNS

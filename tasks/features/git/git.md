@@ -80,7 +80,7 @@ Verification:
    - Houses `add` and `sync` subcommands
 
 2. **cmd/git/mono_add.go** (new file)
-   - `spark git mono add` command - adds existing git repos as submodules
+   - `spark git submodule` command - adds existing git repos as submodules
    - Scans directory for git repos, adds them without re-cloning
    - Supports `-p/--path` flag to specify target directory
 
@@ -88,9 +88,9 @@ Verification:
    - Removed old `create` command, replaced by `mono add`
 
 4. **cmd/git/sync.go**
-   - Moved from `spark git sync` to `spark git mono sync`
+   - Moved from `spark git sync` to `spark git sync`
 
-5. **internal/mono/adder.go** (new file)
+5.  (new file)
    - `AddExistingReposAsSubmodules()` - adds repos as submodules without cloning
    - Moves `.git` dirs to `.git/modules/`, creates `.git` files with gitdir references
    - `FindSubRepos()` - discovers git repos in a directory
@@ -102,13 +102,13 @@ Verification:
 
 ```bash
 # Add all git repos in current directory as submodules
-spark git mono add
+spark git submodule add
 
 # Add repos from a specific directory
-spark git mono add -p /path/to/folder
+spark git submodule add -p /path/to/folder
 
 # Sync submodules after adding
-spark git mono sync /path/to/mono-repo
+spark git sync /path/to/mono-repo
 ``` 
 
 ## Task 3: Add a remote git repo into mono repo
@@ -121,7 +121,7 @@ spark git mono sync /path/to/mono-repo
 
 ### Changes Made
 
-1. **internal/mono/adder.go**
+1. 
    - Added `ExtractRepoName()` function to extract repo name from git URL
    - Added `AddRemoteRepoAsSubmodule()` function to add remote repos as submodules
    - Supports HTTPS and SSH URL formats
@@ -131,7 +131,7 @@ spark git mono sync /path/to/mono-repo
    - Updated to support both local directory mode and remote URL mode
    - Added `--url`/`-u` flag for specifying remote URL
    - Added `--name`/`-n` flag for custom submodule path
-   - Added argument support: `spark git mono add <repo-url>`
+   - Added argument support: `spark git submodule add <repo-url>`
    - Added `isValidGitURL()` helper function for URL validation
 
 3. **Updated Documentation**
@@ -144,19 +144,19 @@ spark git mono sync /path/to/mono-repo
 
 ```bash
 # Add remote repository with default path (repo name)
-spark git mono add https://github.com/user/repo
+spark git submodule add https://github.com/user/repo
 
 # Add remote repository with custom path
-spark git mono add https://github.com/user/repo --name my-submodule
+spark git submodule add https://github.com/user/repo --name my-submodule
 
 # Using SSH URL
-spark git mono add git@github.com:user/repo.git
+spark git submodule add git@github.com:user/repo.git
 
 # Using URL flag instead of argument
-spark git mono add --url https://github.com/user/repo --name custom-name
+spark git submodule add --url https://github.com/user/repo --name custom-name
 
 # Add local repos (existing behavior)
-spark git mono add -p /path/to/local/repos
+spark git submodule add -p /path/to/local/repos
 ```
 ## Task 4: Support Github Issue creation by title and a folder of documents
 

@@ -12,7 +12,8 @@ var GitCmd = &cobra.Command{
 This includes:
 - update: Update multiple git repositories
 - init: Initialize a git repo and create a GitHub remote
-- mono: Mono repo management (add/sync submodules)
+- submodule: Add local repos or URLs as git submodules
+- sync: Sync all submodules to the latest versions
 - gitcode: Add Gitcode as remote
 - config: Configure git user for repository
 - url: Get repository remote URL

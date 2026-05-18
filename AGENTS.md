@@ -7,7 +7,7 @@
 **Spark** 是一个 CLI 工具，用于管理多个 Git 仓库。它提供以下核心功能：
 
 1. **多仓库更新** - 批量更新多个 Git 仓库到最新版本
-2. **Mono-repo 管理** - 将多个仓库添加为子模块，统一管理
+2. **Submodule 管理** - 将本地仓库或远程 URL 添加为子模块
 3. **子模块同步** - 同步 Mono 仓库中的所有子模块
 4. **Git 用户配置** - 配置仓库的 Git 用户信息
 5. **任务管理** - 任务分发、同步和 GitHub 仓库创建
@@ -35,15 +35,14 @@ spark/
 │       ├── git.go         # Git 父命令
 │       ├── config.go      # Git 用户配置
 │       ├── update.go      # 仓库更新命令
-│       ├── mono.go        # mono 子命令组
-│       ├── mono_add.go    # mono add 命令
+
 │       ├── sync.go        # 子模块同步命令
 │       └── gitcode.go     # Gitcode 远程管理
 ├── internal/              # 内部业务逻辑
 │   ├── agent/             # AI Agent 管理器
 │   ├── config/            # 配置管理
 │   ├── git/               # Git 操作封装
-│   ├── mono/              # Mono-repo 操作
+
 │   ├── task/              # 任务管理器
 │   └── tui/               # 终端 UI 组件
 ├── docs/                  # 文档
@@ -92,8 +91,8 @@ Git 仓库管理命令的父命令，包含以下子命令：
 
 ```bash
 spark git update       # 更新多个仓库
-spark git mono add     # 添加现有仓库为子模块
-spark git mono sync    # 同步子模块
+spark git submodule add     # 添加现有仓库为子模块
+spark git sync    # 同步子模块
 spark git gitcode      # 添加 Gitcode 远程
 spark git config       # 配置 Git 用户
 spark git url          # 获取仓库 URL
@@ -112,32 +111,31 @@ spark git update -p ~/workspace -p ~/projects
 
 详细文档: [docs/usage/update.md](docs/usage/update.md)
 
-#### `spark git mono add`
+#### `spark git submodule`
 将本地 Git 仓库添加为子模块，或克隆远程仓库并添加为子模块。
 
 **本地模式**：
 ```bash
-spark git mono add                    # 添加当前目录下的仓库
-spark git mono add -p /path/to/repos  # 添加指定目录下的仓库
+spark git submodule add                    # 添加当前目录下的仓库
+spark git submodule add -p /path/to/repos  # 添加指定目录下的仓库
 ```
 
 **远程模式**：
 ```bash
-spark git mono add https://github.com/user/repo           # 添加远程仓库
-spark git mono add https://github.com/user/repo --name my-submodule  # 指定路径名
-spark git mono add git@github.com:user/repo.git           # 使用 SSH URL
+spark git submodule add https://github.com/user/repo           # 添加远程仓库
+spark git submodule add https://github.com/user/repo --name my-submodule  # 指定路径名
+spark git submodule add git@github.com:user/repo.git           # 使用 SSH URL
 ```
 
 | 选项 | 说明 |
 |------|------|
-| `-p, --path` | Mono-repo 目录 (默认: 当前目录) |
 | `-n, --name` | 子模块路径名称 (默认: 仓库名) |
 
-#### `spark git mono sync`
-同步 Mono 仓库中的所有子模块到最新版本。
+#### `spark git sync`
+同步当前仓库中所有子模块到最新版本。
 
 ```bash
-spark git mono sync /path/to/mono-repo
+spark git sync ./my-repo
 ```
 
 #### `spark git gitcode`

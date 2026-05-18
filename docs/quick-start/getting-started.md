@@ -30,7 +30,7 @@ github_owner: your-username
 ```bash
 spark git update -p ~/workspace               # 更新所有仓库
 spark git init --owner variableway            # 初始化仓库并创建 GitHub 远程
-spark git mono add -p /path/to/repos          # 添加仓库为子模块
+spark git submodule add -p /path/to/repos          # 添加仓库为子模块
 spark git batch-clone variableway -o ./repos  # 克隆组织仓库
 ```
 
