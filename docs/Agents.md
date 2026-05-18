@@ -141,6 +141,22 @@ spark git gitcode -p ~/workspace --url https://custom.gitcode.url
 
 详细文档: [docs/usage/gitcode.md](docs/usage/gitcode.md)
 
+#### `spark git init`
+初始化当前目录为 Git 仓库并创建 GitHub 远程仓库。
+
+```bash
+spark git init --owner variableway              # 初始化并创建远程仓库
+spark git init --owner variableway --private    # 创建私有仓库
+spark git init --skip-gh --owner variableway    # 仅本地初始化，跳过 GitHub
+```
+
+| 选项 | 说明 |
+|------|------|
+| `--owner` | GitHub 所有者 (默认: 从配置文件读取) |
+| `-r, --repo` | 仓库名称 (默认: 当前目录名) |
+| `--private` | 创建私有仓库 |
+| `--skip-gh` | 跳过创建 GitHub 远程仓库 |
+
 #### `spark git config`
 配置当前仓库的 Git 用户信息。
 

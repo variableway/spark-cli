@@ -28,6 +28,27 @@ spark git update [-p <path>]
 
 ---
 
+## spark git init
+
+初始化当前目录为 Git 仓库并创建 GitHub 远程。
+
+```
+spark git init [--owner <owner>] [--repo <name>] [--private] [--skip-gh]
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `--owner` | string | 配置文件 `github-owner` | 是* | GitHub 所有者 |
+| `-r, --repo` | string | 当前目录名 | 否 | 仓库名称 |
+| `--private` | bool | `false` | 否 | 创建私有仓库 |
+| `--skip-gh` | bool | `false` | 否 | 跳过 `gh repo create` |
+
+\* `--owner` 可从 `~/.spark.yaml` 中的 `github-owner` 配置读取。
+
+**流程**: `git init` → `git config` → submodule 扫描 → `.gitignore` → `git commit` → `gh repo create --push`
+
+---
+
 ## spark git mono add
 
 添加 Git 仓库为子模块。支持两种模式：

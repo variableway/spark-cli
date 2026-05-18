@@ -137,8 +137,9 @@ spark git url /path/to/repo                   # 指定仓库
 1. `git init` — 初始化本地仓库
 2. `git config user.name/email` — 从 `~/.spark.yaml` 读取并配置
 3. 扫描子目录中的 GitHub 仓库，自动添加为 `git submodule`
-4. `gh repo create` — 创建 GitHub 远程仓库并推送
-5. 生成 `.gitignore` — 包含常见忽略规则
+4. 生成 `.gitignore` — 包含常见忽略规则
+5. `git commit` — 创建初始提交（`gh repo create --push` 需要）
+6. `gh repo create` — 创建 GitHub 远程仓库并推送
 
 ```bash
 spark git init --owner variableway              # 初始化并创建远程仓库

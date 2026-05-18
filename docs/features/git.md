@@ -38,6 +38,16 @@ spark git mono sync ./my-mono
 spark git gitcode -p ~/workspace
 ```
 
+### 仓库初始化
+
+一键初始化 Git 仓库并创建 GitHub 远程：`git init` → 配置用户 → 扫描子目录添加 submodule → 生成 `.gitignore` → 初始提交 → `gh repo create --push`。
+
+```bash
+spark git init --owner variableway              # 初始化并创建远程仓库
+spark git init --owner variableway --private    # 创建私有仓库
+spark git init --skip-gh --owner variableway    # 仅本地初始化
+```
+
 ### 批量克隆
 
 克隆 GitHub 组织或用户下所有仓库，或更新 README 中的仓库状态列表。
@@ -80,6 +90,9 @@ spark git issues -f tasks/issues/task-bug-fix.md --dry-run
 | `-n, --name` | 子模块路径名称（远程模式），默认仓库名 |
 | `-o, --output` | 输出路径 |
 | `--ssh` | 使用 SSH 克隆（batch-clone） |
+| `--owner` | GitHub 所有者（init），默认从配置文件读取 |
+| `--private` | 创建私有仓库（init） |
+| `--skip-gh` | 跳过 GitHub 远程创建（init） |
 | `--include` / `--exclude` | 包含/排除匹配模式（batch-clone） |
 | `-r, --repo` | 目标仓库（未指定时自动从当前仓库解析） |
 | `-d, --dir` | 文档目录（目录模式） |
