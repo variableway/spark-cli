@@ -96,6 +96,26 @@ coverage/
 	return os.WriteFile(gitignorePath, []byte(content), 0644)
 }
 
+func InitialCommit(repoPath, message string) error {
+	addCmd := exec.Command("git", "add", ".")
+	addCmd.Dir = repoPath
+	addCmd.Stdout = os.Stdout
+	addCmd.Stderr = os.Stderr
+	if err := addCmd.Run(); err != nil {
+		return fmt.Errorf("failed to stage files: %w", err)
+	}
+
+	commitCmd := exec.Command("git", "commit", "-m", message)
+	commitCmd.Dir = repoPath
+	commitCmd.Stdout = os.Stdout
+	commitCmd.Stderr = os.Stderr
+	if err := commitCmd.Run(); err != nil {
+		return fmt.Errorf("failed to commit: %w", err)
+	}
+
+	return nil
+}
+
 func AddChildReposAsSubmodules(rootPath string) error {
 	entries, err := os.ReadDir(rootPath)
 	if err != nil {
