@@ -53,17 +53,6 @@ func (m *Manager) InitTaskStructure() error {
 		}
 	}
 
-	// Create example-feature.md in tasks/ directory
-	examplePath := filepath.Join(m.TaskDir, "tasks", "example-issue.md")
-	if _, err := os.Stat(examplePath); os.IsNotExist(err) {
-		if err := os.WriteFile(examplePath, []byte(DefaultExampleFeature), 0644); err != nil {
-			return fmt.Errorf("failed to create example-issue.md: %w", err)
-		}
-		created = append(created, "tasks/example-issue.md")
-	} else {
-		existing = append(existing, "tasks/example-issue.md")
-	}
-
 	// Print summary
 	if len(created) > 0 {
 		m.UI.Success("Created directories and files:")
@@ -188,7 +177,7 @@ func (m *Manager) GetFeaturePath(name string) (string, error) {
 		name = name + ".md"
 	}
 
-	featurePath := filepath.Join(m.TaskDir, "tasks", "features", name)
+	featurePath := filepath.Join(m.TaskDir, "tasks", "issues", name)
 
 	if _, err := os.Stat(featurePath); os.IsNotExist(err) {
 		return "", fmt.Errorf("feature file not found: %s", name)

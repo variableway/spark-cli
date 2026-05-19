@@ -16,6 +16,12 @@ var submodulePath string
 
 var submoduleCmd = &cobra.Command{
 	Use:   "submodule",
+	Short: "Manage git submodules",
+	Long:  `Add git repositories as submodules to the current git repository.`,
+}
+
+var submoduleAddCmd = &cobra.Command{
+	Use:   "add <path-or-url>",
 	Short: "Add git repositories as submodules to the current repo",
 	Long: `Add git repositories as submodules to the current git repository.
 
@@ -46,6 +52,9 @@ The current directory must be a git repository.`,
 }
 
 func isGitURL(target string) bool {
+	if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "/") {
+		return false
+	}
 	return strings.HasPrefix(target, "https://") ||
 		strings.HasPrefix(target, "http://") ||
 		strings.HasPrefix(target, "git@") ||
@@ -209,7 +218,8 @@ func extractRepoName(url string) string {
 }
 
 func init() {
-	submoduleCmd.Flags().StringVarP(&submodulePath, "name", "n", "", "Custom name/path for the submodule (URL mode only)")
+	submoduleAddCmd.Flags().StringVarP(&submodulePath, "name", "n", "", "Custom name/path for the submodule (URL mode only)")
 
+	submoduleCmd.AddCommand(submoduleAddCmd)
 	GitCmd.AddCommand(submoduleCmd)
 }

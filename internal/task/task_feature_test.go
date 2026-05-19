@@ -18,7 +18,7 @@ func TestInitTaskStructure(t *testing.T) {
 
 	// Check directories were created
 	dirs := []string{
-		"tasks/features",
+		"tasks/issues",
 		"tasks/config",
 		"tasks/analysis",
 		"tasks/mindstorm",
@@ -32,19 +32,13 @@ func TestInitTaskStructure(t *testing.T) {
 			t.Errorf("Directory not created: %s", dir)
 		}
 	}
-
-	// Check example file was created
-	examplePath := filepath.Join(tempDir, "tasks", "example-feature.md")
-	if _, err := os.Stat(examplePath); os.IsNotExist(err) {
-		t.Error("example-feature.md not created")
-	}
 }
 
 func TestInitTaskStructurePreservesExisting(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create existing directory
-	existingDir := filepath.Join(tempDir, "tasks", "features")
+	existingDir := filepath.Join(tempDir, "tasks", "issues")
 	os.MkdirAll(existingDir, 0755)
 	existingFile := filepath.Join(existingDir, "existing.md")
 	os.WriteFile(existingFile, []byte("existing content"), 0644)
@@ -78,7 +72,7 @@ func TestCreateFeature(t *testing.T) {
 		t.Fatalf("CreateFeature failed: %v", err)
 	}
 
-	featurePath := filepath.Join(tempDir, "tasks", "features", "my-feature.md")
+	featurePath := filepath.Join(tempDir, "tasks", "issues", "my-feature.md")
 	if _, err := os.Stat(featurePath); os.IsNotExist(err) {
 		t.Error("Feature file not created")
 	}
@@ -89,7 +83,7 @@ func TestCreateFeature(t *testing.T) {
 		t.Fatalf("CreateFeature with extension failed: %v", err)
 	}
 
-	anotherPath := filepath.Join(tempDir, "tasks", "features", "another.md")
+	anotherPath := filepath.Join(tempDir, "tasks", "issues", "another.md")
 	if _, err := os.Stat(anotherPath); os.IsNotExist(err) {
 		t.Error("Feature file with extension not created")
 	}
@@ -107,13 +101,13 @@ func TestCreateFeatureWithSpaces(t *testing.T) {
 	}
 
 	// Check file was created with dashes instead of spaces
-	featurePath := filepath.Join(tempDir, "tasks", "features", "make-script-issue.md")
+	featurePath := filepath.Join(tempDir, "tasks", "issues", "make-script-issue.md")
 	if _, err := os.Stat(featurePath); os.IsNotExist(err) {
 		t.Error("Feature file with normalized name not created")
 	}
 
 	// Check file with spaces does NOT exist
-	wrongPath := filepath.Join(tempDir, "tasks", "features", "make script issue.md")
+	wrongPath := filepath.Join(tempDir, "tasks", "issues", "make script issue.md")
 	if _, err := os.Stat(wrongPath); !os.IsNotExist(err) {
 		t.Error("Feature file with spaces should not exist")
 	}
@@ -130,7 +124,7 @@ func TestCreateFeatureWithContent(t *testing.T) {
 		t.Fatalf("CreateFeature with content failed: %v", err)
 	}
 
-	featurePath := filepath.Join(tempDir, "tasks", "features", "custom-content.md")
+	featurePath := filepath.Join(tempDir, "tasks", "issues", "custom-content.md")
 	content, err := os.ReadFile(featurePath)
 	if err != nil {
 		t.Fatalf("Failed to read feature file: %v", err)
@@ -159,7 +153,7 @@ func TestCreateFeatureWithUnderscores(t *testing.T) {
 	}
 
 	// Check file was created with dashes instead of underscores
-	featurePath := filepath.Join(tempDir, "tasks", "features", "my-feature-name.md")
+	featurePath := filepath.Join(tempDir, "tasks", "issues", "my-feature-name.md")
 	if _, err := os.Stat(featurePath); os.IsNotExist(err) {
 		t.Error("Feature file with dashes (normalized from underscores) not created")
 	}
@@ -242,7 +236,7 @@ func TestDeleteFeature(t *testing.T) {
 	mgr.CreateFeature("to-delete", "")
 
 	// Verify it exists
-	featurePath := filepath.Join(tempDir, "tasks", "features", "to-delete.md")
+	featurePath := filepath.Join(tempDir, "tasks", "issues", "to-delete.md")
 	if _, err := os.Stat(featurePath); os.IsNotExist(err) {
 		t.Fatal("Feature file not created for deletion test")
 	}
@@ -274,7 +268,7 @@ func TestDeleteFeatureWithSpaces(t *testing.T) {
 	}
 
 	// Verify it's gone
-	featurePath := filepath.Join(tempDir, "tasks", "features", "delete-me.md")
+	featurePath := filepath.Join(tempDir, "tasks", "issues", "delete-me.md")
 	if _, err := os.Stat(featurePath); !os.IsNotExist(err) {
 		t.Error("Feature file still exists after deletion with spaces")
 	}
@@ -302,7 +296,7 @@ func TestGetFeaturePath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetFeaturePath failed: %v", err)
 	}
-	expectedPath := filepath.Join(tempDir, "tasks", "features", "test-feature.md")
+	expectedPath := filepath.Join(tempDir, "tasks", "issues", "test-feature.md")
 	if path != expectedPath {
 		t.Errorf("Path mismatch. Got %s, expected %s", path, expectedPath)
 	}
@@ -328,7 +322,7 @@ func TestGetFeaturePathWithSpaces(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetFeaturePath with spaces failed: %v", err)
 	}
-	expectedPath := filepath.Join(tempDir, "tasks", "features", "my-test-feature.md")
+	expectedPath := filepath.Join(tempDir, "tasks", "issues", "my-test-feature.md")
 	if path != expectedPath {
 		t.Errorf("Path mismatch with spaces. Got %s, expected %s", path, expectedPath)
 	}
