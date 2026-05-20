@@ -30,15 +30,11 @@ main.go → cmd.Execute()
 │   ├── git/                Git repo management commands
 │   ├── magic/              System utilities (DNS, mirrors)
 │   ├── script/             Script management commands
-│   ├── agent.go            AI agent config management
-│   ├── agent_profile.go    Agent profile templates
 │   └── task.go             Task workflow commands
 ├── internal/               Business logic by domain
-│   ├── agent/              AI agent config (Claude Code, Codex, Kimi, GLM)
 │   ├── config/             Config loading & migration
 │   ├── git/                Core git operations
 │   ├── github/             GitHub API interactions
-
 │   ├── script/             Script discovery & execution
 │   ├── task/               Task dispatch/sync/issue CRUD
 │   └── tui/                Shared terminal UI components
@@ -88,12 +84,6 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
 | `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
 | `spark git issues [-r <owner/repo>] (-d <dir> \| -f <file>) [--dry-run] [-l <labels>]` | Create GitHub issues from markdown docs/tasks |
-
----
-
-### spark agent — AI Agent Configuration
-
-Currently disabled in command registration. The `spark agent` entry is not added to root command.
 
 ---
 
@@ -161,5 +151,4 @@ Online docs: https://variableway.github.io/spark-cli/
 |------|---------|
 | [docs/usage/](docs/usage/) | Per-command usage guides |
 | [docs/analysis/](docs/analysis/) | Architecture & RFC documents |
-| [AGENTS.md](AGENTS.md) | AI agent integration guide |
 | [CLAUDE.md](CLAUDE.md) | Claude Code development guide |

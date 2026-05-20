@@ -25,7 +25,7 @@ func TestGenerateProjectListSection(t *testing.T) {
 		{
 			Name:        "spark-skills",
 			HTMLURL:     "https://github.com/variableway/spark-skills",
-			Description: "AI Agent skills collection",
+			Description: "Skills collection",
 			Stargazers:  15,
 			Language:    "Python",
 			Fork:        false,

@@ -32,7 +32,6 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
   - `cmd/script/` — Script management commands
   - `cmd/task.go` — Top-level task commands in the root `cmd/` package
 - **`internal/`** — Business logic, separated by domain:
-  - `agent/` — AI agent config management module (currently command entry disabled)
   - `config/` — Configuration loading and management
   - `git/` — Core Git operations (find repos, update, remote management, submodule, URL conversion)
   - `github/` — GitHub API interactions (list org repos, parse org URLs)

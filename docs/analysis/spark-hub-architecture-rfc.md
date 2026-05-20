@@ -67,7 +67,7 @@ opencli register mycli --path /usr/local/bin/mycli
 ```
 
 - 注册信息保存在 OpenCLI 的内部数据目录中（推测为 `~/.opencli/` 或类似路径的 JSON/YAML 文件）。
-- 注册后的 CLI 可被 `opencli list --all` 发现，也可被 AI Agent 通过 `AGENT.md` 协议调用。
+- 注册后的 CLI 可被 `opencli list --all` 发现。
 
 #### 3.1.4 插件机制（Plugin）
 
@@ -81,7 +81,6 @@ opencli register mycli --path /usr/local/bin/mycli
 |------|------|
 | **零配置透传** | 对已知 CLI（如 `gh`、`docker`）无需任何 wrapper 代码，直接转发参数。 |
 | **自动安装** | 如果检测到 CLI 缺失，自动调用包管理器安装（`brew install`、`apt install` 等），对用户极度友好。 |
-| **AI-Agent 原生集成** | 所有注册的 CLI 都会通过 `AGENT.md` / `SKILL.md` 协议暴露给 Claude Code、Cursor、Codex 等 Agent。 |
 | **80+ 内置适配器** | 网站/Electron 自动化的覆盖度极高，社区活跃（8k+ stars）。 |
 | **结构化输出统一** | 内置 adapter 全部支持 `--format json/yaml/md/csv`，降低了下游消费难度。 |
 | **自诊断能力** | `opencli doctor` 可以检测浏览器扩展、daemon 状态、外部 CLI 可用性。 |
@@ -97,7 +96,7 @@ opencli register mycli --path /usr/local/bin/mycli
 - 不能拦截或重写安装逻辑（例如从企业内部镜像安装）。
 - 不能为同一个 CLI 设置多版本切换。 | 企业场景（私有 registry、镜像源）下扩展困难。 |
 | **命令命名冲突** | OpenCLI 内置 adapter 和 External CLI 共享同一个命名空间（`opencli <name>`）。如果未来 OpenCLI 官方新增了一个也叫 `spark` 的内置 adapter，那么 `opencli spark` 的语义会发生冲突。 | spark-cli 注册进 OpenCLI Hub 后，存在被未来版本覆盖的风险。 |
-| **错误处理链路不可控** | 透传执行时，外部 CLI 的 exit code、stderr、进度条输出会原样返回。如果外部 CLI 挂起或交互式提示，OpenCLI 没有提供统一的 timeout 或 no-input 策略。 | 在 CI/Agent 自动化场景中可能导致流程卡住。 |
+| **错误处理链路不可控** | 透传执行时，外部 CLI 的 exit code、stderr、进度条输出会原样返回。如果外部 CLI 挂起或交互式提示，OpenCLI 没有提供统一的 timeout 或 no-input 策略。 | 在 CI 自动化场景中可能导致流程卡住。 |
 | **跨平台安装策略不一致** | auto-install 依赖于对包管理器的硬编码映射（macOS→brew，Linux→apt 等），在 Windows 或国产 Linux 发行版上可能行为不可预期。 | 如果 spark-hub 面向中国开发者，brew/apt 的默认策略并不总是最优。 |
 
 ### 3.4 关键结论：OpenCLI Hub 适合作为 "被桥接的生态"，而非 "Hub 核心"
@@ -115,7 +114,7 @@ OpenCLI Hub 的最大价值在于它**已经连接了一个庞大的 CLI 和网�
 CLI-Anything (`HKUDS/CLI-Anything`) 是一个 **CLI 生成器框架**。它的核心能力：
 
 1. 输入：任意桌面软件的源码或二进制（GIMP、Blender、LibreOffice、Zoom 等）。
-2. 处理：通过 7 阶段流水线（分析→设计→实现→测试计划→测试编写→文档→发布），由 AI Agent 自动生成一个 Python CLI。
+2. 处理：通过 7 阶段流水线（分析→设计→实现→测试计划→测试编写→文档→发布），自动生成一个 Python CLI。
 3. 输出：`cli-anything-<software>`（如 `cli-anything-gimp`），自带 `SKILL.md`、JSON 输出、REPL 模式。
 
 ### 4.2 CLI-Anything 与 spark-hub 的关系
@@ -365,7 +364,7 @@ var hubCmd = &cobra.Command{
 | `opencli` 未安装 | `spark-hub doctor` 提示安装 Node.js + OpenCLI；`spark-hub install opencli` 执行 npm 安装。 |
 | OpenCLI 命令与 SRP 命令重名 | 以 SRP 显式声明的 `clis` 为准（显式 > 桥接发现）。例如如果 SRP 中也有一个 `twitter` 条目，优先执行 SRP 定义的安装器/执行器，而非 OpenCLI 桥接。 |
 | OpenCLI 返回非 0 exit code | 原样透传给 `spark-hub` 用户。 |
-| OpenCLI 输出格式 | 保持透传。如果下游 Agent 需要 JSON，由用户显式在 `spark-hub run` 时传入 `-f json`。 |
+| OpenCLI 输出格式 | 保持透传。如果下游工具需要 JSON，由用户显式在 `spark-hub run` 时传入 `-f json`。 |
 
 ---
 
@@ -410,7 +409,6 @@ var hubCmd = &cobra.Command{
 
 - 支持远程 registry URL（`spark-hub registry add`）。
 - 支持自定义安装镜像源。
-- 支持 Agent 协议的 `SKILL.md` 自动生成。
 
 ---
 

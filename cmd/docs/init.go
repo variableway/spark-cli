@@ -19,7 +19,6 @@ var docsDirs = []string{
 }
 
 var docsFiles = []string{
-	"Agents.md",
 	"index.md",
 	"README.md",
 }
@@ -29,7 +28,7 @@ var docsInitCmd = &cobra.Command{
 	Short: "Create docs folder structure",
 	Long: `Create the standard docs folder structure:
 
-  Agents.md, analysis/, features/, index.md, quick-start/,
+  analysis/, features/, index.md, quick-start/,
   README.md, spec/, tips/, usage/
 
 Skips files and directories that already exist.`,

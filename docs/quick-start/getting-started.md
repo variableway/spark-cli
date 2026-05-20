@@ -42,10 +42,6 @@ spark magic go use goproxy                    # Go → goproxy.cn
 spark magic node use taobao                   # Node → 淘宝源
 ```
 
-### AI Agent 配置
-
-当前版本已禁用 `spark agent` 命令入口，待后续重新设计后再启用。
-
 ### 任务管理
 
 ```bash
@@ -67,5 +63,4 @@ docmd dev                                     # 本地预览文档
 
 - [完整使用指南](../usage/usage.md)
 - [Git 管理](../usage/git.md)
-- [AI Agent 配置](../usage/agent.md)
 - [项目分析报告](../analysis/project-analysis.md)

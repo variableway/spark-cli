@@ -17,7 +17,6 @@ spark docs site [--root <path>]               # 初始化 docmd 站点配置
 
 ```
 docs/
-├── Agents.md
 ├── analysis/
 ├── features/
 ├── index.md

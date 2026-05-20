@@ -12,7 +12,6 @@
 
 ```
 docs/
-├── Agents.md
 ├── analysis/
 ├── features/
 ├── index.md

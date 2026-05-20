@@ -123,4 +123,3 @@ create → impl → dispatch → (开发) → sync
 ## 相关命令
 
 - [Git 管理](./git.md)
-- [Agent 配置](./agent.md)

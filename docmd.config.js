@@ -57,7 +57,6 @@ export default defineConfig({
       children: [
         { title: '概览', path: '/usage/usage' },
         { title: 'Git 管理', path: '/usage/git' },
-        { title: 'AI Agent 配置', path: '/usage/agent' },
         { title: '任务管理', path: '/usage/task' },
         { title: '系统工具', path: '/usage/magic' },
         { title: '脚本管理', path: '/usage/script' },
@@ -78,7 +77,6 @@ export default defineConfig({
       collapsible: true,
       children: [
         { title: 'Git 管理', path: '/features/git' },
-        { title: 'Agent 配置', path: '/features/agent' },
         { title: '任务管理', path: '/features/task' },
         { title: '系统工具', path: '/features/magic' },
         { title: '脚本管理', path: '/features/script' },

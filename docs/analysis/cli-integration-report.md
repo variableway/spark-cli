@@ -34,7 +34,7 @@
 | **安装方式** | `npm install -g @jackwener/opencli` |
 | **典型调用** | `opencli <adapter> <command> [flags]` |
 | **输出格式** | `table`(默认)、`json`、`yaml`、`md`、`csv`（`-f/--format`） |
-| **核心特点** | 80+ 内置网站适配器；支持 Electron App CDP 控制；自带 **External CLI Hub** 可注册/透传其他 CLI；AI-Agent 友好（`AGENT.md` / skill 标准）；输出结构化、可管道化。 |
+| **核心特点** | 80+ 内置网站适配器；支持 Electron App CDP 控制；自带 **External CLI Hub** 可注册/透传其他 CLI；输出结构化、可管道化。 |
 | **运行依赖** | Node.js 运行时 + Chrome 浏览器扩展（部分命令） |
 
 **集成要点**：
@@ -67,10 +67,10 @@
 |------|------|
 | **仓库** | `github.com/HKUDS/CLI-Anything` |
 | **技术栈** | Python 3.10+ |
-| **安装方式** | `git clone` 后通过 Claude Code / OpenCode / Codex 等 Agent 插件调用；生成的 CLI 通过 `pip install -e .` 安装 |
+| **安装方式** | `git clone` 后通过 Claude Code / OpenCode / Codex 等插件调用；生成的 CLI 通过 `pip install -e .` 安装 |
 | **典型调用** | `cli-anything-gimp --json project new`、`cli-anything-blender --help` |
 | **输出格式** | 人类可读文本 + `--json` 结构化输出 |
-| **核心特点** | **CLI 生成器**：通过 7 阶段流水线（分析→设计→实现→测试计划→测试编写→文档→发布）将任意桌面软件（GIMP、Blender、LibreOffice、Zoom、OBS 等）转化为 agent-native CLI；拥有 **CLI-Hub** 注册表，可自动发现社区 CLI；每个生成的 CLI 自带 `SKILL.md`。 |
+| **核心特点** | **CLI 生成器**：通过 7 阶段流水线（分析→设计→实现→测试计划→测试编写→文档→发布）将任意桌面软件（GIMP、Blender、LibreOffice、Zoom、OBS 等）转化为 CLI；拥有 **CLI-Hub** 注册表，可自动发现社区 CLI；每个生成的 CLI 自带 `SKILL.md`。 |
 | **运行依赖** | Python 3.10+；被控制的桌面软件本身需已安装 |
 
 **集成要点**：
@@ -89,7 +89,7 @@
 |--------|------|
 | **技术栈** | Go 1.24+，Cobra CLI 框架，Viper 配置管理 |
 | **分发形态** | 单二进制可执行文件，跨平台（Windows/Linux/macOS） |
-| **已有模块** | `git`、`agent`、`task` |
+| **已有模块** | `git`、`task` |
 | **测试框架** | Ginkgo + Gomega（BDD 风格） |
 | **配置体系** | `~/.spark.yaml`（Viper 自动读取） |
 | **核心约束** | **不能**因为集成外部 CLI 而强制所有用户安装 Node.js 或 Python。集成必须是可选的（opt-in）。 |
@@ -110,7 +110,7 @@
 
 1. **统一入口**：`spark hub` 负责所有外部 CLI 的生命周期管理（检测、诊断、透传）。
 2. **高频快捷**：将最常用的能力提升为 Spark 一级子命令，降低用户记忆负担。
-3. **保持核心干净**：外部依赖隔离在 `internal/hub` 包中，不污染 `git`、`agent`、`task` 等核心模块。
+3. **保持核心干净**：外部依赖隔离在 `internal/hub` 包中，不污染 `git`、`task` 等核心模块。
 4. **渐进增强**：用户即使不安装外部 CLI，也能正常使用 Spark 的核心功能。
 
 ---
@@ -352,7 +352,7 @@ spark app gimp --repl
 
 - 为 `internal/hub` 编写 BDD 测试（使用 mock runner 或测试子进程）。
 - 更新 `docs/usage/hub.md`、`docs/usage/web.md`、`docs/usage/social.md`、`docs/usage/app.md`。
-- 更新 `README.md` 和 `AGENTS.md`。
+- 更新 `README.md`。
 - 运行 `make lint` 和 `make test`，确保全部通过。
 - **验收标准**：所有新功能均有文档覆盖；CI 通过；发布新版本 tag。
 
@@ -519,11 +519,11 @@ spark app gimp --repl
 - **优先级**：P2
 - **工时**：2 天
 
-### Task 19：README & AGENTS.md 更新
+### Task 19：README 更新
 - **目标**：同步更新项目根目录文档，保持信息一致。
 - **输入**：新增的功能列表。
-- **输出**：更新后的 `README.md`、`AGENTS.md`。
-- **验收标准**：README 中出现 "External CLI Hub" 章节；AGENTS.md 中记录本次集成任务。
+- **输出**：更新后的 `README.md`。
+- **验收标准**：README 中出现 "External CLI Hub" 章节。
 - **优先级**：P2
 - **工时**：0.5 天
 

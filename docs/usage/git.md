@@ -238,5 +238,4 @@ spark git issues -f tasks/issues/task-bug-fix.md --dry-run
 
 ## 相关命令
 
-- [Agent 配置](./agent.md)
 - [任务管理](./task.md)

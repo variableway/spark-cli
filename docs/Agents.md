@@ -10,9 +10,8 @@
 2. **Submodule 管理** - 将本地仓库或远程 URL 添加为子模块
 3. **子模块同步** - 同步 Mono 仓库中的所有子模块
 4. **Git 用户配置** - 配置仓库的 Git 用户信息
-5. ~~**AI Agent 配置管理** - 管理多种 AI Agent（Claude Code、Codex、Kimi、GLM）的配置文件~~ (已禁用，待重新设计)
-6. **任务管理** - 任务分发、同步和 GitHub 仓库创建
-7. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
+5. **任务管理** - 任务分发、同步和 GitHub 仓库创建
+6. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
 
 ## 技术栈
 
@@ -28,21 +27,16 @@
 spark/
 ├── cmd/                    # CLI 命令定义
 │   ├── root.go            # 根命令和全局配置
-│   ├── agent.go           # AI Agent 配置管理
-│   ├── agent_profile.go   # Agent Profile 管理
 │   ├── task.go            # 任务管理命令
 │   └── git/               # Git 相关命令
 │       ├── git.go         # Git 父命令
 │       ├── config.go      # Git 用户配置
 │       ├── update.go      # 仓库更新命令
-
 │       ├── sync.go        # 子模块同步命令
 │       └── gitcode.go     # Gitcode 远程管理
 ├── internal/              # 内部业务逻辑
-│   ├── agent/             # AI Agent 管理器
 │   ├── config/            # 配置管理
 │   ├── git/               # Git 操作封装
-
 │   ├── task/              # 任务管理器
 │   └── tui/               # 终端 UI 组件
 ├── docs/                  # 文档
@@ -304,35 +298,6 @@ spark:
 
 **跨平台支持**: Mac、Linux、Windows
 
-### AI Agent 管理 (已禁用)
-
-> NOTE: 此功能当前已禁用，命令入口已关闭（`cmd/agent.go` 中 `rootCmd.AddCommand(agentCmd)` 已注释）。待后续重新设计后再启用。
-
-#### `spark agent`
-管理多种 AI Agent 的配置文件。
-
-支持的 Agent:
-- **claude-code** - Claude Code CLI
-- **codex** - OpenAI Codex
-- **kimi** - Kimi CLI
-- **glm** - GLM (智谱 AI)
-
-```bash
-spark agent list                    # 列出所有支持的 Agent
-spark agent view claude-code        # 查看配置
-spark agent edit kimi               # 编辑配置
-spark agent edit claude-code --tui  # TUI 模式选择配置文件
-
-# Profile 配置模板管理
-spark agent profile list                    # 列出所有配置模板
-spark agent profile add my-glm --type glm   # 创建一个 GLM 模板
-spark agent profile edit my-glm             # 编辑模板配置
-spark agent use my-glm                      # 将模板应用到当前项目
-spark agent current                         # 查看当前项目使用的模板
-```
-
-详细文档: [docs/usage/agent.md](docs/usage/agent.md)
-
 ### 任务管理
 
 #### `spark task`
@@ -394,7 +359,7 @@ tasks/
 
 ## Spark Skills
 
-个人 Skill 集合仓库，包含多个 AI Agent Skill，用于增强 spark-cli 的功能。
+个人 Skill 集合仓库，用于增强 spark-cli 的功能。
 
 **仓库地址**: `variableway/spark-cli` 中的 `spark-skills/` 目录
 

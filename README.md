@@ -86,12 +86,6 @@ go test ./internal/git/... -v -run TestFunctionName
 
 ---
 
-### spark agent — AI Agent Configuration
-
-Currently disabled in command registration. The `spark agent` entry is not added to root command.
-
----
-
 ### spark task — Task Management
 
 | Command | Description |
@@ -160,5 +154,5 @@ Online docs: https://variableway.github.io/spark-cli/
 |------|---------|
 | [docs/usage/](docs/usage/) | Per-command usage guides |
 | [docs/analysis/](docs/analysis/) | Architecture & RFC documents |
-| [AGENTS.md](AGENTS.md) | AI agent integration guide |
+| [AGENTS.md](AGENTS.md) | AI integration guide |
 | [CLAUDE.md](CLAUDE.md) | Claude Code development guide |

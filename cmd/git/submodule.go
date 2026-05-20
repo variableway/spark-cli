@@ -90,11 +90,30 @@ func addFolderAsSubmodules(repoPath, folder string) error {
 	}
 
 	var repos []string
+	alreadyHandled := false
 
 	if git.IsGitRepository(absFolder) {
 		isGitHub, _ := git.IsGitHubRepo(absFolder)
 		if isGitHub {
-			repos = append(repos, absFolder)
+			name := filepath.Base(absFolder)
+			cmd := exec.Command("git", "ls-files", "--stage", name)
+			cmd.Dir = repoPath
+			if out, _ := cmd.Output(); len(out) > 0 && strings.HasPrefix(string(out), "160000") {
+				fmt.Printf("Skipping %s: already added as a submodule\n", name)
+				alreadyHandled = true
+			} else {
+				url, _ := git.GetRemoteURL(absFolder)
+				parentURL, parentErr := git.GetRemoteURL(repoPath)
+				if parentErr == nil && url == parentURL {
+					fmt.Printf("Skipping %s: same repository as parent\n", name)
+					alreadyHandled = true
+				} else if _, err := os.Stat(absFolder); err == nil {
+					fmt.Printf("Skipping %s: directory already exists (use 'git submodule add' manually)\n", name)
+					alreadyHandled = true
+				} else {
+					repos = append(repos, absFolder)
+				}
+			}
 		}
 	}
 
@@ -127,7 +146,11 @@ func addFolderAsSubmodules(repoPath, folder string) error {
 	}
 
 	if len(repos) == 0 {
-		fmt.Println("No GitHub repositories found in the specified folder.")
+		if alreadyHandled {
+			fmt.Println("\nDone!")
+		} else {
+			fmt.Println("No GitHub repositories found in the specified folder.")
+		}
 		return nil
 	}
 
