@@ -89,31 +89,41 @@ func addFolderAsSubmodules(repoPath, folder string) error {
 		return fmt.Errorf("failed to resolve path: %w", err)
 	}
 
-	entries, err := os.ReadDir(absFolder)
-	if err != nil {
-		return fmt.Errorf("failed to read directory: %w", err)
+	var repos []string
+
+	if git.IsGitRepository(absFolder) {
+		isGitHub, _ := git.IsGitHubRepo(absFolder)
+		if isGitHub {
+			repos = append(repos, absFolder)
+		}
 	}
 
-	var repos []string
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		if strings.HasPrefix(entry.Name(), ".") {
-			continue
+	if len(repos) == 0 {
+		entries, err := os.ReadDir(absFolder)
+		if err != nil {
+			return fmt.Errorf("failed to read directory: %w", err)
 		}
 
-		childPath := filepath.Join(absFolder, entry.Name())
-		if !git.IsGitRepository(childPath) {
-			continue
-		}
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+			if strings.HasPrefix(entry.Name(), ".") {
+				continue
+			}
 
-		isGitHub, _ := git.IsGitHubRepo(childPath)
-		if !isGitHub {
-			continue
-		}
+			childPath := filepath.Join(absFolder, entry.Name())
+			if !git.IsGitRepository(childPath) {
+				continue
+			}
 
-		repos = append(repos, childPath)
+			isGitHub, _ := git.IsGitHubRepo(childPath)
+			if !isGitHub {
+				continue
+			}
+
+			repos = append(repos, childPath)
+		}
 	}
 
 	if len(repos) == 0 {
@@ -132,69 +142,17 @@ func addFolderAsSubmodules(repoPath, folder string) error {
 		}
 
 		fmt.Printf("Adding submodule: %s (%s)\n", name, url)
-		if err := addLocalRepoAsSubmodule(repoPath, repo, url); err != nil {
+
+		cmd := exec.Command("git", "submodule", "add", "-f", url, name)
+		cmd.Dir = repoPath
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
 			fmt.Printf("Warning: failed to add %s: %v\n", name, err)
 		}
 	}
 
 	fmt.Println("\nDone! To commit: git commit -m 'Add submodules'")
-	return nil
-}
-
-func addLocalRepoAsSubmodule(parentPath, childPath, remoteURL string) error {
-	childName := filepath.Base(childPath)
-
-	gitmodulesPath := filepath.Join(parentPath, ".gitmodules")
-
-	modulesDir := filepath.Join(parentPath, ".git", "modules", childName)
-	if err := os.MkdirAll(modulesDir, 0755); err != nil {
-		return fmt.Errorf("failed to create modules dir: %w", err)
-	}
-
-	gitEntry := filepath.Join(childPath, ".git")
-	if info, err := os.Lstat(gitEntry); err == nil && !info.IsDir() {
-		fmt.Printf("Skipping %s: already a submodule\n", childName)
-		return nil
-	}
-
-	for _, item := range []string{"config", "description", "hooks", "info", "logs", "objects", "refs"} {
-		src := filepath.Join(gitEntry, item)
-		if _, err := os.Stat(src); err == nil {
-			dst := filepath.Join(modulesDir, item)
-			os.Rename(src, dst)
-		}
-	}
-
-	for _, item := range []string{"HEAD", "index", "packed-refs"} {
-		src := filepath.Join(gitEntry, item)
-		if _, err := os.Stat(src); err == nil {
-			dst := filepath.Join(modulesDir, item)
-			os.Rename(src, dst)
-		}
-	}
-	os.Remove(gitEntry)
-
-	relPath := filepath.Join("..", ".git", "modules", childName)
-	os.WriteFile(gitEntry, []byte("gitdir: "+relPath+"\n"), 0644)
-
-	submoduleConfig := filepath.Join(modulesDir, "config")
-	worktree := filepath.Join("..", "..", "..", childName)
-	exec.Command("git", "config", "--file", submoduleConfig, "core.worktree", worktree).Run()
-
-	setPath := exec.Command("git", "config", "--file", gitmodulesPath, fmt.Sprintf("submodule.%s.path", childName), childName)
-	setPath.Dir = parentPath
-	setPath.Stdout = os.Stdout
-	setPath.Stderr = os.Stderr
-	setPath.Run()
-
-	setURL := exec.Command("git", "config", "--file", gitmodulesPath, fmt.Sprintf("submodule.%s.url", childName), remoteURL)
-	setURL.Dir = parentPath
-	setURL.Stdout = os.Stdout
-	setURL.Stderr = os.Stderr
-	setURL.Run()
-
-	exec.Command("git", "add", childName).Run()
-
 	return nil
 }
 
