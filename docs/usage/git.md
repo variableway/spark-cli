@@ -44,12 +44,21 @@ spark git update -p ~/ws -p ~/projects        # 多个目录
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
-
+| `-p, --path` | | `.` | 包含 Git 仓库的目录路径 |
 
 ```bash
 spark git submodule add ./repos                       # 将本地文件夹中所有 GitHub 仓库添加为 submodule
-spark git submodule add https://github.com/user/repo  # 添加远程仓库
+spark git submodule add ./spark-cli                  # 将指定目录作为子模块添加
 ```
+
+**智能检测行为**：
+
+| 场景 | 输出 |
+|------|------|
+| 目标已是 submodule（160000） | `Skipping <name>: already as submodule` |
+| 目标与父仓库 URL 相同（worktree） | `Skipping <name>: already as submodule` |
+| 目录存在但不是 submodule | `Skipping <name>: directory already exists (use 'git submodule add' manually)` |
+| 正常添加 | `Adding submodule: <name> (<url>)` |
 
 ### 模式 2：添加远程仓库为子模块
 
@@ -82,6 +91,13 @@ spark git submodule add user/repo
 ```bash
 spark git sync ./my-repo                       # 同步指定仓库
 ```
+
+**流程**：
+1. `git fetch --all` — 获取所有远程最新代码
+2. `git submodule update --init` — 初始化缺失的子模块（从 `.gitmodules` 中读取）
+3. `git submodule update --remote --merge` — 更新所有子模块到最新版本并合并
+
+**注意**：`--init` 确保即使子模块目录在本地缺失，也会从远程 clone 下来。
 
 ---
 

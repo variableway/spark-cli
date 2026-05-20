@@ -68,6 +68,15 @@ spark git submodule add [-p <path>]
 
 无参数。
 
+**智能检测行为**：
+
+| 场景 | 输出 |
+|------|------|
+| 目标已是 submodule（160000） | `Skipping <name>: already as submodule` |
+| 目标与父仓库 URL 相同（worktree） | `Skipping <name>: already as submodule` |
+| 目录存在但不是 submodule | `Skipping <name>: directory already exists (use 'git submodule add' manually)` |
+| 正常添加 | `Adding submodule: <name> (<url>)` |
+
 ### 远程模式
 
 ```
@@ -94,6 +103,11 @@ spark git sync [repo-path]
 | 参数 | 类型 | 默认值 | 必填 | 说明 |
 |------|------|--------|------|------|
 | `repo-path` | string | `.` | 否 | 仓库路径 |
+
+**流程**：
+1. `git fetch --all` — 获取所有远程最新代码
+2. `git submodule update --init` — 初始化缺失的子模块（从 `.gitmodules` 中读取）
+3. `git submodule update --remote --merge` — 更新所有子模块到最新版本并合并
 
 ---
 

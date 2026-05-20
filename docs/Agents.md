@@ -106,19 +106,30 @@ spark git update -p ~/workspace -p ~/projects
 详细文档: [docs/usage/update.md](docs/usage/update.md)
 
 #### `spark git submodule`
-将当前目录下的 Git 仓库添加为子模块，无需重新克隆。
+将本地 Git 仓库添加为子模块，或将远程仓库克隆为子模块。
 
+**本地模式**：
 ```bash
 spark git submodule add                    # 添加当前目录下的仓库
 spark git submodule add -p /path/to/repos  # 添加指定目录下的仓库
+spark git submodule add ./spark-cli        # 将指定目录作为子模块添加
 ```
 
 | 选项 | 说明 |
 |------|------|
 | `-n, --name` | 子模块路径名称 (默认: 仓库名) |
 
+**智能检测行为**：
+
+| 场景 | 输出 |
+|------|------|
+| 目标已是 submodule（160000） | `Skipping <name>: already as submodule` |
+| 目标与父仓库 URL 相同（worktree） | `Skipping <name>: already as submodule` |
+| 目录存在但不是 submodule | `Skipping <name>: directory already exists (use 'git submodule add' manually)` |
+| 正常添加 | `Adding submodule: <name> (<url>)` |
+
 #### `spark git sync`
-同步当前仓库中所有子模块到最新版本。
+同步当前仓库中所有子模块到最新版本。包含 `git submodule update --init`，确保缺失的子模块也会被 clone。
 
 ```bash
 spark git sync ./my-repo
