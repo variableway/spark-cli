@@ -99,13 +99,13 @@ func addFolderAsSubmodules(repoPath, folder string) error {
 			cmd := exec.Command("git", "ls-files", "--stage", name)
 			cmd.Dir = repoPath
 			if out, _ := cmd.Output(); len(out) > 0 && strings.HasPrefix(string(out), "160000") {
-				fmt.Printf("Skipping %s: already added as a submodule\n", name)
+				fmt.Printf("Skipping %s: already as submodule\n", name)
 				alreadyHandled = true
 			} else {
 				url, _ := git.GetRemoteURL(absFolder)
 				parentURL, parentErr := git.GetRemoteURL(repoPath)
 				if parentErr == nil && url == parentURL {
-					fmt.Printf("Skipping %s: same repository as parent\n", name)
+					fmt.Printf("Skipping %s: already as submodule\n", name)
 					alreadyHandled = true
 				} else if _, err := os.Stat(absFolder); err == nil {
 					fmt.Printf("Skipping %s: directory already exists (use 'git submodule add' manually)\n", name)

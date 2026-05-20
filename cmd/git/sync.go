@@ -32,6 +32,13 @@ Examples:
 		fetchCmd.Stderr = os.Stderr
 		fetchCmd.Run()
 
+		fmt.Printf("Initializing missing submodules...\n")
+		initCmd := exec.Command("git", "submodule", "update", "--init")
+		initCmd.Dir = repoPath
+		initCmd.Stdout = os.Stdout
+		initCmd.Stderr = os.Stderr
+		initCmd.Run()
+
 		fmt.Printf("Updating submodules to latest versions...\n")
 		updateCmd := exec.Command("git", "submodule", "update", "--remote", "--merge")
 		updateCmd.Dir = repoPath
