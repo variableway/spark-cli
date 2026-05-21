@@ -91,8 +91,8 @@ Example:
 
 var taskListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List all tasks and features",
-	Long:  `List all tasks (directories) in the task directory and features in tasks/features.`,
+	Short: "List all tasks and issues",
+	Long:  `List all tasks (directories) in the task directory and issues in tasks/issues.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if taskDir == "" {
 			taskDir = "."
@@ -128,7 +128,7 @@ var taskListCmd = &cobra.Command{
 		}
 
 		if len(tasks) == 0 && (err != nil || len(features) == 0) {
-			pterm.Info.Println("No tasks or features found.")
+			pterm.Info.Println("No tasks or issues found.")
 			pterm.Println()
 			pterm.Println("Run 'spark task init' to initialize task structure.")
 		}
@@ -226,7 +226,7 @@ func runSyncTUI(taskName string) error {
 var taskInitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize task directory structure",
-	Long: `Create the default task directory structure with example feature file.
+	Long: `Create the default task directory structure.
 
 Creates the following directories:
   - tasks/issues/
@@ -235,7 +235,6 @@ Creates the following directories:
   - tasks/mindstorm/
   - tasks/planning/
   - tasks/prd/
-  - tasks/example-feature.md
 
 If directories already exist, they will be preserved.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -250,11 +249,10 @@ If directories already exist, they will be preserved.`,
 
 var taskCreateCmd = &cobra.Command{
 	Use:   "create <feature-name>",
-	Short: "Create a new feature file",
-	Long: `Create a new feature file in tasks/features/ directory.
+	Short: "Create a new issue file",
+	Long: `Create a new issue file in tasks/issues/ directory.
 
-The feature name will have .md extension added automatically if not provided.
-Uses example-feature.md as template.
+The issue name will have .md extension added automatically if not provided.
 
 Example:
   spark task create my-new-feature

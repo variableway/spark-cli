@@ -5,6 +5,7 @@ import (
 	"spark/cmd/docs"
 	"spark/cmd/git"
 	"spark/cmd/magic"
+	"spark/cmd/resource"
 	"spark/cmd/script"
 	"os"
 	"path/filepath"
@@ -41,6 +42,7 @@ func init() {
 	rootCmd.AddCommand(magic.MagicCmd)
 	rootCmd.AddCommand(script.ScriptCmd)
 	rootCmd.AddCommand(docs.DocsCmd)
+	rootCmd.AddCommand(resource.ResourceCmd)
 }
 
 func initConfig() {

@@ -19,7 +19,7 @@ spark task [--task-dir <dir>] [--owner <owner>] [--work-dir <dir>] [--tui]
 
 ## spark task init
 
-初始化任务目录结构，创建 `tasks/issues/` 等目录，并生成 `tasks/example-issue.md`。
+初始化任务目录结构，创建 `tasks/issues/` 等目录。
 
 ```
 spark task init

@@ -20,7 +20,7 @@ spark task sync <name> [--work-path <path>]   # 同步任务
 
 ## spark task init
 
-初始化任务目录结构，创建 `tasks/issues/` 等目录与 `tasks/example-issue.md` 模板文件。
+初始化任务目录结构，创建 `tasks/issues/` 等目录。
 
 ```bash
 spark task init                               # 在当前目录初始化

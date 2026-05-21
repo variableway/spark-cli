@@ -32,6 +32,7 @@ spark/
 │       ├── git.go         # Git 父命令
 │       ├── config.go      # Git 用户配置
 │       ├── update.go      # 仓库更新命令
+│       ├── submodule.go   # 子模块管理命令
 │       ├── sync.go        # 子模块同步命令
 │       └── gitcode.go     # Gitcode 远程管理
 ├── internal/              # 内部业务逻辑
@@ -350,12 +351,10 @@ spark task sync my-task --work-path ./workspace
 **Issue 文件创建说明**:
 - 文件名中的空格和下划线会自动转换为 `-`
 - `--content` 参数的内容会写入 `## 描述` section
-- 如果存在 `example-issue.md`，会将其作为模板
 
 **任务目录结构**:
 ```
 tasks/
-├── example-issue.md       # 示例 issue 模板
 ├── issues/                # issue 文件目录
 ├── config/                # 配置任务目录
 ├── analysis/              # 分析任务目录

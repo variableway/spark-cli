@@ -44,7 +44,7 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
 
 ```
 spark
-├── git [init|update|submodule|sync|gitcode|config|url|batch-clone|issues|update-org-status]
+├── git [init|update|submodule [add]|sync|gitcode|config|url|batch-clone|issues|update-org-status]
 ├── task [list|init|dispatch|sync|create|delete|impl]
 ├── script [list|run]
 └── magic [flush-dns|pip|go|node]     # Mirror source switching + DNS
