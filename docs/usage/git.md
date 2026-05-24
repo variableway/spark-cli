@@ -8,6 +8,9 @@
 spark git update                              # 更新所有仓库
 spark git submodule add [-p <path>]                # 添加现有仓库为子模块
 spark git submodule add <repo-url> [-n <name>]     # 添加远程仓库为子模块
+spark git submodule init [-j <n>] [-r]             # 初始化（克隆）所有子模块
+spark git submodule status                         # 查看子模块状态
+spark git submodule ensure-ssh                     # HTTPS → SSH URL 转换
 spark git sync [./repo]                   # 同步子模块
 spark git gitcode                             # 添加 Gitcode 远程
 spark git init [--owner <owner>] [--skip-gh]   # 初始化仓库并创建 GitHub 远程
@@ -84,12 +87,72 @@ spark git submodule add user/repo
 
 ---
 
+## spark git submodule init
+
+初始化（克隆）所有已注册但尚未检出的子模块。
+
+| 标志 | 简写 | 默认值 | 说明 |
+|------|------|--------|------|
+| `-j, --parallel` | | `1` | 并行克隆 worker 数 |
+| `-r, --recursive` | | `false` | 同时初始化嵌套子模块 |
+| `--name` | | | 仅初始化指定名称的子模块 |
+
+```bash
+spark git submodule init                         # 初始化所有子模块
+spark git submodule init -j 4                    # 4 路并行初始化
+spark git submodule init --recursive             # 含嵌套子模块
+spark git submodule init --name spark-cli        # 仅初始化指定子模块
+```
+
+**注意**：`init` 仅负责克隆，不会执行 merge 或分支切换。需要同步到最新用 `spark git sync`。
+
+---
+
+## spark git submodule status
+
+以表格形式展示所有子模块的状态。
+
+```bash
+spark git submodule status
+```
+
+**输出示例**：
+```
+PATH                           INIT       COMMIT       BRANCH
+---------------------------------------------------------------------------
+fire-skills-base               ✅         945082af     heads/main
+innate-websites                ❌         119324a8         
+spark-cli                      ✅         43568d24     heads/main
+```
+
+---
+
+## spark git submodule ensure-ssh
+
+将 `.gitmodules` 中所有 HTTPS GitHub URL 替换为 SSH 格式。适用于 HTTPS 连接不稳定的环境。
+
+```bash
+spark git submodule ensure-ssh
+```
+
+**效果**：
+- `https://github.com/owner/repo.git` → `git@github.com:owner/repo.git`
+- 同时更新父仓库的 `origin` remote URL
+- 修改 `.gitmodules` 文件，需 commit 保存
+
+---
+
 ## spark git sync
 
 同步 Mono 仓库中所有子模块到最新版本。
 
+| 标志 | 简写 | 默认值 | 说明 |
+|------|------|--------|------|
+| `-r, --recursive` | | `false` | 递归同步嵌套子模块 |
+
 ```bash
 spark git sync ./my-repo                       # 同步指定仓库
+spark git sync --recursive                     # 含嵌套子模块
 ```
 
 **流程**：
@@ -97,7 +160,7 @@ spark git sync ./my-repo                       # 同步指定仓库
 2. `git submodule update --init` — 初始化缺失的子模块（从 `.gitmodules` 中读取）
 3. `git submodule update --remote --merge` — 更新所有子模块到最新版本并合并
 
-**注意**：`--init` 确保即使子模块目录在本地缺失，也会从远程 clone 下来。
+**注意**：步骤 2 使用并行初始化逻辑（串行模式），失败不中断后续步骤。
 
 ---
 

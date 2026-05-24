@@ -16,19 +16,39 @@ spark git update -p ~/workspace
 
 ### Submodule 管理
 
-将本地 GitHub 仓库或远程 URL 添加为 Submodule，支持不重新 clone 的原地转换方式。
+将本地 GitHub 仓库或远程 URL 添加为 Submodule，支持初始化、状态查看、URL 重写、批量同步。
 
 ```bash
 # 添加现有本地仓库为子模块
-spark git submodule add -p /path/to/repos
+spark git submodule add ./path/to/repos
 
 # 添加远程仓库为子模块
 spark git submodule add https://github.com/user/repo
 spark git submodule add https://github.com/user/repo --name custom-folder
 
+# 初始化所有未克隆的子模块
+spark git submodule init
+spark git submodule init -j 4             # 4 路并行初始化
+spark git submodule init --recursive      # 含嵌套子模块
+spark git submodule init --name spark-cli # 仅初始化指定子模块
+
+# 查看子模块状态
+spark git submodule status
+
+# HTTPS -> SSH URL 转换
+spark git submodule ensure-ssh
+
 # 同步所有 Submodule 到最新
 spark git sync ./my-mono
+spark git sync --recursive
 ```
+
+**核心改进**：
+
+- `init` 分离了初始化和远程更新，不强行 merge。支持 `-j` 并行克隆
+- `status` 用表格展示每个子模块的初始化状态、commit、分支
+- `ensure-ssh` 一键将 `.gitmodules` 中所有 HTTPS URL 替换为 SSH
+- `git init` 递归扫描嵌套目录（如 `projects/innate-ai-art`），最深 3 层
 
 ### Gitcode 远程集成
 
@@ -40,7 +60,7 @@ spark git gitcode -p ~/workspace
 
 ### 仓库初始化
 
-一键初始化 Git 仓库并创建 GitHub 远程：`git init` → 配置用户 → 扫描子目录添加 submodule → 生成 `.gitignore` → 初始提交 → `gh repo create --push`。
+一键初始化 Git 仓库并创建 GitHub 远程：`git init` → 配置用户 → 递归扫描子目录（最深 3 层）添加 submodule → 生成 `.gitignore` → 初始提交 → `gh repo create --push`。
 
 ```bash
 spark git init --owner variableway              # 初始化并创建远程仓库

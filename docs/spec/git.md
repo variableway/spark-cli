@@ -45,7 +45,57 @@ spark git init [--owner <owner>] [--repo <name>] [--private] [--skip-gh]
 
 \* `--owner` 可从 `~/.spark.yaml` 中的 `github-owner` 配置读取。
 
-**流程**: `git init` → `git config` → submodule 扫描 → `.gitignore` → `git commit` → `gh repo create --push`
+**流程**: `git init` → `git config` → submodule 扫描（最深 3 层） → `.gitignore` → `git commit` → `gh repo create --push`
+
+---
+
+## spark git submodule init
+
+初始化（克隆）所有已注册但尚未检出的子模块。
+
+```
+spark git submodule init [-j <n>] [-r] [--name <name>]
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-j, --parallel` | int | `1` | 否 | 并行克隆 worker 数（大于 1 时并行） |
+| `-r, --recursive` | bool | `false` | 否 | 同时初始化嵌套子模块 |
+| `--name` | string | | 否 | 仅初始化指定名称的子模块 |
+
+无参数。
+
+**流程**：
+1. 当 `parallel == 1`：直接执行 `git submodule update --init [--recursive]`
+2. 当 `parallel > 1`：解析 `git submodule status` 找出未初始化的子模块，用 semaphore 并发的 goroutine 逐个执行 `git submodule update --init <name>`，最后执行 `--recursive`（若是）
+
+---
+
+## spark git submodule status
+
+显示所有子模块的初始化状态、commit 和分支。
+
+```
+spark git submodule status
+```
+
+无标志，无参数。
+
+**输出**：表格格式，包含 `PATH`、`INIT`（✅/❌）、`COMMIT`、`BRANCH` 列。
+
+---
+
+## spark git submodule ensure-ssh
+
+将 `.gitmodules` 中所有 HTTPS GitHub URL 替换为 SSH 格式。同时更新父仓库的 `origin` remote。
+
+```
+spark git submodule ensure-ssh
+```
+
+无标志，无参数。
+
+**转换规则**：`https://github.com/<owner>/<repo>.git` → `git@github.com:<owner>/<repo>.git`
 
 ---
 
@@ -97,16 +147,20 @@ spark git submodule add <repo-url> [-n <name>] [-p <path>]
 同步当前仓库中所有 Submodule 到最新版本。
 
 ```
-spark git sync [repo-path]
+spark git sync [repo-path] [-r]
 ```
 
 | 参数 | 类型 | 默认值 | 必填 | 说明 |
 |------|------|--------|------|------|
 | `repo-path` | string | `.` | 否 | 仓库路径 |
 
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-r, --recursive` | bool | `false` | 否 | 递归同步嵌套子模块 |
+
 **流程**：
 1. `git fetch --all` — 获取所有远程最新代码
-2. `git submodule update --init` — 初始化缺失的子模块（从 `.gitmodules` 中读取）
+2. `InitAllSubmodules` — 初始化缺失的子模块（从 `.gitmodules` 中读取，失败不中断）
 3. `git submodule update --remote --merge` — 更新所有子模块到最新版本并合并
 
 ---

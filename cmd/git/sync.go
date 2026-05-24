@@ -5,19 +5,26 @@ import (
 	"os"
 	"os/exec"
 
+	"spark/internal/git"
+
 	"github.com/spf13/cobra"
 )
+
+var syncRecursive bool
 
 var syncCmd = &cobra.Command{
 	Use:   "sync",
 	Short: "Sync all submodules to their latest versions",
 	Long: `Update all submodules in the current repository to the latest versions.
 
-Fetches the latest changes and merges them into the current branch.
+This command:
+1. Fetches all remotes for the parent repo
+2. Initializes (clones) any uninitialized submodules
+3. Updates each submodule to the latest commit on its tracked branch
 
 Examples:
-  spark git sync              # sync current directory
-  spark git sync ./my-repo    # sync specific repo`,
+  spark git sync              # sync in current directory
+  spark git sync --recursive  # sync nested submodules too`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		repoPath := "."
@@ -25,22 +32,27 @@ Examples:
 			repoPath = args[0]
 		}
 
-		fmt.Printf("Fetching all remotes...\n")
+		// 1. Fetch parent remotes
+		fmt.Println("Step 1/3: Fetching all remotes...")
 		fetchCmd := exec.Command("git", "fetch", "--all")
 		fetchCmd.Dir = repoPath
 		fetchCmd.Stdout = os.Stdout
 		fetchCmd.Stderr = os.Stderr
-		fetchCmd.Run()
+		fetchCmd.Run() // best-effort
 
-		fmt.Printf("Initializing missing submodules...\n")
-		initCmd := exec.Command("git", "submodule", "update", "--init")
-		initCmd.Dir = repoPath
-		initCmd.Stdout = os.Stdout
-		initCmd.Stderr = os.Stderr
-		initCmd.Run()
+		// 2. Initialize uninitialized submodules
+		fmt.Println("\nStep 2/3: Initializing submodules...")
+		if err := git.InitAllSubmodules(repoPath, syncRecursive, 1); err != nil {
+			fmt.Printf("Warning: some submodules failed to initialize: %v\n", err)
+		}
 
-		fmt.Printf("Updating submodules to latest versions...\n")
-		updateCmd := exec.Command("git", "submodule", "update", "--remote", "--merge")
+		// 3. Update submodules to latest remote
+		fmt.Println("\nStep 3/3: Updating submodules to latest versions...")
+		updateArgs := []string{"submodule", "update", "--remote", "--merge"}
+		if syncRecursive {
+			updateArgs = append(updateArgs, "--recursive")
+		}
+		updateCmd := exec.Command("git", updateArgs...)
 		updateCmd.Dir = repoPath
 		updateCmd.Stdout = os.Stdout
 		updateCmd.Stderr = os.Stderr
@@ -48,11 +60,12 @@ Examples:
 			return fmt.Errorf("failed to update submodules: %w", err)
 		}
 
-		fmt.Println("All submodules synced!")
+		fmt.Println("\nAll submodules synced!")
 		return nil
 	},
 }
 
 func init() {
+	syncCmd.Flags().BoolVarP(&syncRecursive, "recursive", "r", false, "Sync nested submodules recursively")
 	GitCmd.AddCommand(syncCmd)
 }

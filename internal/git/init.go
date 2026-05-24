@@ -116,11 +116,58 @@ func InitialCommit(repoPath, message string) error {
 	return nil
 }
 
+// maxSubmoduleDepth controls how deep we scan for git repos to add as submodules.
+const maxSubmoduleDepth = 3
+
+// AddChildReposAsSubmodules scans the root path recursively (up to maxSubmoduleDepth)
+// for git repositories with GitHub remotes, and adds them as submodules.
+// This handles nested structures like projects/innate-ai-art in addition to
+// top-level repos like spark-cli.
 func AddChildReposAsSubmodules(rootPath string) error {
-	entries, err := os.ReadDir(rootPath)
-	if err != nil {
-		return fmt.Errorf("failed to read directory: %w", err)
+	repos := findChildGitHubRepos(rootPath, 0)
+
+	if len(repos) == 0 {
+		fmt.Println("No GitHub repositories found to add as submodules.")
+		return nil
 	}
+
+	fmt.Printf("Found %d GitHub repository(ies) to add as submodules\n", len(repos))
+
+	for _, repo := range repos {
+		relPath, err := filepath.Rel(rootPath, repo)
+		if err != nil {
+			relPath = filepath.Base(repo)
+		}
+
+		url, err := GetRemoteURL(repo)
+		if err != nil {
+			fmt.Printf("Warning: skipping %s (no remote URL): %v\n", relPath, err)
+			continue
+		}
+
+		fmt.Printf("Adding submodule: %s -> %s\n", relPath, url)
+		if err := AddSubmodule(rootPath, repo, url); err != nil {
+			fmt.Printf("Warning: failed to add submodule %s: %v\n", relPath, err)
+		}
+	}
+
+	return nil
+}
+
+// findChildGitHubRepos walks the directory tree starting at dirPath (up to
+// maxSubmoduleDepth) and returns paths of git repos that have GitHub remotes.
+// It skips hidden directories and already-registered submodules.
+func findChildGitHubRepos(dirPath string, depth int) []string {
+	if depth > maxSubmoduleDepth {
+		return nil
+	}
+
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		return nil
+	}
+
+	var repos []string
 
 	for _, entry := range entries {
 		if !entry.IsDir() {
@@ -130,27 +177,28 @@ func AddChildReposAsSubmodules(rootPath string) error {
 			continue
 		}
 
-		childPath := filepath.Join(rootPath, entry.Name())
-		if !IsGitRepository(childPath) {
-			continue
+		childPath := filepath.Join(dirPath, entry.Name())
+
+		if IsGitRepository(childPath) {
+			isGitHub, _ := IsGitHubRepo(childPath)
+			if isGitHub {
+				url, err := GetRemoteURL(childPath)
+				if err == nil {
+					// Don't add the parent repo itself as a child
+					parentURL, _ := GetRemoteURL(dirPath)
+					if url == parentURL {
+						continue
+					}
+				}
+				repos = append(repos, childPath)
+				continue // don't recurse into a git repo
+			}
 		}
 
-		isGitHub, err := IsGitHubRepo(childPath)
-		if err != nil || !isGitHub {
-			continue
-		}
-
-		url, err := GetRemoteURL(childPath)
-		if err != nil {
-			fmt.Printf("Warning: skipping %s (no remote URL): %v\n", entry.Name(), err)
-			continue
-		}
-
-		fmt.Printf("Adding submodule: %s -> %s\n", entry.Name(), url)
-		if err := AddSubmodule(rootPath, childPath, url); err != nil {
-			fmt.Printf("Warning: failed to add submodule %s: %v\n", entry.Name(), err)
-		}
+		// Recurse into non-git directories
+		children := findChildGitHubRepos(childPath, depth+1)
+		repos = append(repos, children...)
 	}
 
-	return nil
+	return repos
 }
