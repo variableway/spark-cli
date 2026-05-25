@@ -31,3 +31,7 @@ Usage:
 ```
 
 但是直接在kimi-cli中执行，issue是可以创建的，请检查什么地方问题，并且修复.
+
+## Task 3: Fix Resource Top Command K to Kill process
+
+- 在Resource Top 之后，点击K不可以杀死进程，需要修复

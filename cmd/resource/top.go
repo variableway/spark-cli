@@ -187,14 +187,61 @@ func (m ResourceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "g":
 			pid := getCurrentPID(m)
 			if pid > 0 {
-				m.lastKill = fmt.Sprintf("sent SIGTERM to PID %d", pid)
-				syscall.Kill(pid, syscall.SIGTERM)
+				if err := syscall.Kill(pid, syscall.SIGTERM); err != nil {
+					m.lastKill = fmt.Sprintf("failed to terminate PID %d: %v", pid, err)
+				} else {
+					m.lastKill = fmt.Sprintf("sent SIGTERM to PID %d", pid)
+				}
 			}
 		case "K":
 			pid := getCurrentPID(m)
 			if pid > 0 {
-				m.lastKill = fmt.Sprintf("sent SIGKILL to PID %d", pid)
-				syscall.Kill(pid, syscall.SIGKILL)
+				if err := syscall.Kill(pid, syscall.SIGKILL); err != nil {
+					m.lastKill = fmt.Sprintf("failed to kill PID %d: %v", pid, err)
+				} else {
+					m.lastKill = fmt.Sprintf("sent SIGKILL to PID %d", pid)
+				}
+			}
+		default:
+			switch msg.Type {
+			case tea.KeyUp:
+				if m.cursor > 0 {
+					m.cursor--
+				}
+			case tea.KeyDown:
+				total := getTotalRows(m.mode, m.snapshot)
+				if m.cursor < total-1 {
+					m.cursor++
+				}
+			case tea.KeyHome:
+				m.cursor = 0
+			case tea.KeyEnd:
+				total := getTotalRows(m.mode, m.snapshot)
+				m.cursor = total - 1
+			case tea.KeyPgUp:
+				m.cursor -= 10
+				if m.cursor < 0 {
+					m.cursor = 0
+				}
+			case tea.KeyPgDown:
+				total := getTotalRows(m.mode, m.snapshot)
+				m.cursor += 10
+				if m.cursor >= total {
+					m.cursor = total - 1
+				}
+			default:
+				if msg.Type == 'K' || (len(msg.Runes) > 0 && msg.Runes[0] == 'K') {
+					pid := getCurrentPID(m)
+					if pid > 0 {
+						if err := syscall.Kill(pid, syscall.SIGKILL); err != nil {
+							m.lastKill = fmt.Sprintf("failed to kill PID %d: %v", pid, err)
+						} else {
+							m.lastKill = fmt.Sprintf("sent SIGKILL to PID %d", pid)
+						}
+					} else {
+						m.lastKill = "no process selected"
+					}
+				}
 			}
 		}
 
@@ -314,13 +361,13 @@ func (m ResourceModel) View() string {
 	}
 
 	b.WriteString(fmt.Sprintf("  %s %s  %s %s  %s %s  %s %s  %s %s  %s %s  %s %s",
-		yellowStyle.Render("Tab"), whiteStyle.Render("/g"),
-		boldAqua.Render(" view  "),
-		yellowStyle.Render("c/m/p/n/i"), whiteStyle.Render(" sort  "),
-		yellowStyle.Render("up/down"), whiteStyle.Render(" scroll  "),
-		yellowStyle.Render("e"), whiteStyle.Render(" export  "),
-		yellowStyle.Render("r"), whiteStyle.Render(" refresh  "),
-		yellowStyle.Render("q"), whiteStyle.Render(" quit")))
+		yellowStyle.Render("Tab"), whiteStyle.Render("view  "),
+		yellowStyle.Render("c/m/p/n/i"), whiteStyle.Render("sort  "),
+		yellowStyle.Render("up/down"), whiteStyle.Render("scroll  "),
+		yellowStyle.Render("e"), whiteStyle.Render("export  "),
+		yellowStyle.Render("r"), whiteStyle.Render("refresh  "),
+		yellowStyle.Render("K"), whiteStyle.Render("kill  "),
+		yellowStyle.Render("q"), whiteStyle.Render("quit")))
 	b.WriteString(fmt.Sprintf("   [%d-%d/%d]", start, end, total))
 
 	return b.String()
@@ -404,7 +451,7 @@ func renderPortTable(ports []res.PortInfo, key int, desc bool, cursor int, maxRo
 
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("  %-7s %-6s %-7s %-%ds %s\n", "Port", "Proto", "PID", addrW, "Command"))
+	b.WriteString(fmt.Sprintf("  %-7s %-6s %-7s %-*s %s\n", "Port", "Proto", "PID", addrW, "Address", "Command"))
 	b.WriteString("  " + strings.Repeat("─", width-4) + "\n")
 
 	end := cursor + maxRows
@@ -422,10 +469,10 @@ func renderPortTable(ports []res.PortInfo, key int, desc bool, cursor int, maxRo
 			prefix = "> "
 		}
 
-		line := fmt.Sprintf("%s%-7d %-6s %-7d %-%ds %s",
+		line := fmt.Sprintf("%s%-7d %-6s %-7d %-*s %s",
 			prefix,
 			p.Port, p.Protocol, p.PID,
-			whiteStyle.Render(addr),
+			addrW, whiteStyle.Render(addr),
 			whiteStyle.Render(cmd))
 
 		b.WriteString(line)
@@ -452,7 +499,7 @@ func renderGroupTable(groups []res.GroupInfo, key int, desc bool, cursor int, ma
 
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("  %-7s %-8s %-6s %-10s %-%ds %s\n", "CPU%", "RSSMiB", "Procs", "Ports", groupW, "Group"))
+	b.WriteString(fmt.Sprintf("  %-7s %-8s %-6s %-10s %-*s %s\n", "CPU%", "RSSMiB", "Procs", "Ports", groupW, "Group", "PIDs"))
 	b.WriteString("  " + strings.Repeat("─", width-4) + "\n")
 
 	end := cursor + maxRows
@@ -478,13 +525,13 @@ func renderGroupTable(groups []res.GroupInfo, key int, desc bool, cursor int, ma
 			prefix = "> "
 		}
 
-		line := fmt.Sprintf("%s%-7s %-8s %-6d %-10s %-%ds %s",
+		line := fmt.Sprintf("%s%-7s %-8s %-6d %-10s %-*s %s",
 			prefix,
 			color.Render(fmt.Sprintf("%.1f%%", g.CPU)),
 			whiteStyle.Render(fmt.Sprintf("%.1f", float64(g.RSSKiB)/1024)),
 			g.Count,
 			grayStyle.Render(ports),
-			whiteStyle.Render(group),
+			groupW, whiteStyle.Render(group),
 			grayStyle.Render(pids))
 
 		b.WriteString(line)
