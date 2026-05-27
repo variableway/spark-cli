@@ -1,0 +1,175 @@
+//go:build darwin
+
+package target
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+
+	procpkg "spark/internal/witr/proc"
+)
+
+// isValidServiceLabel validates that a launchd service label contains only
+// safe characters to prevent command injection. Valid labels contain only
+// alphanumeric characters, dots, hyphens, and underscores.
+var validServiceLabelRegex = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+
+func isValidServiceLabel(label string) bool {
+	if len(label) == 0 || len(label) > 256 {
+		return false
+	}
+	return validServiceLabelRegex.MatchString(label)
+}
+
+func ResolveName(name string, exact bool) ([]int, error) {
+	var procPIDs []int
+
+	lowerName := strings.ToLower(name)
+	selfPid := os.Getpid()
+
+	// Resolve own ancestry to exclude parents (sudo, shell, etc.) from matching
+	ignoredPids := make(map[int]bool)
+	ignoredPids[selfPid] = true
+	if ancestry, err := procpkg.ResolveAncestry(selfPid); err == nil {
+		for _, p := range ancestry {
+			ignoredPids[p.PID] = true
+		}
+	}
+
+	// Use ps to list all processes on macOS
+	// ps -axo pid=,comm=,args=
+	out, err := exec.Command("ps", "-axo", "pid=,comm=,args=").Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list processes: %w", err)
+	}
+
+	for line := range strings.Lines(string(out)) {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		fields := strings.Fields(line)
+		if len(fields) < 2 {
+			continue
+		}
+
+		pid, err := strconv.Atoi(fields[0])
+		if err != nil {
+			continue
+		}
+
+		// Prevent matching the PID itself as a name
+		if lowerName == strconv.Itoa(pid) {
+			continue
+		}
+
+		// Exclude self and ancestry (parent, witr, sudo, etc.)
+		if ignoredPids[pid] {
+			continue
+		}
+
+		comm := strings.ToLower(fields[1])
+		args := ""
+		if len(fields) > 2 {
+			args = strings.ToLower(strings.Join(fields[2:], " "))
+		}
+
+		// Match against command name
+		var match bool
+		if exact {
+			match = comm == lowerName
+		} else {
+			match = strings.Contains(comm, lowerName)
+		}
+		if match {
+			// Exclude grep-like processes
+			if !strings.Contains(comm, "grep") {
+				procPIDs = append(procPIDs, pid)
+				continue
+			}
+		}
+
+		// Match against full command line
+		if exact {
+			match = matchesExactToken(args, lowerName)
+			if match && !strings.Contains(args, "grep") {
+				procPIDs = append(procPIDs, pid)
+			}
+		} else {
+			if strings.Contains(args, lowerName) &&
+				!strings.Contains(args, "grep") {
+				procPIDs = append(procPIDs, pid)
+			}
+		}
+	}
+
+	// Service detection (launchd)
+	servicePID, _ := resolveLaunchdServicePID(name)
+
+	// Merge and dedupe matches, keeping service PID first.
+	seen := map[int]bool{}
+	var procUnique []int
+	for _, pid := range procPIDs {
+		if pid == servicePID || seen[pid] {
+			continue
+		}
+		seen[pid] = true
+		procUnique = append(procUnique, pid)
+	}
+	sort.Ints(procUnique)
+
+	var pids []int
+	if servicePID > 0 {
+		pids = append(pids, servicePID)
+	}
+	pids = append(pids, procUnique...)
+
+	if len(pids) == 0 {
+		return nil, fmt.Errorf("no running process or service named %q", name)
+	}
+	return pids, nil
+}
+
+// resolveLaunchdServicePID tries to resolve a launchd service and returns its PID if running.
+func resolveLaunchdServicePID(name string) (int, error) {
+	// Validate input before using in command
+	if !isValidServiceLabel(name) {
+		return 0, fmt.Errorf("invalid service name %q", name)
+	}
+
+	// Try common launchd service label patterns
+	labels := []string{
+		name,
+		"com.apple." + name,
+		"org." + name,
+		"io." + name,
+	}
+
+	for _, label := range labels {
+		// All labels are derived from validated name, so they're safe
+		// launchctl print system/<label> or gui/<uid>/<label>
+		out, err := exec.Command("launchctl", "print", "system/"+label).Output()
+		if err == nil {
+			// Parse output to find PID
+			// Look for "pid = <number>"
+			for line := range strings.Lines(string(out)) {
+				line = strings.TrimSpace(line)
+				if strings.HasPrefix(line, "pid = ") {
+					pidStr := strings.TrimPrefix(line, "pid = ")
+					pid, err := strconv.Atoi(strings.TrimSpace(pidStr))
+					if err == nil && pid > 0 {
+						return pid, nil
+					}
+				}
+			}
+		}
+	}
+
+	return 0, fmt.Errorf("service %q not found", name)
+}

@@ -1,0 +1,217 @@
+package proc
+
+import (
+	"context"
+	"fmt"
+	"os/exec"
+	"strings"
+	"time"
+	"unicode"
+
+	"spark/pkg/witr/model"
+)
+
+// ResolveContainerByPort queries the Docker CLI for a container publishing
+// the given port. Returns nil if Docker is unavailable or no container matches.
+func ResolveContainerByPort(port int) *model.ContainerMatch {
+	if _, err := exec.LookPath("docker"); err != nil {
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	format := strings.Join([]string{
+		"{{.ID}}", "{{.Names}}", "{{.Image}}", "{{.Command}}",
+		"{{.State}}", "{{.Status}}", "{{.CreatedAt}}",
+		"{{.Networks}}", "{{.Mounts}}", "{{.Ports}}", "{{.Labels}}",
+	}, "|")
+	cmd := exec.CommandContext(ctx, "docker", "ps", "--no-trunc", "--filter", fmt.Sprintf("publish=%d", port), "--format", format)
+	out, err := cmd.Output()
+	if err != nil {
+		return nil
+	}
+
+	line := strings.TrimSpace(string(out))
+	if line == "" {
+		return nil
+	}
+	if idx := strings.Index(line, "\n"); idx >= 0 {
+		line = line[:idx]
+	}
+
+	parts := strings.SplitN(line, "|", 11)
+	if len(parts) < 11 {
+		return nil
+	}
+	labels := parseLabelString(parts[10])
+
+	return &model.ContainerMatch{
+		Runtime:           "docker",
+		ID:                parts[0],
+		Name:              parts[1],
+		Image:             parts[2],
+		Command:           strings.Trim(parts[3], "\""),
+		State:             parts[4],
+		Status:            parts[5],
+		Health:            healthFromStatus(parts[5]),
+		CreatedAt:         parseDockerTime(parts[6]),
+		Networks:          parts[7],
+		Mounts:            parts[8],
+		Ports:             parts[9],
+		ComposeProject:    labels["com.docker.compose.project"],
+		ComposeService:    labels["com.docker.compose.service"],
+		ComposeConfigFile: labels["com.docker.compose.project.config_files"],
+		ComposeWorkingDir: labels["com.docker.compose.project.working_dir"],
+	}
+}
+
+// resolveContainerName attempts to resolve a container ID to a name using the specified runtime CLI.
+func resolveContainerName(id, runtime string) string {
+	var cmd *exec.Cmd
+	var prefix string
+
+	ctx := context.Background()
+	switch runtime {
+	case "docker":
+		if _, err := exec.LookPath("docker"); err != nil {
+			return ""
+		}
+		cmd = exec.CommandContext(ctx, "docker", "inspect", id, "--format", "{{.Name}}|{{index .Config.Labels \"com.docker.compose.project\"}}|{{index .Config.Labels \"com.docker.compose.service\"}}")
+		prefix = "docker: "
+	case "podman":
+		if _, err := exec.LookPath("podman"); err != nil {
+			return ""
+		}
+		cmd = commandAsOriginalUser(ctx, "podman", "inspect", id, "--format", "{{.Name}}")
+		prefix = "podman: "
+	case "crictl":
+		if _, err := exec.LookPath("crictl"); err != nil {
+			return ""
+		}
+		cmd = exec.CommandContext(ctx, "crictl", "inspect", id, "-o", "go-template", "--template", "{{.status.metadata.name}}")
+		prefix = "" // crictl names are usually clean
+	case "nerdctl":
+		if _, err := exec.LookPath("nerdctl"); err != nil {
+			return ""
+		}
+		cmd = commandAsOriginalUser(ctx, "nerdctl", "inspect", id, "--format", "{{.Name}}")
+		prefix = "containerd: "
+	default:
+		return ""
+	}
+
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	output := strings.TrimSpace(string(out))
+
+	if runtime == "docker" {
+		parts := strings.Split(output, "|")
+		if len(parts) == 3 {
+			name := strings.TrimPrefix(parts[0], "/")
+			project := parts[1]
+			service := parts[2]
+
+			if project != "" && service != "" {
+				return "docker: " + project + "/" + service + " (" + name + ")"
+			}
+			if name != "" {
+				return "docker: " + name
+			}
+			return ""
+		}
+	}
+
+	name := strings.TrimPrefix(output, "/")
+	if name != "" {
+		if prefix != "" {
+			return prefix + name
+		}
+		return name
+	}
+	return ""
+}
+
+// findLongHexID searches for a 64-character hexadecimal string in the input.
+func findLongHexID(s string) string {
+	for i := 0; i <= len(s)-64; i++ {
+		if s[i] < '0' || (s[i] > '9' && s[i] < 'a') {
+			continue
+		}
+		sub := s[i : i+64]
+		isHex := true
+		for j := 0; j < 64; j++ {
+			c := sub[j]
+			if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+				isHex = false
+				break
+			}
+		}
+		if isHex {
+			return sub
+		}
+	}
+	return ""
+}
+
+// shortID returns the first 12 characters of a container ID, or the full
+// string if it is shorter than 12 characters.
+func shortID(id string) string {
+	if len(id) > 12 {
+		return id[:12]
+	}
+	return id
+}
+
+// extractFlagValue extracts the value of a specific flag from a command line string.
+func extractFlagValue(cmdline string, flags ...string) string {
+	args := splitCmdline(cmdline)
+	for i, arg := range args {
+		for _, flag := range flags {
+			if arg == flag && i+1 < len(args) {
+				return args[i+1]
+			}
+		}
+	}
+	return ""
+}
+
+// splitCmdline splits a command line string into arguments, handling quotes and escapes.
+func splitCmdline(cmdline string) []string {
+	var args []string
+	var current strings.Builder
+	var quote rune
+	escaped := false
+	for _, r := range cmdline {
+		switch {
+		case escaped:
+			current.WriteRune(r)
+			escaped = false
+		case r == '\\':
+			escaped = true
+		case r == '"' || r == '\'':
+			if quote == 0 {
+				quote = r
+				continue
+			}
+			if quote == r {
+				quote = 0
+				continue
+			}
+			current.WriteRune(r)
+		case unicode.IsSpace(r) && quote == 0:
+			if current.Len() > 0 {
+				args = append(args, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(r)
+		}
+	}
+	if current.Len() > 0 {
+		args = append(args, current.String())
+	}
+	return args
+}

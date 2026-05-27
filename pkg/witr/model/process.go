@@ -1,0 +1,70 @@
+package model
+
+import "time"
+
+type Process struct {
+	PID           int
+	PPID          int
+	Command       string
+	Cmdline       string
+	Exe           string
+	StartedAt     time.Time
+	User          string
+	CPUPercent    float64
+	MemoryRSS     uint64 // In bytes
+	MemoryPercent float64
+
+	WorkingDir string
+	GitRepo    string
+	GitBranch  string
+	Container  string
+	Service    string
+
+	// Network context — every socket the process owns (LISTEN, ESTABLISHED,
+	// CLOSE_WAIT, etc.). Each entry carries protocol and state.
+	Sockets []Socket
+
+	// Health status ("healthy", "zombie", "stopped", "high-cpu", "high-mem")
+	Health string
+
+	// Forked status ("forked", "not-forked", "unknown")
+	Forked string
+	// Environment variables (key=value)
+	Env []string
+
+	// True if the executable was deleted after the process started
+	ExeDeleted bool
+
+	// Linux capabilities (e.g., CAP_NET_BIND_SERVICE, CAP_SYS_ADMIN)
+	Capabilities []string `json:",omitempty"`
+
+	// Extended information for verbose output
+	Memory      MemoryInfo `json:",omitempty"`
+	IO          IOStats    `json:",omitempty"`
+	FileDescs   []string   `json:",omitempty"`
+	FDCount     int        `json:",omitempty"`
+	FDLimit     uint64     `json:",omitempty"`
+	Children    []int      `json:",omitempty"`
+	ThreadCount int        `json:",omitempty"`
+}
+
+// MemoryInfo contains detailed memory information
+type MemoryInfo struct {
+	VMS    uint64  // Virtual memory size in bytes
+	RSS    uint64  // Resident set size in bytes
+	VMSMB  float64 // Virtual memory in MB
+	RSSMB  float64 // Resident memory in MB
+	Shared uint64  // Shared memory size in bytes
+	Text   uint64  // Code size in bytes
+	Lib    uint64  // Library size in bytes
+	Data   uint64  // Data + stack size in bytes
+	Dirty  uint64  // Dirty pages size in bytes
+}
+
+// IOStats contains I/O statistics
+type IOStats struct {
+	ReadBytes  uint64 // Bytes read from storage
+	WriteBytes uint64 // Bytes written to storage
+	ReadOps    uint64 // Number of read operations
+	WriteOps   uint64 // Number of write operations
+}
