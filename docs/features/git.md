@@ -101,6 +101,17 @@ spark git issues -f tasks/issues/task-bug-fix.md -r variableway/spark-cli
 spark git issues -f tasks/issues/task-bug-fix.md --dry-run
 ```
 
+### 批量推送更改
+
+扫描所有 GitHub 仓库，自动提交并推送未提交的更改。
+
+```bash
+spark git push-all -p ~/workspace
+```
+
+- 跳过非 GitHub 仓库和无更改的仓库
+- 遇到错误继续处理下一个仓库
+
 ## 使用参数
 
 | 参数 | 说明 |

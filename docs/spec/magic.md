@@ -141,3 +141,24 @@ spark magic node current
 ```
 
 无标志，无参数。
+
+---
+
+## spark magic clean
+
+递归清理项目目录中的 `node_modules` 和 `.venv`。
+
+```
+spark magic clean [-m <mode>]
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-m, --mode` | string | `""` | 否 | 清理模式：`node`、`python`（默认两者） |
+
+无参数。
+
+**行为**：
+- 扫描 `--path` 指定的目录（默认当前目录）
+- 自动跳过 `.git` 目录
+- 列出所有被清理的目录

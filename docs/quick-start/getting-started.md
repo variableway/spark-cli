@@ -32,6 +32,7 @@ spark git update -p ~/workspace               # 更新所有仓库
 spark git init --owner variableway            # 初始化仓库并创建 GitHub 远程
 spark git submodule add -p /path/to/repos          # 添加仓库为子模块
 spark git batch-clone variableway -o ./repos  # 克隆组织仓库
+spark git push-all -p ~/workspace             # 推送所有仓库的更改
 ```
 
 ### 镜像源切换
@@ -40,6 +41,7 @@ spark git batch-clone variableway -o ./repos  # 克隆组织仓库
 spark magic pip use tsinghua                  # Python → 清华源
 spark magic go use goproxy                    # Go → goproxy.cn
 spark magic node use taobao                   # Node → 淘宝源
+spark magic clean                             # 清理 node_modules 和 .venv
 ```
 
 ### 任务管理
@@ -57,6 +59,14 @@ spark task sync my-feature                    # 同步回任务目录
 spark docs init                               # 创建文档结构
 spark docs site                               # 初始化 docmd 站点
 docmd dev                                     # 本地预览文档
+```
+
+### 进程诊断
+
+```bash
+spark witr nginx                              # 检查 nginx 进程
+spark witr --port 8080                        # 查找占用 8080 端口的进程
+spark witr --pid 1234                         # 按 PID 检查进程
 ```
 
 ## 下一步

@@ -19,6 +19,7 @@ spark git url [repo-path]                     # 查看远程 URL
 spark git batch-clone <account> [-o <dir>]    # 克隆用户/组织所有仓库
 spark git update-org-status <org> [--dry-run] # 更新组织 README
 spark git issues [-r <owner/repo>] (-d <dir> | -f <file>) # 从文档/任务创建 Issue
+spark git push-all                            # 提交并推送所有仓库的更改
 ```
 
 ---
@@ -69,7 +70,7 @@ spark git submodule add ./spark-cli                  # 将指定目录作为子�
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
-| `-n, --name` | string | repo 名 | 否 | 子模块路径名称（远程模式） |
+| `-n, --name` | string | repo 名 | 子模块路径名称（远程模式） |
 
 ```bash
 # 添加远程仓库（使用默认路径名）
@@ -314,6 +315,27 @@ spark git issues -f tasks/issues/task-bug-fix.md -r variableway/spark-cli
 # 自动从当前仓库解析 owner/repo
 spark git issues -f tasks/issues/task-bug-fix.md --dry-run
 ```
+
+## spark git push-all
+
+扫描指定目录中的所有 Git 仓库，自动提交并推送所有更改。
+
+| 标志 | 默认值 | 说明 |
+|------|--------|------|
+| `-p, --path` | `.` | 包含 Git 仓库的目录路径（可多次指定） |
+
+```bash
+spark git push-all                            # 推送所有仓库的更改
+spark git push-all -p ~/workspace             # 指定目录
+```
+
+**行为**：
+- 跳过非 GitHub 仓库
+- 跳过无更改的仓库
+- 自动 `git add -A` → `git commit` → `git push`
+- 遇到冲突时提示并继续处理下一个仓库
+
+---
 
 ## 相关命令
 

@@ -12,6 +12,9 @@
 4. **Git 用户配置** - 配置仓库的 Git 用户信息
 5. **任务管理** - 任务分发、同步和 GitHub 仓库创建
 6. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
+7. **系统工具** - DNS 缓存刷新、包管理器镜像源切换、项目目录清理
+8. **文档管理** - 初始化文档结构和 docmd 站点配置
+9. **进程诊断** - 检查进程或端口为何在运行（witr）
 
 ## 技术栈
 
@@ -94,6 +97,7 @@ spark git url          # 获取仓库 URL
 spark git init         # 初始化仓库并创建 GitHub 远程
 spark git batch-clone  # 克隆用户/组织所有仓库
 spark git issues       # 从 Markdown 文档/任务创建 GitHub Issue
+spark git push-all     # 提交并推送所有仓库的更改
 ```
 
 #### `spark git update`
@@ -251,6 +255,18 @@ spark git update-org-status variableway --skip-push        # 跳过 git push
 - 只更新指定的 section，保留其他所有内容不变
 - 自动克隆、修改、提交并推送更改
 
+#### `spark git push-all`
+扫描指定目录中的所有 Git 仓库，自动提交并推送所有更改。
+
+```bash
+spark git push-all                           # 推送所有更改
+spark git push-all -p ~/workspace            # 指定目录
+```
+
+- 跳过非 GitHub 仓库和无更改的仓库
+- 自动 `git add -A` → `git commit` → `git push`
+- 遇到冲突时提示并继续处理下一个仓库
+
 ### 脚本管理
 
 #### `spark script`
@@ -363,6 +379,88 @@ tasks/
 支持 `--tui` 标志启用交互式终端 UI。
 
 详细文档: [docs/usage/task.md](docs/usage/task.md)
+
+### 系统工具
+
+#### `spark magic`
+系统实用工具命令组。
+
+```bash
+spark magic flush-dns              # 刷新 DNS 缓存
+spark magic clean                  # 清理 node_modules 和 .venv
+spark magic pip list               # 列出 pip 镜像源
+spark magic pip use tsinghua       # 切换 pip 镜像源
+spark magic pip current            # 查看当前 pip 源
+spark magic go list                # 列出 Go module proxy
+spark magic go use goproxy         # 切换 Go proxy
+spark magic go current             # 查看当前 Go proxy
+spark magic node list              # 列出 npm registry
+spark magic node use taobao        # 切换 npm registry
+spark magic node current           # 查看当前 npm registry
+```
+
+#### `spark magic flush-dns`
+刷新系统 DNS 缓存，支持 macOS、Windows、Linux。
+
+#### `spark magic clean`
+递归清理项目目录中的 `node_modules` 和 `.venv`。
+
+```bash
+spark magic clean                  # 清理两者
+spark magic clean -m node          # 只清理 node_modules
+spark magic clean -m python        # 只清理 .venv
+```
+
+| 选项 | 说明 |
+|------|------|
+| `-m, --mode` | 清理模式：`node`、`python`（默认两者） |
+
+### 文档管理
+
+#### `spark docs`
+文档管理命令组。
+
+```bash
+spark docs init                    # 创建文档目录结构
+spark docs site                    # 初始化 docmd 站点配置
+```
+
+#### `spark docs init`
+创建标准文档目录结构（`analysis/`、`features/`、`index.md`、`quick-start/`、`README.md`、`spec/`、`tips/`、`usage/`）。
+
+#### `spark docs site`
+初始化 docmd 文档站点配置，自动从 git remote 检测项目名称和 GitHub Pages URL，生成 `docmd.config.js`。
+
+### 进程诊断
+
+#### `spark witr`
+进程诊断工具（Why Is This Running），检查进程或端口为何在运行。
+
+```bash
+spark witr nginx                   # 按名称检查进程
+spark witr --pid 1234              # 按 PID 检查
+spark witr --port 8080             # 按端口查找进程
+spark witr --file /path/to/lock    # 查找占用文件的进程
+spark witr --container redis       # 检查容器
+spark witr nginx --tree            # 显示进程树
+spark witr nginx --env             # 显示环境变量
+spark witr nginx --json            # JSON 输出
+```
+
+| 选项 | 说明 |
+|------|------|
+| `--pid` | 按 PID 查找（可多次使用） |
+| `--port` / `-o` | 按端口查找（可多次使用） |
+| `--file` / `-f` | 按文件查找（可多次使用） |
+| `--container` / `-c` | 按容器查找（可多次使用） |
+| `--tree` / `-t` | 显示进程祖先树 |
+| `--env` | 显示环境变量 |
+| `--json` | JSON 格式输出 |
+| `--short` / `-s` | 简短输出 |
+| `--warnings` | 仅显示警告 |
+| `--verbose` | 扩展信息 |
+| `--exact` / `-x` | 精确匹配 |
+| `--no-color` | 禁用颜色 |
 
 ## Spark Skills
 

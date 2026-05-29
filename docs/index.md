@@ -84,6 +84,7 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
 | `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
 | `spark git issues [-r <owner/repo>] (-d <dir> \| -f <file>) [--dry-run] [-l <labels>]` | Create GitHub issues from markdown docs/tasks |
+| `spark git push-all [-p <path>]` | Commit and push all changes in repositories |
 
 ---
 
@@ -108,6 +109,7 @@ Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
 | Command | Description |
 |---------|-------------|
 | `spark magic flush-dns` | Flush DNS cache (macOS/Windows/Linux) |
+| `spark magic clean [-m node\|python]` | Clean node_modules and .venv directories |
 
 #### Mirror Switching (list / use / current)
 
@@ -127,6 +129,20 @@ Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
 | `spark script run <name> [args...]` | Execute a script |
 
 Scripts sourced from `~/.spark.yaml` (`spark.scripts`) and `scripts/` directory.
+
+---
+
+### spark witr — Process Inspector
+
+| Command | Description |
+|---------|-------------|
+| `spark witr [process name...]` | Inspect why a process or port is running |
+| `spark witr --pid <pid>` | Look up by PID |
+| `spark witr --port <port>` | Find process by port |
+| `spark witr --file <path>` | Find process holding file open |
+| `spark witr --container <name>` | Inspect container |
+
+Flags: `--tree`, `--env`, `--json`, `--short`, `--warnings`, `--verbose`, `--exact`, `--no-color`
 
 ## Configuration
 

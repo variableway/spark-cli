@@ -6,10 +6,10 @@ Spark 是一个用于日常开发自动化和 AI Skill 集成的 CLI 工具。
 
 | 命令组 | 说明 |
 |--------|------|
-| `spark git` | Git 仓库管理（更新、初始化、子模块管理、Gitcode） |
+| `spark git` | Git 仓库管理（更新、初始化、子模块管理、Gitcode、批量推送） |
 | `spark task` | 任务管理（创建、分发、同步、实现） |
 | `spark script` | 自定义脚本管理 |
-| `spark magic` | 系统工具（DNS 刷新、镜像源切换） |
+| `spark magic` | 系统工具（DNS 刷新、镜像源切换、目录清理） |
 | `spark docs` | 文档管理（初始化结构、站点配置） |
 
 ## 全局标志
@@ -42,3 +42,4 @@ work_dir: ./workspace
 - [系统工具](./magic.md)
 - [脚本管理](./script.md)
 - [文档管理](./docs-cmd.md)
+- [进程诊断](./witr.md)

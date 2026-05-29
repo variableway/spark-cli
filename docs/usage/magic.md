@@ -6,6 +6,7 @@
 
 ```bash
 spark magic flush-dns                         # 刷新 DNS 缓存
+spark magic clean [-m node|python]            # 清理 node_modules 和 .venv
 
 # 镜像源切换（pip / go / node 通用子命令）
 spark magic <pip|go|node> list                # 列出可用镜像
@@ -27,6 +28,27 @@ spark magic flush-dns
 - **macOS**: `sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder`
 - **Windows**: `ipconfig /flushdns`
 - **Linux**: `sudo systemctl restart systemd-resolved`
+
+---
+
+## spark magic clean
+
+递归清理项目目录中的 `node_modules` 和 `.venv` 目录。
+
+```bash
+spark magic clean                             # 清理两者
+spark magic clean -m node                     # 只清理 node_modules
+spark magic clean -m python                   # 只清理 .venv
+```
+
+| 标志 | 简写 | 默认值 | 说明 |
+|------|------|--------|------|
+| `-m, --mode` | | | 清理模式：`node`、`python`（默认两者） |
+
+**行为**：
+- 扫描 `--path` 指定的目录（默认当前目录）
+- 自动跳过 `.git` 目录
+- 列出所有被清理的目录
 
 ---
 

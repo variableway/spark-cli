@@ -74,6 +74,16 @@ spark magic node current    # 查看当前 registry
 | `huawei` | 华为云 |
 | `ustc` | 中国科技大学 |
 
+### 项目目录清理
+
+递归清理 `node_modules` 和 `.venv` 目录，释放磁盘空间。
+
+```bash
+spark magic clean           # 清理两者
+spark magic clean -m node   # 只清理 node_modules
+spark magic clean -m python # 只清理 .venv
+```
+
 ## 使用参数
 
 三个镜像切换命令（pip/go/node）共享相同的子命令结构：

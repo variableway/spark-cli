@@ -258,3 +258,25 @@ spark git update-org-status <org-name-or-url> [--dry-run] [--update-dot-github] 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `org-name-or-url` | string | 是 | 组织名或 URL |
+
+---
+
+## spark git push-all
+
+扫描目录中的所有 Git 仓库，自动提交并推送所有更改。
+
+```
+spark git push-all [-p <path>]
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-p, --path` | stringSlice | `["."]` | 否 | 包含 Git 仓库的目录路径 |
+
+无参数。
+
+**行为**：
+- 跳过非 GitHub 仓库
+- 跳过无更改的仓库
+- 自动 `git add -A` → `git commit` → `git push`
+- 遇到错误打印提示并继续下一个仓库
