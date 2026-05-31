@@ -1,0 +1,4 @@
+{
+  "lualine.nvim": { "branch": "main", "commit": "latest" },
+  "nord.nvim": { "branch": "main", "commit": "latest" }
+}
