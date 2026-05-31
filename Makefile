@@ -21,6 +21,9 @@ endif
 all: build test
 
 build: clean
+	MACOSX_DEPLOYMENT_TARGET=$(shell sw_vers -productVersion 2>/dev/null || echo "15.0") \
+	CGO_CFLAGS="-mmacosx-version-min=$(shell sw_vers -productVersion 2>/dev/null || echo 15.0)" \
+	CGO_LDFLAGS="-mmacosx-version-min=$(shell sw_vers -productVersion 2>/dev/null || echo 15.0)" \
 	$(GO) build -ldflags="-s -w" -o $(BINARY_NAME)$(BINARY_EXT) main.go
 	@echo "Installing $(BINARY_NAME) to $(INSTALL_DIR)..."
 	@mkdir -p $(INSTALL_DIR)
@@ -31,6 +34,9 @@ build-linux:
 	GOOS=linux GOARCH=amd64 $(GO) build -o $(BINARY_NAME)_linux main.go
 
 build-darwin:
+	MACOSX_DEPLOYMENT_TARGET=$(shell sw_vers -productVersion 2>/dev/null || echo "15.0") \
+	CGO_CFLAGS="-mmacosx-version-min=$(shell sw_vers -productVersion 2>/dev/null || echo 15.0)" \
+	CGO_LDFLAGS="-mmacosx-version-min=$(shell sw_vers -productVersion 2>/dev/null || echo 15.0)" \
 	GOOS=darwin GOARCH=amd64 $(GO) build -o $(BINARY_NAME)_darwin main.go
 
 test:
