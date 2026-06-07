@@ -11,6 +11,7 @@ var GitCmd = &cobra.Command{
 
 This includes:
 - update: Update multiple git repositories
+- clone: Clone a GitHub repository via gh repo clone (SSH by default)
 - init: Initialize a git repo and create a GitHub remote
 - submodule: Add local repos or URLs as git submodules
 - sync: Sync all submodules to the latest versions

@@ -89,6 +89,7 @@ Git 仓库管理命令的父命令，包含以下子命令：
 
 ```bash
 spark git update       # 更新多个仓库
+spark git clone        # 克隆 GitHub 仓库（默认 SSH）
 spark git submodule add     # 添加现有仓库为子模块
 spark git sync    # 同步子模块
 spark git gitcode      # 添加 Gitcode 远程
@@ -99,6 +100,23 @@ spark git batch-clone  # 克隆用户/组织所有仓库
 spark git issues       # 从 Markdown 文档/任务创建 GitHub Issue
 spark git push-all     # 提交并推送所有仓库的更改
 ```
+
+#### `spark git clone`
+使用 `gh repo clone` 克隆 GitHub 仓库，默认走 SSH 协议。
+
+```bash
+spark git clone https://github.com/Nutlope/pdf-to-interactive-lesson.git
+spark git clone Nutlope/pdf-to-interactive-lesson
+spark git clone https://github.com/owner/repo.git my-dir -- --branch main --depth 1
+```
+
+支持的输入格式：
+- `https://github.com/owner/repo.git`
+- `git@github.com:owner/repo.git`
+- `github.com/owner/repo`
+- `owner/repo`
+
+`--` 之后的额外参数会透传给 `git clone`。
 
 #### `spark git update`
 扫描指定目录中的所有 Git 仓库并更新到最新版本。

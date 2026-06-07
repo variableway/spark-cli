@@ -6,6 +6,7 @@
 
 ```bash
 spark git update                              # 更新所有仓库
+spark git clone <url-or-slug> [dir] [-- <git-args>] # 克隆 GitHub 仓库（默认 SSH）
 spark git submodule add [-p <path>]                # 添加现有仓库为子模块
 spark git submodule add <repo-url> [-n <name>]     # 添加远程仓库为子模块
 spark git submodule init [-j <n>] [-r]             # 初始化（克隆）所有子模块
@@ -21,6 +22,36 @@ spark git update-org-status <org> [--dry-run] # 更新组织 README
 spark git issues [-r <owner/repo>] (-d <dir> | -f <file>) # 从文档/任务创建 Issue
 spark git push-all                            # 提交并推送所有仓库的更改
 ```
+
+---
+
+## spark git clone
+
+使用 GitHub CLI (`gh repo clone`) 克隆单个 GitHub 仓库，默认通过 SSH 连接，可减少 HTTPS 被干扰或不稳定导致的失败。
+
+| 输入格式 | 示例 |
+|---|---|
+| HTTPS URL | `https://github.com/owner/repo.git` |
+| SSH URL | `git@github.com:owner/repo.git` |
+| 简写域名 | `github.com/owner/repo` |
+| owner/repo | `Nutlope/pdf-to-interactive-lesson` |
+
+```bash
+# 从 HTTPS URL 克隆
+spark git clone https://github.com/Nutlope/pdf-to-interactive-lesson.git
+
+# 使用 owner/repo 简写
+spark git clone Nutlope/pdf-to-interactive-lesson
+
+# 指定本地目录名
+spark git clone Nutlope/pdf-to-interactive-lesson my-lesson
+
+# 透传额外参数给 git clone（需用 -- 分隔）
+spark git clone https://github.com/owner/repo.git -- --branch main --depth 1
+spark git clone https://github.com/owner/repo.git my-dir -- --branch main --depth 1
+```
+
+**实现细节**：命令会把输入解析为 `owner/repo`，然后执行 `gh repo clone owner/repo [directory] [-- <git-args>...]`。`gh` 在已登录状态下默认使用 SSH URL。
 
 ---
 
