@@ -36,7 +36,7 @@ GitHub:
   spark git batch-clone https://github.com/variableway
 
 GitLab (self-hosted or gitlab.com):
-  spark git batch-clone https://git.cew.io/carbonnt/cyacle/domain
+  spark git batch-clone https://gitlab.example.com/myorg/mygroup/mysubgroup
   spark git batch-clone https://gitlab.com/mygroup/myproject
 
 For private GitLab instances, use --token or set GITLAB_TOKEN env var.`,

@@ -9,7 +9,7 @@ func TestIsGitLabURL(t *testing.T) {
 		input string
 		want  bool
 	}{
-		{"https://git.cew.io/carbonnt/cyacle/domain", true},
+		{"https://gitlab.example.com/myorg/mygroup/mysubgroup", true},
 		{"https://gitlab.com/mygroup/myproject", true},
 		{"http://git.example.com/group", true},
 		{"https://github.com/owner/repo", false},
@@ -38,9 +38,9 @@ func TestParseGitLabURL(t *testing.T) {
 	}{
 		{
 			name:      "self-hosted nested group",
-			input:     "https://git.cew.io/carbonnt/cyacle/domain",
-			wantBase:  "https://git.cew.io",
-			wantGroup: "carbonnt/cyacle/domain",
+			input:     "https://gitlab.example.com/myorg/mygroup/mysubgroup",
+			wantBase:  "https://gitlab.example.com",
+			wantGroup: "myorg/mygroup/mysubgroup",
 		},
 		{
 			name:      "gitlab.com project",
@@ -56,18 +56,18 @@ func TestParseGitLabURL(t *testing.T) {
 		},
 		{
 			name:      "with trailing slash",
-			input:     "https://git.cew.io/carbonnt/cyacle/domain/",
-			wantBase:  "https://git.cew.io",
-			wantGroup: "carbonnt/cyacle/domain",
+			input:     "https://gitlab.example.com/myorg/mygroup/mysubgroup/",
+			wantBase:  "https://gitlab.example.com",
+			wantGroup: "myorg/mygroup/mysubgroup",
 		},
 		{
 			name:    "no path",
-			input:   "https://git.cew.io/",
+			input:   "https://gitlab.example.com/",
 			wantErr: true,
 		},
 		{
 			name:    "empty path",
-			input:   "https://git.cew.io",
+			input:   "https://gitlab.example.com",
 			wantErr: true,
 		},
 	}
@@ -94,7 +94,7 @@ func TestExtractHost(t *testing.T) {
 		input string
 		want  string
 	}{
-		{"https://git.cew.io", "git.cew.io"},
+		{"https://gitlab.example.com", "gitlab.example.com"},
 		{"https://gitlab.com", "gitlab.com"},
 		{"http://git.example.com:8080", "git.example.com:8080"},
 	}
