@@ -96,7 +96,7 @@ spark git gitcode      # 添加 Gitcode 远程
 spark git config       # 配置 Git 用户
 spark git url          # 获取仓库 URL
 spark git init         # 初始化仓库并创建 GitHub 远程
-spark git batch-clone  # 克隆用户/组织所有仓库
+spark git batch-clone  # 克隆用户/组织/群组所有仓库 (GitHub + GitLab)
 spark git issues       # 从 Markdown 文档/任务创建 GitHub Issue
 spark git push-all     # 提交并推送所有仓库的更改
 ```
@@ -207,13 +207,27 @@ spark git url /path/to/repo
 ```
 
 #### `spark git batch-clone`
-克隆 GitHub 组织或个人账号的所有仓库到本地。
+克隆 GitHub 组织/用户或 GitLab 群组/用户的所有仓库到本地。
+
+支持 GitHub 和 GitLab（包括自托管实例），自动根据 URL 识别平台。
 
 ```bash
+# GitHub
 spark git batch-clone variableway                    # 使用组织名
 spark git batch-clone https://github.com/variableway # 使用 URL
+
+# GitLab（自托管或 gitlab.com）
+spark git batch-clone https://gitlab.example.com/myorg/mygroup  # 克隆群组所有项目
+spark git batch-clone https://gitlab.example.com/myorg/mygroup/subgroup  # 嵌套子群组
+
+# 通用选项
 spark git batch-clone variableway --ssh              # 使用 SSH
 spark git batch-clone variableway -o ./repos         # 指定输出目录
+
+# 私有 GitLab 认证
+spark git batch-clone <url> --token <your-token>     # 使用 Token
+# 或设置环境变量: GITLAB_TOKEN=<your-token>
+# 或安装并登录 glab CLI（推荐）: glab auth login --hostname <host>
 ```
 
 | 选项 | 说明 |
@@ -223,6 +237,7 @@ spark git batch-clone variableway -o ./repos         # 指定输出目录
 | `--exclude` | 排除匹配模式的仓库 (逗号分隔) |
 | `--include-forks` | 包含 fork 的仓库 |
 | `-o, --output` | 输出目录 (默认: 当前目录) |
+| `--token` | GitLab 私有 Token（或设置 `GITLAB_TOKEN` 环境变量） |
 
 #### `spark git issues`
 从 Markdown 创建 GitHub Issue，支持目录模式和任务文件模式。
