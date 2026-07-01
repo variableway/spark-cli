@@ -21,6 +21,7 @@ spark git batch-clone <account> [-o <dir>]    # 克隆用户/组织所有仓库
 spark git update-org-status <org> [--dry-run] # 更新组织 README
 spark git issues [-r <owner/repo>] (-d <dir> | -f <file>) # 从文档/任务创建 Issue
 spark git push-all                            # 提交并推送所有仓库的更改
+spark git scan [folder-path] [--db <path>]    # 扫描仓库并保存到 SQLite
 ```
 
 ---
@@ -63,9 +64,12 @@ spark git clone https://github.com/owner/repo.git my-dir -- --branch main --dept
 spark git update                              # 更新当前目录下所有仓库
 spark git update -p ~/workspace               # 更新指定目录
 spark git update -p ~/ws -p ~/projects        # 多个目录
+spark git update --ssh                        # 强制通过 SSH 更新
 ```
 
-**流程**: 扫描目录 → 查找 `.git` → 逐个 `git pull --rebase` → 输出结果
+**流程**: 扫描目录 → 查找 `.git` → 逐个 `git fetch --all && git pull` → 输出结果
+
+`--ssh` 标志会在本次更新中通过 `url.insteadOf` 临时把 HTTPS GitHub 远程地址改写为 SSH（`git@github.com:...`），适合 HTTPS 被干扰或不稳定时使用。该改写仅在更新命令期间生效，不会修改仓库已配置的远程地址。
 
 ---
 
@@ -365,6 +369,41 @@ spark git push-all -p ~/workspace             # 指定目录
 - 跳过无更改的仓库
 - 自动 `git add -A` → `git commit` → `git push`
 - 遇到冲突时提示并继续处理下一个仓库
+
+---
+
+## spark git scan
+
+递归扫描目录中的 Git 仓库，可选从 GitHub/GitLab API 获取元数据，并将结果保存到 SQLite 数据库。
+
+| 标志 | 默认值 | 说明 |
+|------|--------|------|
+| `[folder-path]` | `.` | 要扫描的目录路径 |
+| `-d, --db` | `~/.innate/feeds.db` | SQLite 数据库路径 |
+| `--skip-api` | `false` | 跳过 API 调用，仅扫描本地仓库 |
+
+也可在 `~/.spark.yaml` 中通过 `git.scanner.db` 配置默认数据库路径：
+
+```yaml
+git:
+  scanner:
+    db: ~/.innate/feeds.db
+```
+
+```bash
+spark git scan                                # 扫描当前目录
+spark git scan ~/workspace                    # 扫描指定目录
+spark git scan . --skip-api                   # 仅本地扫描，不调用 API
+spark git scan . --db ~/data/my-repos.db      # 指定数据库路径
+```
+
+**行为**：
+- 递归查找 `.git` 目录，解析 `origin` 远程 URL
+- 支持 GitHub、GitLab、Bitbucket 等常见托管平台
+- 设置 `GITHUB_TOKEN` 可提高 GitHub API 速率限制
+- 按仓库路径 upsert 到 SQLite，重复扫描会更新已有记录
+
+**数据库字段**：`path`、`name`、`remote_url`、`repo_type`、`owner`、`repo`、`description`、`stars`、`forks`、`language`、`updated_at`、`scanned_at`
 
 ---
 

@@ -22,3 +22,10 @@ verification:
 2. 实际运行了， git init, spark git config, 然后检查当前项目中是否子目录已经是github仓库了，如果是就把这个仓库变成git submodule 添加到当前的git仓库中
 3. 关键github 远程仓库，gh repo create 这个方式，默认名称就是当前目录名称，用户就是可以配置，默认在config文件中配置
 4.  最后添加.gitignore,添加常见的忽略文件，比如node_modules, dist, .vscode, .idea, python环境，go环境,.envw, .gitkeep, etc，mac 相关，比如.DS_Store, .macOS, etc
+
+
+## Task 3: Git Repo Scanner
+
+1. please add Git Repo Scanner as a sub-command into spark-cli
+2. git-repo-scanner/ folder is the source code
+3. save the repo data into a given sqlite database file， this is configurable， the default database path is ～/.innate/feeds.db

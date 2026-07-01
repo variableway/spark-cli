@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+var updateUseSSH bool
+
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update all git repositories to the latest version",
@@ -44,7 +46,7 @@ var updateCmd = &cobra.Command{
 
 		for _, repo := range uniqueRepos {
 			fmt.Printf("Updating: %s\n", repo)
-			if err := git.UpdateRepository(repo); err != nil {
+			if err := git.UpdateRepository(repo, updateUseSSH); err != nil {
 				fmt.Printf("  Error: %v\n", err)
 			} else {
 				fmt.Printf("  Success!\n")
@@ -58,4 +60,6 @@ var updateCmd = &cobra.Command{
 
 func init() {
 	GitCmd.AddCommand(updateCmd)
+
+	updateCmd.Flags().BoolVar(&updateUseSSH, "ssh", false, "Force updates over SSH by rewriting HTTPS GitHub URLs to SSH")
 }

@@ -112,6 +112,19 @@ spark git push-all -p ~/workspace
 - 跳过非 GitHub 仓库和无更改的仓库
 - 遇到错误继续处理下一个仓库
 
+### Git 仓库扫描
+
+递归扫描目录中的 Git 仓库，从 API 获取 stars、forks、语言等信息，并保存到 SQLite 数据库。
+
+```bash
+spark git scan ~/workspace
+spark git scan . --skip-api --db ~/.innate/feeds.db
+```
+
+- 默认数据库路径：`~/.innate/feeds.db`
+- 可通过 `--db` 或配置项 `git.scanner.db` 自定义
+- 设置 `GITHUB_TOKEN` 可提高 GitHub API 速率限制
+
 ## 使用参数
 
 | 参数 | 说明 |
@@ -130,6 +143,8 @@ spark git push-all -p ~/workspace
 | `-f, --file` | 任务文件（任务模式） |
 | `-l, --labels` | Issue 标签（逗号分隔） |
 | `--dry-run` | 仅预览，不创建 Issue |
+| `-d, --db` | SQLite 数据库路径（scan），默认 `~/.innate/feeds.db` |
+| `--skip-api` | 跳过 API 调用（scan） |
 
 ## 依赖
 

@@ -280,3 +280,27 @@ spark git push-all [-p <path>]
 - 跳过无更改的仓库
 - 自动 `git add -A` → `git commit` → `git push`
 - 遇到错误打印提示并继续下一个仓库
+
+---
+
+## spark git scan
+
+递归扫描目录中的 Git 仓库，可选从 GitHub/GitLab API 获取元数据，并保存到 SQLite 数据库。
+
+```
+spark git scan [folder-path] [-d <db-path>] [--skip-api]
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `folder-path` | string | `.` | 否 | 要扫描的目录路径 |
+| `-d, --db` | string | `~/.innate/feeds.db` | 否 | SQLite 数据库路径 |
+| `--skip-api` | bool | `false` | 否 | 跳过 API 调用，仅扫描本地仓库 |
+
+配置项 `git.scanner.db`（`~/.spark.yaml`）可覆盖默认数据库路径。
+
+**行为**：
+- 递归查找 `.git` 目录，解析 `origin` 远程 URL
+- 支持 GitHub、GitLab、Bitbucket
+- 按 `path` upsert 到 SQLite 表 `repos`
+- 环境变量 `GITHUB_TOKEN` 用于 GitHub API 认证

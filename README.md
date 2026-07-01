@@ -83,6 +83,7 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
 | `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
 | `spark git issues [-r <owner/repo>] (-d <dir> \| -f <file>) [--dry-run] [-l <labels>]` | Create GitHub issues from markdown docs/tasks |
+| `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
 
 ---
 

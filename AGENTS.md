@@ -99,6 +99,7 @@ spark git init         # 初始化仓库并创建 GitHub 远程
 spark git batch-clone  # 克隆用户/组织/群组所有仓库 (GitHub + GitLab)
 spark git issues       # 从 Markdown 文档/任务创建 GitHub Issue
 spark git push-all     # 提交并推送所有仓库的更改
+spark git scan         # 扫描 Git 仓库并保存到 SQLite
 ```
 
 #### `spark git clone`
@@ -299,6 +300,24 @@ spark git push-all -p ~/workspace            # 指定目录
 - 跳过非 GitHub 仓库和无更改的仓库
 - 自动 `git add -A` → `git commit` → `git push`
 - 遇到冲突时提示并继续处理下一个仓库
+
+#### `spark git scan`
+递归扫描目录中的 Git 仓库，可选从 GitHub/GitLab API 获取元数据，并保存到 SQLite 数据库。
+
+```bash
+spark git scan                                # 扫描当前目录
+spark git scan ~/workspace                    # 扫描指定目录
+spark git scan . --skip-api                   # 仅本地扫描
+spark git scan . --db ~/.innate/feeds.db      # 指定数据库路径
+```
+
+| 选项 | 说明 |
+|------|------|
+| `[folder-path]` | 要扫描的目录（默认当前目录） |
+| `-d, --db` | SQLite 数据库路径（默认 `~/.innate/feeds.db`） |
+| `--skip-api` | 跳过 API 调用，仅扫描本地仓库 |
+
+也可在 `~/.spark.yaml` 中配置 `git.scanner.db` 作为默认数据库路径。设置 `GITHUB_TOKEN` 可提高 GitHub API 速率限制。
 
 ### 脚本管理
 
@@ -567,6 +586,8 @@ work-dir: ./workspace
 git:
   username: your-name      # 默认 Git 用户名
   email: your@email.com    # 默认 Git 邮箱
+  scanner:
+    db: ~/.innate/feeds.db # git scan 默认 SQLite 数据库路径
 ```
 
 ## 助手指令参考

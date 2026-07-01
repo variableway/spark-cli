@@ -33,6 +33,7 @@ spark git init --owner variableway            # 初始化仓库并创建 GitHub 
 spark git submodule add -p /path/to/repos          # 添加仓库为子模块
 spark git batch-clone variableway -o ./repos  # 克隆组织仓库
 spark git push-all -p ~/workspace             # 推送所有仓库的更改
+spark git scan ~/workspace                    # 扫描仓库并保存到 SQLite
 ```
 
 ### 镜像源切换

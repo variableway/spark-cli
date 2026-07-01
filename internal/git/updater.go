@@ -8,8 +8,11 @@ import (
 	"strings"
 )
 
-// UpdateRepository updates a git repository to the latest version
-func UpdateRepository(repoPath string) error {
+// UpdateRepository updates a git repository to the latest version.
+// When useSSH is true, HTTPS GitHub remote URLs are forced to SSH for this
+// update via a transient url.insteadOf config override, without modifying the
+// repository's configured remote URLs.
+func UpdateRepository(repoPath string, useSSH bool) error {
 	// Get current branch
 	branchCmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	branchCmd.Dir = repoPath
@@ -19,9 +22,23 @@ func UpdateRepository(repoPath string) error {
 	}
 	currentBranch := strings.TrimSpace(string(branch))
 
+	// gitArgs builds a git command scoped to the repo, prepending an SSH
+	// url.insteadOf override when useSSH is set so HTTPS GitHub URLs are
+	// transparently rewritten to SSH for the duration of this command only.
+	gitArgs := func(subcmd ...string) *exec.Cmd {
+		args := subcmd
+		if useSSH {
+			args = append([]string{
+				"-c", "url.git@github.com:.insteadOf=https://github.com/",
+			}, args...)
+		}
+		c := exec.Command("git", args...)
+		c.Dir = repoPath
+		return c
+	}
+
 	// Fetch all updates
-	fetchCmd := exec.Command("git", "fetch", "--all")
-	fetchCmd.Dir = repoPath
+	fetchCmd := gitArgs("fetch", "--all")
 	fetchCmd.Stdout = os.Stdout
 	fetchCmd.Stderr = os.Stderr
 	if err := fetchCmd.Run(); err != nil {
@@ -29,8 +46,7 @@ func UpdateRepository(repoPath string) error {
 	}
 
 	// Pull the latest changes
-	pullCmd := exec.Command("git", "pull", "origin", currentBranch)
-	pullCmd.Dir = repoPath
+	pullCmd := gitArgs("pull", "origin", currentBranch)
 	pullCmd.Stdout = os.Stdout
 	pullCmd.Stderr = os.Stderr
 	if err := pullCmd.Run(); err != nil {

@@ -20,7 +20,8 @@ This includes:
 - url: Get repository remote URL
 - batch-clone: Clone all repos from a GitHub organization or user
 - issues: Create GitHub issues from markdown files or tasks
-- push-all: Commit and push all changes in repositories`,
+- push-all: Commit and push all changes in repositories
+- scan: Scan folders for git repositories and save to SQLite`,
 }
 
 func init() {
