@@ -102,9 +102,10 @@ spark git issues       # 从 Markdown 文档/任务创建 GitHub Issue
 ```bash
 spark git update -p /path/to/repos
 spark git update -p ~/workspace -p ~/projects
+spark git update --ssh                       # 强制通过 SSH 更新（HTTPS 不稳定时使用）
 ```
 
-详细文档: [docs/usage/update.md](docs/usage/update.md)
+详细文档: [docs/usage/git.md](docs/usage/git.md)
 
 #### `spark git submodule`
 将本地 Git 仓库添加为子模块，或将远程仓库克隆为子模块。

@@ -193,8 +193,13 @@ func rewriteGitModulesURLs(repoPath string) error {
 }
 
 func httpsToSSH(url string) string {
-	if strings.HasPrefix(url, "https://github.com/") {
-		return "git@github.com:" + strings.TrimPrefix(url, "https://github.com/")
+	if strings.HasPrefix(url, "https://") {
+		withoutScheme := strings.TrimPrefix(url, "https://")
+		if idx := strings.Index(withoutScheme, "/"); idx != -1 {
+			host := withoutScheme[:idx]
+			path := withoutScheme[idx+1:]
+			return "git@" + host + ":" + path
+		}
 	}
 	return url
 }

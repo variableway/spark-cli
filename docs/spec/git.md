@@ -14,15 +14,16 @@ spark git
 
 ## spark git update
 
-更新所有 Git 仓库到最新版本。扫描配置中 `repo-path` 下的所有仓库，执行 `git pull`。
+更新所有 Git 仓库到最新版本。扫描配置中 `repo-path` 下的所有仓库，执行 `git fetch --all && git pull`。
 
 ```
-spark git update [-p <path>]
+spark git update [-p <path>] [--ssh]
 ```
 
 | 标志 | 类型 | 默认值 | 必填 | 说明 |
 |------|------|--------|------|------|
 | `-p, --path` | stringSlice | `["."]` | 否 | 包含 Git 仓库的目录路径 |
+| `--ssh` | bool | `false` | 否 | 强制通过 SSH 更新（临时将 HTTPS GitHub URL 改写为 SSH，不修改仓库配置） |
 
 无参数。
 

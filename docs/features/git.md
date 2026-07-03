@@ -8,10 +8,11 @@
 
 ### 多仓库批量更新
 
-扫描配置目录下所有 Git 仓库，执行批量 `git pull`。适合同时维护多个仓库的日常更新。
+扫描配置目录下所有 Git 仓库，执行批量 `git fetch --all && git pull`。适合同时维护多个仓库的日常更新。当 HTTPS 连接不稳定时，可加 `--ssh` 强制通过 SSH 更新（仅本次有效，不修改仓库配置的远程地址）。
 
 ```bash
 spark git update -p ~/workspace
+spark git update -p ~/workspace --ssh
 ```
 
 ### Submodule 管理

@@ -69,7 +69,7 @@ go test ./internal/git/... -v -run TestFunctionName
 
 | Command | Description |
 |---------|-------------|
-| `spark git update` | Update all repos to latest version |
+| `spark git update [--ssh]` | Update all repos to latest version (`--ssh` 强制 SSH) |
 | `spark git submodule add [-p <path>]` | Add existing repos as submodules |
 | `spark git sync [repo]` | Sync all submodules to latest |
 | `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |

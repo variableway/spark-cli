@@ -8,8 +8,20 @@ import (
 	"strings"
 )
 
+// httpsHost extracts the host from an HTTPS URL, or empty string if not HTTPS.
+func httpsHost(url string) string {
+	if !strings.HasPrefix(url, "https://") {
+		return ""
+	}
+	withoutScheme := strings.TrimPrefix(url, "https://")
+	if idx := strings.Index(withoutScheme, "/"); idx != -1 {
+		return withoutScheme[:idx]
+	}
+	return withoutScheme
+}
+
 // UpdateRepository updates a git repository to the latest version.
-// When useSSH is true, HTTPS GitHub remote URLs are forced to SSH for this
+// When useSSH is true, HTTPS remote URLs are forced to SSH for this
 // update via a transient url.insteadOf config override, without modifying the
 // repository's configured remote URLs.
 func UpdateRepository(repoPath string, useSSH bool) error {
@@ -22,15 +34,38 @@ func UpdateRepository(repoPath string, useSSH bool) error {
 	}
 	currentBranch := strings.TrimSpace(string(branch))
 
-	// gitArgs builds a git command scoped to the repo, prepending an SSH
-	// url.insteadOf override when useSSH is set so HTTPS GitHub URLs are
-	// transparently rewritten to SSH for the duration of this command only.
+	// Build url.insteadOf overrides for all HTTPS remotes when useSSH is set.
+	var sshOverrides []string
+	if useSSH {
+		remotesCmd := exec.Command("git", "remote")
+		remotesCmd.Dir = repoPath
+		remotesOut, err := remotesCmd.Output()
+		if err == nil {
+			for _, remote := range strings.Split(strings.TrimSpace(string(remotesOut)), "\n") {
+				if remote == "" {
+					continue
+				}
+				urlCmd := exec.Command("git", "remote", "get-url", remote)
+				urlCmd.Dir = repoPath
+				urlOut, err := urlCmd.Output()
+				if err != nil {
+					continue
+				}
+				remoteURL := strings.TrimSpace(string(urlOut))
+				if host := httpsHost(remoteURL); host != "" {
+					sshOverrides = append(sshOverrides,
+						"-c", fmt.Sprintf("url.git@%s:.insteadOf=https://%s/", host, host))
+				}
+			}
+		}
+	}
+
+	// gitArgs builds a git command scoped to the repo, prepending SSH
+	// url.insteadOf overrides when useSSH is set.
 	gitArgs := func(subcmd ...string) *exec.Cmd {
 		args := subcmd
-		if useSSH {
-			args = append([]string{
-				"-c", "url.git@github.com:.insteadOf=https://github.com/",
-			}, args...)
+		if len(sshOverrides) > 0 {
+			args = append(sshOverrides, args...)
 		}
 		c := exec.Command("git", args...)
 		c.Dir = repoPath
