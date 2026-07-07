@@ -11,8 +11,8 @@ A CLI tool for daily dev automation and AI skill integration.
 | Layer | Technology |
 |-------|-----------|
 | Language | Go 1.25 |
-| CLI Framework | Cobra |
-| Config | Viper (`~/.spark.yaml`) |
+| CLI Framework | Cobra + Viper |
+| Config | `~/.spark.yaml` |
 | TUI | PTerm + Bubble Tea |
 | Testing | Ginkgo / Gomega (BDD) |
 | Docs | docmd |
@@ -22,21 +22,22 @@ A CLI tool for daily dev automation and AI skill integration.
 ```
 main.go → cmd.Execute()
 ├── cmd/                    Cobra command definitions
-│   ├── git/                Git repo management commands
-│   ├── magic/              System utilities (DNS, mirrors)
-│   ├── script/             Script management commands
-│   ├── agent.go            AI agent config management
-│   ├── agent_profile.go    Agent profile templates
-│   └── task.go             Task workflow commands
+│   ├── git/                Git repo management
+│   ├── magic/              System utilities (DNS, mirrors, clean, dotfiles)
+│   ├── script/             Script management
+│   ├── docs/               Documentation scaffolding
+│   ├── task.go             Task workflow commands
+│   └── witr.go             Process diagnostics
 ├── internal/               Business logic by domain
-│   ├── agent/              AI agent config (Claude Code, Codex, Kimi, GLM)
 │   ├── config/             Config loading & migration
-│   ├── git/                Core git operations
-│   ├── github/             GitHub API interactions
-
+│   ├── git/                Core git operations (+ scanner)
+│   ├── github/             GitHub API
+│   ├── gitlab/             GitLab API (batch-clone)
 │   ├── script/             Script discovery & execution
 │   ├── task/               Task dispatch/sync/issue CRUD
-│   └── tui/                Shared terminal UI components
+│   ├── templates/          Embedded dotfiles (nvim, ghostty)
+│   ├── tui/                Shared terminal UI components
+│   └── witr/               Why-Is-This-Running engine
 ├── docs/                   Documentation (docmd)
 └── scripts/                User-defined automation scripts
 ```
@@ -73,17 +74,19 @@ go test ./internal/git/... -v -run TestFunctionName
 
 | Command | Description |
 |---------|-------------|
-| `spark git update` | Update all repos to latest version |
-| `spark git submodule add [-p <path>]` | Add existing repos as submodules |
-| `spark git sync [repo]` | Sync all submodules to latest |
-| `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
-| `spark git init [--owner <owner>] [--skip-gh]` | Initialize git repo, create GitHub remote |
+| `spark git update [--ssh]` | Update all repos to latest version |
+| `spark git clone <url-or-slug> [dir]` | Clone a GitHub repo via `gh` (default SSH) |
+| `spark git submodule add/init/status/ensure-ssh` | Submodule management |
+| `spark git sync [--recursive]` | Sync all submodules to latest |
+| `spark git gitcode` | Add Gitcode remote to repos |
+| `spark git init [--owner] [--skip-gh]` | Initialize repo and create GitHub remote |
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
-| `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
-| `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
-| `spark git issues [-r <owner/repo>] (-d <dir> \| -f <file>) [--dry-run] [-l <labels>]` | Create GitHub issues from markdown docs/tasks |
-| `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
+| `spark git batch-clone <account-or-url> [--ssh] [--token] [-o <dir>]` | Clone all repos from GitHub or GitLab |
+| `spark git update-org-status <org>` | Update org README with repo list |
+| `spark git issues (-d <dir> \| -f <file>)` | Create GitHub issues from markdown/tasks |
+| `spark git push-all` | Commit and push changes across repos |
+| `spark git scan [path] [--db] [--skip-api]` | Scan repos and save to SQLite |
 
 ---
 
@@ -93,11 +96,11 @@ go test ./internal/git/... -v -run TestFunctionName
 |---------|-------------|
 | `spark task init` | Initialize task directory structure |
 | `spark task list` | List all tasks and issues |
-| `spark task create <name> [--content <text>]` | Create issue file |
+| `spark task create <name> [--content]` | Create issue file |
 | `spark task delete <name> [--force]` | Delete issue file |
 | `spark task impl <name>` | Implement issue via kimi CLI |
-| `spark task dispatch [name] [--dest <path>]` | Dispatch task to workspace |
-| `spark task sync [name] [--work-path <path>]` | Sync task back |
+| `spark task dispatch [name] [--dest]` | Dispatch task to workspace |
+| `spark task sync [name] [--work-path]` | Sync task back |
 
 Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
 
@@ -108,14 +111,9 @@ Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
 | Command | Description |
 |---------|-------------|
 | `spark magic flush-dns` | Flush DNS cache (macOS/Windows/Linux) |
-
-#### Mirror Switching (list / use / current)
-
-| Command | Targets |
-|---------|---------|
-| `spark magic pip [list\|use\|current]` | Python pip mirrors (tsinghua, aliyun, douban, ustc, tencent) |
-| `spark magic go [list\|use\|current]` | Go module proxy (aliyun, tsinghua, goproxy, ustc, nju) |
-| `spark magic node [list\|use\|current]` | npm registry (taobao, aliyun, tencent, huawei, ustc) |
+| `spark magic clean [-m node\|python]` | Clean `node_modules` and `.venv` |
+| `spark magic copy-config [<target>]` | Deploy bundled nvim + ghostty templates |
+| `spark magic pip/go/node {list,use,current}` | Switch pip / Go / npm mirrors |
 
 ---
 
@@ -128,6 +126,24 @@ Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
 
 Scripts sourced from `~/.spark.yaml` (`spark.scripts`) and `scripts/` directory.
 
+---
+
+### spark docs — Documentation
+
+| Command | Description |
+|---------|-------------|
+| `spark docs init [--root]` | Create standard docs directory structure |
+| `spark docs site [--root]` | Initialize docmd site config |
+
+---
+
+### spark witr — Process Diagnostics
+
+| Command | Description |
+|---------|-------------|
+| `spark witr <name>` | Diagnose why a process is running |
+| `spark witr --pid/--port/--file/--container` | Lookup by PID, port, file, or container |
+
 ## Configuration
 
 Config file: `~/.spark.yaml`
@@ -138,6 +154,8 @@ repo-path:
 git:
   username: your-name
   email: your@email.com
+  scanner:
+    db: ~/.innate/feeds.db
 task_dir: /path/to/tasks
 github_owner: your-username
 work_dir: ./workspace
@@ -157,3 +175,4 @@ Online docs: https://variableway.github.io/spark-cli/
 | [docs/analysis/](docs/analysis/) | Architecture & RFC documents |
 | [AGENTS.md](AGENTS.md) | AI integration guide |
 | [CLAUDE.md](CLAUDE.md) | Claude Code development guide |
+| [CHANGELOG.md](CHANGELOG.md) | Release history |

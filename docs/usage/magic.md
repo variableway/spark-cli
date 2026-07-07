@@ -1,12 +1,13 @@
 # spark magic — 系统工具
 
-系统级实用工具：DNS 刷新、镜像源切换。
+系统级实用工具：DNS 刷新、目录清理、dotfiles 部署、镜像源切换。
 
 ## 命令速查
 
 ```bash
 spark magic flush-dns                         # 刷新 DNS 缓存
 spark magic clean [-m node|python]            # 清理 node_modules 和 .venv
+spark magic copy-config [<user@host:path>]    # 部署内置 nvim + ghostty 模板
 
 # 镜像源切换（pip / go / node 通用子命令）
 spark magic <pip|go|node> list                # 列出可用镜像
@@ -49,6 +50,23 @@ spark magic clean -m python                   # 只清理 .venv
 - 扫描 `--path` 指定的目录（默认当前目录）
 - 自动跳过 `.git` 目录
 - 列出所有被清理的目录
+
+---
+
+## spark magic copy-config
+
+将编译时嵌入的 Neovim 与 Ghostty 配置模板部署到目标位置。模板源码位于 `internal/templates/dotfiles/`，构建时通过 `//go:embed` 打包进二进制。
+
+```bash
+spark magic copy-config                       # 部署到本机 ~/.config/{nvim,ghostty}
+spark magic copy-config user@192.168.1.100:~/ # 通过 SSH 部署到远端
+spark magic copy-config /mnt/usb/backup/      # 部署到自定义本地路径
+```
+
+**行为**：
+- 无参数时写入本机默认路径（`~/.config/nvim/`、`~/.config/ghostty/`）
+- 优先使用 `rsync` 传输，本地目标回退到 `cp`
+- 模板为参考起点，可按需修改 `internal/templates/dotfiles/` 后重新构建
 
 ---
 

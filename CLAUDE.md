@@ -28,26 +28,33 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
 - **`main.go`** → calls `cmd.Execute()`
 - **`cmd/`** — Cobra command definitions. `root.go` loads config from `~/.spark.yaml` and auto-migrates from legacy `~/.monolize.yaml`. Subdirectories group commands:
   - `cmd/git/` — Git repo management commands
-  - `cmd/magic/` — System utility commands (DNS flush, mirror switching)
+  - `cmd/magic/` — System utility commands (DNS flush, mirror switching, clean, copy-config)
   - `cmd/script/` — Script management commands
+  - `cmd/docs/` — Documentation scaffolding commands
   - `cmd/task.go` — Top-level task commands in the root `cmd/` package
+  - `cmd/witr.go` — Process diagnostics bridge
 - **`internal/`** — Business logic, separated by domain:
   - `config/` — Configuration loading and management
-  - `git/` — Core Git operations (find repos, update, remote management, submodule, URL conversion)
+  - `git/` — Core Git operations (find repos, update, remote management, submodule, URL conversion, scanner)
   - `github/` — GitHub API interactions (list org repos, parse org URLs)
+  - `gitlab/` — GitLab API interactions (batch-clone)
   - `script/` — Script discovery (from config and `scripts/` dir) and execution
   - `task/` — Task init/dispatch/sync, issue CRUD, and implementation via `kimi` CLI
+  - `templates/` — Embedded dotfiles (nvim, ghostty) for `magic copy-config`
   - `tui/` — Shared terminal UI components (spinner, dialogs, selector)
+  - `witr/` — Why-Is-This-Running process diagnostics engine
 - **`docs/usage/`** — Usage documentation per command
 
 ### Command Hierarchy
 
 ```
 spark
-├── git [init|update|submodule [add]|sync|gitcode|config|url|batch-clone|issues|update-org-status|push-all|scan]
+├── git [init|clone|update|submodule [add|init|status|ensure-ssh]|sync|gitcode|config|url|batch-clone|issues|update-org-status|push-all|scan]
 ├── task [list|init|dispatch|sync|create|delete|impl]
 ├── script [list|run]
-└── magic [flush-dns|pip|go|node]     # Mirror source switching + DNS
+├── magic [flush-dns|clean|copy-config|pip|go|node]
+├── docs [init|site]
+└── witr
 ```
 
 ### Key Patterns
@@ -58,7 +65,7 @@ spark
 
 ### Config
 
-User config at `~/.spark.yaml`. Key sections: `repo-path` (list of directories to scan), `git` (default username/email), `task_dir`, `github_owner`, `work_dir`, `spark.scripts`.
+User config at `~/.spark.yaml`. Key sections: `repo-path` (list of directories to scan), `git` (default username/email, scanner db), `task_dir`, `github_owner`, `work_dir`, `spark.scripts`.
 
 ## Development Conventions
 
