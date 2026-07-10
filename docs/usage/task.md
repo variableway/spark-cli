@@ -12,6 +12,7 @@ spark task delete <name> [--force]            # 删除 issue 文件
 spark task impl <name>                        # 实现 issue
 spark task dispatch <name> [--dest <path>]    # 分发任务
 spark task sync <name> [--work-path <path>]   # 同步任务
+spark version [--version|-v]                  # 显示 spark 版本 / commit / 构建时间
 ```
 
 全局标志: `--task-dir`, `--owner`, `--work-dir`, `--tui`

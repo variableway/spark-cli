@@ -140,11 +140,11 @@ tasks:
   install-binary:
     desc: Copy the already-built binary into ~/.local/bin (no rebuild)
     cmds:
-      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-binary.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-binary.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME\.local\bin
         platforms: [windows]
       - cmd: 'bash scripts/install-binary.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
         platforms: [linux, darwin]
-      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME\.local\bin
         platforms: [windows]
       - cmd: 'bash scripts/verify-install.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
         platforms: [linux, darwin]
@@ -152,7 +152,7 @@ tasks:
   verify-install:
     desc: Compare installed binary sha256 against source
     cmds:
-      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME\.local\bin
         platforms: [windows]
       - cmd: 'bash scripts/verify-install.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
         platforms: [linux, darwin]
@@ -166,4 +166,5 @@ tasks:
         env:
           GOOS: '{{.GOOS}}'
           GOARCH: '{{.GOARCH}}'
+
 

@@ -100,6 +100,7 @@ spark-cli/
 
 ```
 spark
+├── version                 (显示 spark version / commit / build date)
 ├── git
 │   ├── init
 │   ├── clone
@@ -640,12 +641,31 @@ spark witr nginx --json
 ### 构建命令
 
 ```bash
-make build          # 为当前系统编译 (Windows 生成 .exe) 并安装到 ~/.local/bin/spark
+make build          # 编译 + 打 version/commit/date ldflags + 安装到 ~/.local/bin/spark
 make build-linux    # 交叉编译 Linux amd64 (spark_linux)
 make build-darwin   # 交叉编译 macOS amd64 (spark_darwin)
 make clean          # 移除二进制与构建产物
 make install        # 同 build
-make install-only   # 仅复制已有二进制到 ~/.local/bin
+make install-only   # 仅复制已有二进制到 ~/.local/bin（不动 source）
+make verify-install # 对比 ~/.local/bin/spark 与源 spark.exe 的 sha256/大小/mtime
+```
+
+`task` (Taskfile) 的等价命令：
+
+```bash
+task build          # 等价 make build（包括 Windows 的 spark.exe + spark 同步）
+task install        # 等价 task build
+task install-binary # 仅复制已有 spark.exe 到 ~/.local/bin（不动 source）
+task verify-install # 等价 make verify-install
+```
+
+**Windows 安装原理**：`~/.local/bin` 下同时存在 `spark.exe` 与去后缀名 `spark`，因为 bash 优先命中后者；install 步骤原子刷新两个文件，并立即打印 sha256 对比避免 stale 影子。
+
+**自检**：
+
+```bash
+spark version       # -> spark v0.3.2 / commit 1ef84d7 / build date 2026-07-10T...
+spark --version     # -> spark version v0.3.2
 ```
 
 ### 测试命令

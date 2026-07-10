@@ -41,10 +41,18 @@ main.go → cmd.Execute()
 
 ```bash
 make build          # Build + install to ~/.local/bin/spark
+make verify-install # Compare ~/.local/bin/spark sha256 against source
 make build-linux    # Cross-compile Linux amd64
 make build-darwin   # Cross-compile macOS amd64
 make test           # Run all unit tests
 make test-bdd       # BDD-style tests (Ginkgo)
+```
+
+验证安装的二进制确实是最新的：
+```bash
+spark version       # -> spark v0.3.2 / commit 1ef84d7 / build date ...
+spark --version     # -> spark version v0.3.2
+```
 make lint           # Static analysis (go vet)
 make clean          # Remove binary
 ```
