@@ -1,0 +1,3 @@
+allowBuilds:
+  '@docmd/engine-rust': false
+  esbuild: false
