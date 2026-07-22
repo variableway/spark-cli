@@ -768,3 +768,9 @@ cd spark-cli/spark-skills
    - 新增/修改命令时同步更新 `docs/usage/` 对应文档与本 `AGENTS.md`
    - 保持 `AGENTS.md` 命令层级与实际 `cmd/` / `internal/` 实现一致
    - 文档主要为中文 UI；命令行/代码标识符保持英文
+   - 文档站点 `docs/` 已支持中英双语（`docmd.config.js` 中 `i18n.default: 'zh'`）：
+     中文为默认 locale 渲染于根 URL；英文镜像在 `/en/`
+     新增/修改文档需同时更新 `docs/zh/...` 与 `docs/en/...`，并保持
+     `docs/zh/navigation.json` / `docs/en/navigation.json` 与 i18n `locales` 配置一致
+     docmd 在非默认 locale 缺失页面时会自动 fallback 到默认 locale，
+     翻译完成前可暂时依赖该行为

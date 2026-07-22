@@ -47,62 +47,33 @@ export default defineConfig({
   copyCode: true,
   pageNavigation: true,
 
-  // --- Navigation (Sidebar) ---
-  navigation: [
-    { title: '首页', path: '/', icon: 'home' },
-    {
-      title: '使用指南',
-      icon: 'book',
-      collapsible: true,
-      children: [
-        { title: '概览', path: '/usage/usage' },
-        { title: 'Git 管理', path: '/usage/git' },
-        { title: '任务管理', path: '/usage/task' },
-        { title: '系统工具', path: '/usage/magic' },
-        { title: '脚本管理', path: '/usage/script' },
-        { title: '文档管理', path: '/usage/docs-cmd' },
-      ],
-    },
-    {
-      title: '架构设计',
-      icon: 'sitemap',
-      collapsible: true,
-      children: [
-        { title: '项目分析报告', path: '/analysis/project-analysis' },
-      ],
-    },
-    {
-      title: '功能介绍',
-      icon: 'puzzle-piece',
-      collapsible: true,
-      children: [
-        { title: 'Git 管理', path: '/features/git' },
-        { title: '任务管理', path: '/features/task' },
-        { title: '系统工具', path: '/features/magic' },
-        { title: '脚本管理', path: '/features/script' },
-        { title: '文档管理', path: '/features/docs-feature' },
-      ],
-    },
-    {
-      title: '命令规格',
-      icon: 'terminal',
-      collapsible: true,
-      children: [
-        { title: 'Git', path: '/spec/git' },
-        { title: 'Agent', path: '/spec/agent' },
-        { title: 'Task', path: '/spec/task' },
-        { title: 'Magic', path: '/spec/magic' },
-        { title: 'Script', path: '/spec/script' },
-        { title: 'Docs', path: '/spec/docs-cmd' },
-      ],
-    },
-    { title: 'Agents', path: '/Agents', icon: 'robot' },
-  ],
+  // --- Internationalization ---
+  // Default locale (zh) renders at site root; English mirror lives under /en/.
+  // Navigation labels are sourced from per-locale navigation.json files
+  // (docs/zh/navigation.json and docs/en/navigation.json).
+  i18n: {
+    default: 'zh',
+    position: 'options-menu',
+    locales: [
+      {
+        id: 'zh',
+        label: '简体中文',
+        dir: 'ltr',
+        translations: { editLinkText: '编辑此页' },
+      },
+      {
+        id: 'en',
+        label: 'English',
+        dir: 'ltr',
+        translations: { editLinkText: 'Edit this page' },
+      },
+    ],
+  },
 
   // --- Plugins ---
   plugins: {
     seo: {
-      defaultDescription: '管理多个 Git 仓库的 CLI 工具',
+      defaultDescription: 'Spark CLI — daily dev automation and AI skill integration',
       openGraph: { defaultImage: '' },
       twitter: { cardType: 'summary_large_image' },
     },
@@ -113,9 +84,10 @@ export default defineConfig({
   },
 
   // --- Edit Link ---
+  // baseUrl always points at the default locale directory on disk so the
+  // "Edit this page" link resolves to a real file in docs/zh/.
   editLink: {
     enabled: true,
-    baseUrl: 'https://github.com/variableway/spark-cli/edit/main/docs',
-    text: '编辑此页',
+    baseUrl: 'https://github.com/variableway/spark-cli/edit/main/docs/zh',
   },
 });

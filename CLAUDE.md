@@ -76,3 +76,4 @@ User config at `~/.spark.yaml`. Key sections: `repo-path` (list of directories t
 - Keep `Makefile` as the single source of truth for build/test commands
 - New commands should have usage docs in `docs/usage/`
 - The UI language is primarily Chinese (documentation, user-facing messages)
+- The docs site (`docs/`) is bilingual: Chinese is the default locale rendered at the site root; the English mirror lives under `/en/`. When adding or changing a doc, update both `docs/zh/...` and `docs/en/...` and keep the per-locale `navigation.json` files (`docs/zh/navigation.json`, `docs/en/navigation.json`) in sync. See `docmd.config.js` for the i18n config.

@@ -1,0 +1,50 @@
+[
+  { "title": "Home", "path": "/", "icon": "home" },
+  {
+    "title": "User Guide",
+    "icon": "book",
+    "collapsible": true,
+    "children": [
+      { "title": "Overview", "path": "/usage/usage" },
+      { "title": "Git Management", "path": "/usage/git" },
+      { "title": "Task Management", "path": "/usage/task" },
+      { "title": "System Utilities", "path": "/usage/magic" },
+      { "title": "Script Management", "path": "/usage/script" },
+      { "title": "Docs Management", "path": "/usage/docs-cmd" }
+    ]
+  },
+  {
+    "title": "Architecture",
+    "icon": "sitemap",
+    "collapsible": true,
+    "children": [
+      { "title": "Project Analysis", "path": "/analysis/project-analysis" }
+    ]
+  },
+  {
+    "title": "Features",
+    "icon": "puzzle-piece",
+    "collapsible": true,
+    "children": [
+      { "title": "Git Management", "path": "/features/git" },
+      { "title": "Task Management", "path": "/features/task" },
+      { "title": "System Utilities", "path": "/features/magic" },
+      { "title": "Script Management", "path": "/features/script" },
+      { "title": "Docs Management", "path": "/features/docs-feature" }
+    ]
+  },
+  {
+    "title": "Command Specs",
+    "icon": "terminal",
+    "collapsible": true,
+    "children": [
+      { "title": "Git", "path": "/spec/git" },
+      { "title": "Agent", "path": "/spec/agent" },
+      { "title": "Task", "path": "/spec/task" },
+      { "title": "Magic", "path": "/spec/magic" },
+      { "title": "Script", "path": "/spec/script" },
+      { "title": "Docs", "path": "/spec/docs-cmd" }
+    ]
+  },
+  { "title": "Agents", "path": "/Agents", "icon": "robot" }
+]

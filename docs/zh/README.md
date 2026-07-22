@@ -1,0 +1,174 @@
+# Spark CLI
+
+A CLI tool for daily dev automation and AI skill integration.
+
+**Why Spark?** Deterministic tasks (file scaffolding, mirror switching, config management) can be automated by CLI to save token cost. Spark also provides a CLI app backend for AI skills — so agents can call `spark` instead of burning LLM tokens on repetitive operations.
+
+> Most code is AI-generated, all inspired by real daily workflows.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | Go 1.25 |
+| CLI Framework | Cobra |
+| Config | Viper (`~/.spark.yaml`) |
+| TUI | PTerm + Bubble Tea |
+| Testing | Ginkgo / Gomega (BDD) |
+| Docs | docmd |
+
+## Architecture
+
+```
+main.go → cmd.Execute()
+├── cmd/                    Cobra command definitions
+│   ├── git/                Git repo management commands
+│   ├── magic/              System utilities (DNS, mirrors)
+│   ├── script/             Script management commands
+│   └── task.go             Task workflow commands
+├── internal/               Business logic by domain
+│   ├── config/             Config loading & migration
+│   ├── git/                Core git operations
+│   ├── github/             GitHub API interactions
+│   ├── script/             Script discovery & execution
+│   ├── task/               Task dispatch/sync/issue CRUD
+│   └── tui/                Shared terminal UI components
+├── docs/                   Documentation (docmd)
+└── scripts/                User-defined automation scripts
+```
+
+## Build
+
+```bash
+make build          # Build + install to ~/.local/bin/spark
+make verify-install # Compare ~/.local/bin/spark sha256 against source
+make build-linux    # Cross-compile Linux amd64
+make build-darwin   # Cross-compile macOS amd64
+make test           # Run all unit tests
+make test-bdd       # BDD-style tests (Ginkgo)
+```
+
+验证安装的二进制确实是最新的：
+```bash
+spark version       # -> spark v0.3.2 / commit 1ef84d7 / build date ...
+spark --version     # -> spark version v0.3.2
+```
+make lint           # Static analysis (go vet)
+make clean          # Remove binary
+```
+
+Run a single test:
+```bash
+go test ./internal/git/... -v -run TestFunctionName
+```
+
+## Commands
+
+### Global Flags
+
+| Flag | Description |
+|------|-------------|
+| `--config` | Config file (default `~/.spark.yaml`) |
+| `-p, --path` | Directory containing git repos |
+
+---
+
+### spark git — Git Repository Management
+
+| Command | Description |
+|---------|-------------|
+| `spark git update [--ssh]` | Update all repos to latest version (`--ssh` 强制 SSH) |
+| `spark git submodule add [-p <path>]` | Add existing repos as submodules |
+| `spark git sync [repo]` | Sync all submodules to latest |
+| `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
+| `spark git init [--owner <owner>] [--skip-gh]` | Initialize git repo, create GitHub remote |
+| `spark git config [--username --email]` | Configure git user for repo |
+| `spark git url [repo-path]` | Get remote URL of repository |
+| `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
+| `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
+| `spark git issues [-r <owner/repo>] (-d <dir> \| -f <file>) [--dry-run] [-l <labels>]` | Create GitHub issues from markdown docs/tasks |
+| `spark git push-all [-p <path>]` | Commit and push all changes in repositories |
+| `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
+
+---
+
+### spark task — Task Management
+
+| Command | Description |
+|---------|-------------|
+| `spark task init` | Initialize task directory structure |
+| `spark task list` | List all tasks and issues |
+| `spark task create <name> [--content <text>]` | Create issue file |
+| `spark task delete <name> [--force]` | Delete issue file |
+| `spark task impl <name>` | Implement issue via kimi CLI |
+| `spark task dispatch [name] [--dest <path>]` | Dispatch task to workspace |
+| `spark task sync [name] [--work-path <path>]` | Sync task back |
+
+Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
+
+---
+
+### spark magic — System Utilities
+
+| Command | Description |
+|---------|-------------|
+| `spark magic flush-dns` | Flush DNS cache (macOS/Windows/Linux) |
+| `spark magic clean [-m node\|python]` | Clean node_modules and .venv directories |
+
+#### Mirror Switching (list / use / current)
+
+| Command | Targets |
+|---------|---------|
+| `spark magic pip [list\|use\|current]` | Python pip mirrors (tsinghua, aliyun, douban, ustc, tencent) |
+| `spark magic go [list\|use\|current]` | Go module proxy (aliyun, tsinghua, goproxy, ustc, nju) |
+| `spark magic node [list\|use\|current]` | npm registry (taobao, aliyun, tencent, huawei, ustc) |
+
+---
+
+### spark script — Custom Scripts
+
+| Command | Description |
+|---------|-------------|
+| `spark script list` | List available scripts |
+| `spark script run <name> [args...]` | Execute a script |
+
+Scripts sourced from `~/.spark.yaml` (`spark.scripts`) and `scripts/` directory.
+
+---
+
+### spark witr — Process Inspector
+
+| Command | Description |
+|---------|-------------|
+| `spark witr [process name...]` | Inspect why a process or port is running |
+| `spark witr --pid <pid>` | Look up by PID |
+| `spark witr --port <port>` | Find process by port |
+| `spark witr --file <path>` | Find process holding file open |
+| `spark witr --container <name>` | Inspect container |
+
+Flags: `--tree`, `--env`, `--json`, `--short`, `--warnings`, `--verbose`, `--exact`, `--no-color`
+
+## Configuration
+
+Config file: `~/.spark.yaml`
+
+```yaml
+repo-path:
+  - /path/to/repos
+git:
+  username: your-name
+  email: your@email.com
+task_dir: /path/to/tasks
+github_owner: your-username
+work_dir: ./workspace
+```
+
+## Documentation
+
+Online docs: https://variableway.github.io/spark-cli/
+
+| Path | Content |
+|------|---------|
+| [docs/usage/](docs/usage/) | Per-command usage guides |
+| [docs/analysis/](docs/analysis/) | Architecture & RFC documents |
+| [CLAUDE.md](CLAUDE.md) | Claude Code development guide |

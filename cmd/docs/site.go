@@ -162,6 +162,30 @@ export default defineConfig({
   copyCode: true,
   pageNavigation: true,
 
+  // i18n: default locale renders at site root; other locales at /<id>/.
+  // Edit the per-locale navigation.json files (docs/<id>/navigation.json)
+  // to customize sidebar labels and add a translation.
+  i18n: {
+    default: 'zh',
+    position: 'options-menu',
+    locales: [
+      {
+        id: 'zh',
+        label: '简体中文',
+        dir: 'ltr',
+        translations: { editLinkText: '编辑此页' },
+      },
+      {
+        id: 'en',
+        label: 'English',
+        dir: 'ltr',
+        translations: { editLinkText: 'Edit this page' },
+      },
+    ],
+  },
+
+  // Placeholder navigation; replaced by per-locale navigation.json files
+  // (see docs/zh/navigation.json and docs/en/navigation.json).
   navigation: [
     { title: 'Home', path: '/', icon: 'home' },
   ],
@@ -177,8 +201,13 @@ export default defineConfig({
     mermaid: {},
     llms: { fullContext: true },
   },
+
+  editLink: {
+    enabled: true,
+    baseUrl: '%s/edit/main/docs/zh',
+  },
 });
-`, title, siteURL, title, title)
+`, title, siteURL, title, title, siteURL)
 }
 
 func initPackageJSON(root string) error {
