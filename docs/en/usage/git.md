@@ -96,7 +96,7 @@ spark git submodule add ./spark-cli                  # Add a specific directory 
 |----------|--------|
 | Target is already a submodule (160000) | `Skipping <name>: already as submodule` |
 | Target shares the parent repo URL (worktree) | `Skipping <name>: already as submodule` |
-| Directory exists but is not a submodule | `Skipping <name>: directory already exists (use 'git submodule add' manually)` |
+| Directory exists but is not a submodule | `Adding existing repo as submodule: <name> (<url>)` (writes `.gitmodules` and stages the gitlink, no re-clone) |
 | Normal add | `Adding submodule: <name> (<url>)` |
 
 ### Mode 2: Add a remote repository as a submodule

@@ -97,68 +97,84 @@ func addFolderAsSubmodules(repoPath, folder string) error {
 		return fmt.Errorf("failed to resolve path: %w", err)
 	}
 
-	var repos []string
-	alreadyHandled := false
-
+	// When the target is itself a git repository, add that single repo as a
+	// submodule. Otherwise scan the folder for nested GitHub repositories.
 	if git.IsGitRepository(absFolder) {
-		isGitHub, _ := git.IsGitHubRepo(absFolder)
-		if isGitHub {
-			name := filepath.Base(absFolder)
-			cmd := exec.Command("git", "ls-files", "--stage", name)
-			cmd.Dir = repoPath
-			if out, _ := cmd.Output(); len(out) > 0 && strings.HasPrefix(string(out), "160000") {
-				fmt.Printf("Skipping %s: already as submodule\n", name)
-				alreadyHandled = true
-			} else {
-				url, _ := git.GetRemoteURL(absFolder)
-				parentURL, parentErr := git.GetRemoteURL(repoPath)
-				if parentErr == nil && url == parentURL {
-					fmt.Printf("Skipping %s: already as submodule\n", name)
-					alreadyHandled = true
-				} else if _, err := os.Stat(absFolder); err == nil {
-					fmt.Printf("Skipping %s: directory already exists (use 'git submodule add' manually)\n", name)
-					alreadyHandled = true
-				} else {
-					repos = append(repos, absFolder)
-				}
-			}
+		return addSingleLocalRepo(repoPath, absFolder)
+	}
+	return addNestedRepos(repoPath, absFolder)
+}
+
+// addSingleLocalRepo registers an existing local git repository as a submodule
+// of repoPath. Because the directory already exists on disk, it is wired up via
+// .gitmodules and staged as a gitlink instead of being re-cloned.
+func addSingleLocalRepo(repoPath, absFolder string) error {
+	isGitHub, _ := git.IsGitHubRepo(absFolder)
+	if !isGitHub {
+		fmt.Println("No GitHub repositories found in the specified folder.")
+		return nil
+	}
+
+	name := filepath.Base(absFolder)
+
+	// Already staged as a submodule gitlink.
+	stageCmd := exec.Command("git", "ls-files", "--stage", name)
+	stageCmd.Dir = repoPath
+	if out, _ := stageCmd.Output(); len(out) > 0 && strings.HasPrefix(string(out), "160000") {
+		fmt.Printf("Skipping %s: already as submodule\n", name)
+		fmt.Println("\nDone!")
+		return nil
+	}
+
+	url, _ := git.GetRemoteURL(absFolder)
+	parentURL, parentErr := git.GetRemoteURL(repoPath)
+	if parentErr == nil && url == parentURL {
+		fmt.Printf("Skipping %s: already as submodule\n", name)
+		fmt.Println("\nDone!")
+		return nil
+	}
+
+	fmt.Printf("Adding existing repo as submodule: %s (%s)\n", name, url)
+	if err := git.AddExistingRepoAsSubmodule(repoPath, name, url); err != nil {
+		return fmt.Errorf("failed to add submodule %s: %w", name, err)
+	}
+
+	fmt.Println("\nSubmodule added. To commit: git commit -m 'Add submodule'")
+	return nil
+}
+
+// addNestedRepos scans a folder for direct-child GitHub repositories and adds
+// each as a submodule of repoPath.
+func addNestedRepos(repoPath, absFolder string) error {
+	entries, err := os.ReadDir(absFolder)
+	if err != nil {
+		return fmt.Errorf("failed to read directory: %w", err)
+	}
+
+	var repos []string
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
 		}
+		if strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+
+		childPath := filepath.Join(absFolder, entry.Name())
+		if !git.IsGitRepository(childPath) {
+			continue
+		}
+
+		isGitHub, _ := git.IsGitHubRepo(childPath)
+		if !isGitHub {
+			continue
+		}
+
+		repos = append(repos, childPath)
 	}
 
 	if len(repos) == 0 {
-		entries, err := os.ReadDir(absFolder)
-		if err != nil {
-			return fmt.Errorf("failed to read directory: %w", err)
-		}
-
-		for _, entry := range entries {
-			if !entry.IsDir() {
-				continue
-			}
-			if strings.HasPrefix(entry.Name(), ".") {
-				continue
-			}
-
-			childPath := filepath.Join(absFolder, entry.Name())
-			if !git.IsGitRepository(childPath) {
-				continue
-			}
-
-			isGitHub, _ := git.IsGitHubRepo(childPath)
-			if !isGitHub {
-				continue
-			}
-
-			repos = append(repos, childPath)
-		}
-	}
-
-	if len(repos) == 0 {
-		if alreadyHandled {
-			fmt.Println("\nDone!")
-		} else {
-			fmt.Println("No GitHub repositories found in the specified folder.")
-		}
+		fmt.Println("No GitHub repositories found in the specified folder.")
 		return nil
 	}
 

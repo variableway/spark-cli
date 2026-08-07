@@ -96,7 +96,7 @@ spark git submodule add ./spark-cli                  # 将指定目录作为子�
 |------|------|
 | 目标已是 submodule（160000） | `Skipping <name>: already as submodule` |
 | 目标与父仓库 URL 相同（worktree） | `Skipping <name>: already as submodule` |
-| 目录存在但不是 submodule | `Skipping <name>: directory already exists (use 'git submodule add' manually)` |
+| 目录已存在但非 submodule | `Adding existing repo as submodule: <name> (<url>)`（写入 `.gitmodules` 并暂存 gitlink，无需重新克隆） |
 | 正常添加 | `Adding submodule: <name> (<url>)` |
 
 ### 模式 2：添加远程仓库为子模块

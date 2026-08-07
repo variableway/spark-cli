@@ -212,6 +212,86 @@ type SubmoduleInfo struct {
 	Branch       string
 }
 
+// AddExistingRepoAsSubmodule registers an already-present local git repository
+// (located at repoPath/name) as a submodule of repoPath without re-cloning it.
+// It writes the .gitmodules entry, stages the directory as a gitlink pointing
+// at the child's current HEAD, and registers the URL in .git/config. This is
+// the fallback used when `git submodule add` cannot run because the target
+// directory already exists.
+func AddExistingRepoAsSubmodule(repoPath, name, url string) error {
+	if err := ensureGitmodulesEntry(repoPath, name, url); err != nil {
+		return fmt.Errorf("failed to update .gitmodules: %w", err)
+	}
+
+	// Resolve the commit the submodule should point at.
+	revCmd := exec.Command("git", "rev-parse", "HEAD")
+	revCmd.Dir = filepath.Join(repoPath, name)
+	revOut, err := revCmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to resolve HEAD of %s: %w", name, err)
+	}
+	commit := strings.TrimSpace(string(revOut))
+
+	// Drop any regular-file tracking of name so the path can become a gitlink.
+	// --ignore-unmatch makes this a no-op when nothing is tracked.
+	rm := exec.Command("git", "rm", "--cached", "-r", "--ignore-unmatch", "--", name)
+	rm.Dir = repoPath
+	rm.Run() // best-effort
+
+	// Stage the directory as a gitlink at the child's HEAD. update-index is the
+	// right primitive here: it records the pointer directly, without re-cloning
+	// and without the "adding embedded git repository" warning `git add` emits.
+	stage := exec.Command("git", "update-index", "--add", "--replace",
+		"--cacheinfo", fmt.Sprintf("160000,%s,%s", commit, name))
+	stage.Dir = repoPath
+	stage.Stdout = os.Stdout
+	stage.Stderr = os.Stderr
+	if err := stage.Run(); err != nil {
+		return fmt.Errorf("failed to stage submodule %s: %w", name, err)
+	}
+
+	// Copy the URL from .gitmodules into .git/config. Needs the gitlink staged.
+	init := exec.Command("git", "submodule", "init", "--", name)
+	init.Dir = repoPath
+	init.Stdout = os.Stdout
+	init.Stderr = os.Stderr
+	init.Run() // best-effort; harmless if already registered
+
+	gmAdd := exec.Command("git", "add", "--", ".gitmodules")
+	gmAdd.Dir = repoPath
+	gmAdd.Stdout = os.Stdout
+	gmAdd.Stderr = os.Stderr
+	return gmAdd.Run()
+}
+
+// ensureGitmodulesEntry appends a [submodule "<name>"] block (path + url) to
+// .gitmodules, creating the file if needed. It is a no-op when an entry for
+// name already exists.
+func ensureGitmodulesEntry(repoPath, name, url string) error {
+	gitmodules := filepath.Join(repoPath, ".gitmodules")
+	data, _ := os.ReadFile(gitmodules)
+	content := string(data)
+	if strings.Contains(content, fmt.Sprintf("submodule %q", name)) {
+		return nil
+	}
+
+	var sb strings.Builder
+	if content != "" && !strings.HasSuffix(content, "\n") {
+		sb.WriteString("\n")
+	}
+	sb.WriteString(fmt.Sprintf("[submodule %q]\n", name))
+	sb.WriteString(fmt.Sprintf("\tpath = %s\n", name))
+	sb.WriteString(fmt.Sprintf("\turl = %s\n", url))
+
+	f, err := os.OpenFile(gitmodules, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.WriteString(sb.String())
+	return err
+}
+
 // GetSubmoduleStatus returns the status of all submodules in a repo.
 func GetSubmoduleStatus(repoPath string) ([]SubmoduleInfo, error) {
 	cmd := exec.Command("git", "submodule", "status")
