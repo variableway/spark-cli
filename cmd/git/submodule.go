@@ -118,9 +118,7 @@ func addSingleLocalRepo(repoPath, absFolder string) error {
 	name := filepath.Base(absFolder)
 
 	// Already staged as a submodule gitlink.
-	stageCmd := exec.Command("git", "ls-files", "--stage", name)
-	stageCmd.Dir = repoPath
-	if out, _ := stageCmd.Output(); len(out) > 0 && strings.HasPrefix(string(out), "160000") {
+	if isSubmoduleGitlink(repoPath, name) {
 		fmt.Printf("Skipping %s: already as submodule\n", name)
 		fmt.Println("\nDone!")
 		return nil
@@ -144,7 +142,10 @@ func addSingleLocalRepo(repoPath, absFolder string) error {
 }
 
 // addNestedRepos scans a folder for direct-child GitHub repositories and adds
-// each as a submodule of repoPath.
+// each as a submodule of repoPath. Every repository already exists on disk, so
+// it is wired up in place (via .gitmodules + gitlink) instead of being
+// re-cloned; the submodule path keeps its location relative to the parent
+// repo, e.g. research/Hatano-Nelson.
 func addNestedRepos(repoPath, absFolder string) error {
 	entries, err := os.ReadDir(absFolder)
 	if err != nil {
@@ -180,6 +181,15 @@ func addNestedRepos(repoPath, absFolder string) error {
 
 	fmt.Printf("Found %d GitHub repository(ies)\n\n", len(repos))
 
+	absRepo, err := filepath.Abs(repoPath)
+	if err != nil {
+		return fmt.Errorf("failed to resolve repo path: %w", err)
+	}
+	relFolder, err := filepath.Rel(absRepo, absFolder)
+	if err != nil {
+		return fmt.Errorf("failed to resolve relative path: %w", err)
+	}
+
 	for _, repo := range repos {
 		name := filepath.Base(repo)
 		url, err := git.GetRemoteURL(repo)
@@ -188,19 +198,33 @@ func addNestedRepos(repoPath, absFolder string) error {
 			continue
 		}
 
-		fmt.Printf("Adding submodule: %s (%s)\n", name, url)
+		relPath := filepath.Join(relFolder, name)
 
-		cmd := exec.Command("git", "submodule", "add", "-f", url, name)
-		cmd.Dir = repoPath
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Printf("Warning: failed to add %s: %v\n", name, err)
+		if isSubmoduleGitlink(repoPath, relPath) {
+			fmt.Printf("Skipping %s: already as submodule\n", relPath)
+			continue
+		}
+
+		fmt.Printf("Adding existing repo as submodule: %s (%s)\n", relPath, url)
+		if err := git.AddExistingRepoAsSubmodule(repoPath, relPath, url); err != nil {
+			fmt.Printf("Warning: failed to add %s: %v\n", relPath, err)
 		}
 	}
 
 	fmt.Println("\nDone! To commit: git commit -m 'Add submodules'")
 	return nil
+}
+
+// isSubmoduleGitlink reports whether path is already staged in the index of
+// repoPath as a submodule gitlink (mode 160000).
+func isSubmoduleGitlink(repoPath, path string) bool {
+	cmd := exec.Command("git", "ls-files", "--stage", "--", path)
+	cmd.Dir = repoPath
+	out, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+	return strings.HasPrefix(strings.TrimSpace(string(out)), "160000")
 }
 
 func extractRepoName(url string) string {
