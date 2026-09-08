@@ -5,6 +5,7 @@ import (
 	"spark/cmd/docs"
 	"spark/cmd/git"
 	"spark/cmd/magic"
+	"spark/cmd/repo"
 	"spark/cmd/script"
 	"os"
 	"path/filepath"
@@ -38,6 +39,7 @@ func init() {
 	rootCmd.PersistentFlags().StringSliceP("path", "p", []string{"."}, "Path to the directory containing git repositories")
 	viper.BindPFlag("repo-path", rootCmd.PersistentFlags().Lookup("path"))
 	rootCmd.AddCommand(git.GitCmd)
+	rootCmd.AddCommand(repo.RepoCmd)
 	rootCmd.AddCommand(magic.MagicCmd)
 	rootCmd.AddCommand(script.ScriptCmd)
 	rootCmd.AddCommand(docs.DocsCmd)

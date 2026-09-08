@@ -22,6 +22,7 @@
 12. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
 13. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
 14. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
+15. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
 
 ## 技术栈
 
@@ -55,6 +56,11 @@ spark-cli/
 │   │   ├── update_org_status.go  # spark git update-org-status
 │   │   ├── push_all.go      # spark git push-all
 │   │   └── scan.go          # spark git scan（-d/--db, --skip-api）
+│   ├── repo/                # 仓库 registry 管理命令
+│   │   ├── repo.go          # RepoCmd 父命令
+│   │   ├── scan.go          # spark repo scan [folder-name]
+│   │   ├── clone.go         # spark repo clone（-r, -f）
+│   │   └── list.go          # spark repo list（-f）
 │   ├── magic/               # 系统实用命令
 │   │   ├── magic.go         # MagicCmd 父命令
 │   │   ├── clean.go         # spark magic clean（-m node|python）
@@ -77,6 +83,7 @@ spark-cli/
 │   │   └── scanner/         # git scan 使用的扫描与 SQLite 持久化
 │   ├── github/              # GitHub API（org / markdown issue）
 │   ├── gitlab/              # GitLab API（用于 batch-clone）
+│   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
 │   ├── script/              # 脚本发现（配置 + scripts/ 目录）与执行
 │   ├── task/                # 任务 init/dispatch/sync、issue CRUD、impl（kimi）
 │   ├── templates/           # 嵌入的 dotfiles（nvim + ghostty）
@@ -119,6 +126,10 @@ spark
 │   ├── update-org-status    (--dry-run, -o, --update-dot-github, --section, --skip-push)
 │   ├── push-all
 │   └── scan                 (-d, --db, --skip-api)
+├── repo
+│   ├── scan                 ([folder-name])
+│   ├── clone                (-r, --repo, -f, --file)
+│   └── list                 (-f, --file)
 ├── task                     (--task-dir, --owner, --work-dir, --tui)
 │   ├── dispatch             (--dest)
 │   ├── sync                 (--work-path)
@@ -445,6 +456,53 @@ spark git scan . --db ~/.innate/feeds.db
 | `--skip-api` | 跳过 API，仅扫描本地仓库 |
 
 `~/.spark.yaml` 中可通过 `git.scanner.db` 设置默认数据库路径。设置 `GITHUB_TOKEN` 可提升 GitHub API 速率限制。
+
+---
+
+### `spark repo` — 仓库管理
+
+父命令 `RepoCmd` 在 `cmd/repo/repo.go` 中定义，通过 registry 文件管理目录下的多个 GitHub 仓库（替代 submodule）。
+
+```bash
+spark repo scan [folder-name]                       # 扫描目录并写入 registry_<folder>.yaml
+spark repo clone -f registry_<folder>.yaml          # 克隆 registry 中全部仓库
+spark repo clone -r <name> -f registry_<folder>.yaml # 仅克隆指定仓库
+spark repo list -f registry_<folder>.yaml           # 列出 registry 中的仓库
+```
+
+registry 文件格式：
+
+```yaml
+# Project registry
+# Synced by spark repo scan
+
+projects:
+    - name: spark-cli
+      repo: https://github.com/variableway/spark-cli.git
+      path: tooling/spark-cli
+      desc: Spark CLI 工具
+```
+
+#### `spark repo scan [folder-name]`
+
+递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，删除目录已不存在的旧条目，追加新发现仓库）。
+
+#### `spark repo clone`
+
+从 registry 文件克隆仓库到 folder 目录（目录名由 `registry_<folder>.yaml` 推导为 `<folder>`）。已存在 `.git` 或目录已存在时跳过；逐个执行 `git clone <repo> <target>`；结束打印 `cloned / skipped / failed` 统计，`failed > 0` 时返回错误。
+
+| 选项 | 说明 |
+|------|------|
+| `-r, --repo` | 仅克隆指定名称的仓库（省略则克隆全部） |
+| `-f, --file` | registry 文件（必填） |
+
+#### `spark repo list`
+
+列出 registry 文件中的仓库，每行输出 `name<TAB>repo<TAB>path`；registry 为空时打印 `No repositories in registry.`。
+
+| 选项 | 说明 |
+|------|------|
+| `-f, --file` | registry 文件（必填） |
 
 ---
 

@@ -7,6 +7,7 @@
     "children": [
       { "title": "概览", "path": "/usage/usage" },
       { "title": "Git 管理", "path": "/usage/git" },
+      { "title": "仓库管理", "path": "/usage/repo" },
       { "title": "任务管理", "path": "/usage/task" },
       { "title": "系统工具", "path": "/usage/magic" },
       { "title": "脚本管理", "path": "/usage/script" },
@@ -27,6 +28,7 @@
     "collapsible": true,
     "children": [
       { "title": "Git 管理", "path": "/features/git" },
+      { "title": "仓库管理", "path": "/features/repo" },
       { "title": "任务管理", "path": "/features/task" },
       { "title": "系统工具", "path": "/features/magic" },
       { "title": "脚本管理", "path": "/features/script" },
@@ -39,6 +41,7 @@
     "collapsible": true,
     "children": [
       { "title": "Git", "path": "/spec/git" },
+      { "title": "Repo", "path": "/spec/repo" },
       { "title": "Agent", "path": "/spec/agent" },
       { "title": "Task", "path": "/spec/task" },
       { "title": "Magic", "path": "/spec/magic" },

@@ -7,6 +7,7 @@
     "children": [
       { "title": "Overview", "path": "/usage/usage" },
       { "title": "Git Management", "path": "/usage/git" },
+      { "title": "Repo Management", "path": "/usage/repo" },
       { "title": "Task Management", "path": "/usage/task" },
       { "title": "System Utilities", "path": "/usage/magic" },
       { "title": "Script Management", "path": "/usage/script" },
@@ -27,6 +28,7 @@
     "collapsible": true,
     "children": [
       { "title": "Git Management", "path": "/features/git" },
+      { "title": "Repo Management", "path": "/features/repo" },
       { "title": "Task Management", "path": "/features/task" },
       { "title": "System Utilities", "path": "/features/magic" },
       { "title": "Script Management", "path": "/features/script" },
@@ -39,6 +41,7 @@
     "collapsible": true,
     "children": [
       { "title": "Git", "path": "/spec/git" },
+      { "title": "Repo", "path": "/spec/repo" },
       { "title": "Agent", "path": "/spec/agent" },
       { "title": "Task", "path": "/spec/task" },
       { "title": "Magic", "path": "/spec/magic" },
