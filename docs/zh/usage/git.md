@@ -291,7 +291,7 @@ git:
 | `--exclude` | | | 排除匹配的仓库（逗号分隔） |
 | `--include-forks` | | `false` | 包含 fork 仓库 |
 | `--output` | `-o` | `.` | 输出目录 |
-| `--token` | | | GitLab 私有 Token（也可用 `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` 环境变量） |
+| `--token` | | | GitLab 私有 Token（也可用 `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` 环境变量，或 `~/.spark.yaml` 中的 `gitlab.token`） |
 
 ```bash
 # GitHub
@@ -302,11 +302,58 @@ spark git batch-clone variableway --ssh         # 使用 SSH
 spark git batch-clone variableway --include spark --exclude test
 spark git batch-clone variableway -o ./repos  # 指定输出目录
 
-# GitLab（自托管或 gitlab.com，支持子群组）
+# GitLab（自托管或 gitlab.com，支持任意层级子群组）
 spark git batch-clone https://gitlab.example.com/myorg/mygroup
-spark git batch-clone https://gitlab.com/mygroup/myproject
+spark git batch-clone https://gitlab.com/gitlab-com/gl-infra
 spark git batch-clone https://gitlab.example.com/myorg --token <token>
+spark git batch-clone gitlab.com/gitlab-com/gl-infra   # 可省略 https://
 ```
+
+嵌套群组（如 `gitlab-com/gl-infra`）会递归拉取其下所有子群组的项目；
+每个项目克隆到 `<output>/<相对命名空间路径>`，例如 `archiver`、
+`observability/tenant-observability/argocd-tenant-plugin`，
+从而保留子群组结构并避免不同子群组下同名项目互相覆盖。
+
+### 私有实例凭证配置
+
+自托管实例和私有群组在未认证时返回 404（而非 401），因此必须先配置 Token。
+在该实例创建 Personal Access Token（需 `read_api` 权限，克隆私有仓库还需 `read_repository`）：
+`https://<your-gitlab-host>/-/user_settings/personal_access_tokens`
+
+四种来源，优先级从高到低：
+`--token` > `~/.spark.yaml` 的 `gitlab.token` > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`。
+
+```bash
+# 1) 单次命令
+spark git batch-clone https://gitlab.example.com/myorg/mygroup --token glpat-xxxx
+
+# 2) 环境变量（可写入 ~/.zshrc 持久化）
+export GITLAB_TOKEN=glpat-xxxx
+# 也支持 GITLAB_PRIVATE_TOKEN
+
+# 3) 写入 ~/.spark.yaml（推荐，一次配置长期生效）
+```
+
+```yaml
+gitlab:
+  host: gitlab.example.com   # 可选：把凭证限定到该实例
+  token: glpat-xxxx
+```
+
+`gitlab.host` 用于限定自动发现的凭证（配置文件与环境变量）只发往该实例：
+配置了 `host` 后访问别的实例（如公开的 `gitlab.com`）会改为匿名请求，并提示
+`Ignoring ...: it is scoped to ...`；`--token` 属于显式指定，不受该限制。
+不设置 `host` 时保持旧行为——凭证会发给任何目标实例。
+
+注意：`~/.spark.yaml` 中的 token 优先级高于环境变量。若配置文件里残留了一个已吊销的
+`gitlab.token`，即使环境变量里的 `GITLAB_TOKEN` 有效也会一直鉴权失败。命令会打印
+`Using token from: ...` 并在报错中指明被拒绝的 token 来自哪个来源，据此排查即可。
+
+也可以复用 `glab` 的凭证：`glab auth login --hostname gitlab.example.com`，
+之后用 `glab auth status` 确认该 host 登录成功。
+
+克隆私有仓库时 `git` 本身也需要凭证：建议加 `--ssh`（走 SSH key），
+否则需让 git 记住 HTTPS 凭证（如 `git config --global credential.helper osxkeychain`）。
 
 ---
 

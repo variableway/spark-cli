@@ -20,6 +20,19 @@ git:
   email: your-email@example.com
 
 # =============================================================================
+# GitLab
+# =============================================================================
+# Personal Access Token for private/self-hosted GitLab (used by git batch-clone).
+# Needs the read_api scope, plus read_repository to clone private repositories.
+# Can also be provided via --token or the GITLAB_TOKEN env var.
+gitlab:
+  # Optional: scope the token (and GITLAB_TOKEN env vars) to this instance.
+  # Credentials are then only sent to this host, e.g. gitlab.com is queried
+  # anonymously instead of receiving a token meant for a self-hosted instance.
+  host: gitlab.example.com
+  token: glpat-xxxxxxxxxxxxxxxxxxxx
+
+# =============================================================================
 # Task Management
 # =============================================================================
 # Task directory containing all task templates

@@ -1,17 +1,46 @@
 [
-  { "title": "Home", "path": "/", "icon": "home" },
+  {
+    "title": "Home",
+    "path": "/",
+    "icon": "home"
+  },
   {
     "title": "User Guide",
     "icon": "book",
     "collapsible": true,
     "children": [
-      { "title": "Overview", "path": "/usage/usage" },
-      { "title": "Git Management", "path": "/usage/git" },
-      { "title": "Repo Management", "path": "/usage/repo" },
-      { "title": "Task Management", "path": "/usage/task" },
-      { "title": "System Utilities", "path": "/usage/magic" },
-      { "title": "Script Management", "path": "/usage/script" },
-      { "title": "Docs Management", "path": "/usage/docs-cmd" }
+      {
+        "title": "Overview",
+        "path": "/usage/usage"
+      },
+      {
+        "title": "Git Management",
+        "path": "/usage/git"
+      },
+      {
+        "title": "Repo Management",
+        "path": "/usage/repo"
+      },
+      {
+        "title": "Task Management",
+        "path": "/usage/task"
+      },
+      {
+        "title": "System Utilities",
+        "path": "/usage/magic"
+      },
+      {
+        "title": "Script Management",
+        "path": "/usage/script"
+      },
+      {
+        "title": "Docs Management",
+        "path": "/usage/docs-cmd"
+      },
+      {
+        "title": "Process Diagnostics",
+        "path": "/usage/witr"
+      }
     ]
   },
   {
@@ -19,7 +48,10 @@
     "icon": "sitemap",
     "collapsible": true,
     "children": [
-      { "title": "Project Analysis", "path": "/analysis/project-analysis" }
+      {
+        "title": "Project Analysis",
+        "path": "/analysis/project-analysis"
+      }
     ]
   },
   {
@@ -27,12 +59,30 @@
     "icon": "puzzle-piece",
     "collapsible": true,
     "children": [
-      { "title": "Git Management", "path": "/features/git" },
-      { "title": "Repo Management", "path": "/features/repo" },
-      { "title": "Task Management", "path": "/features/task" },
-      { "title": "System Utilities", "path": "/features/magic" },
-      { "title": "Script Management", "path": "/features/script" },
-      { "title": "Docs Management", "path": "/features/docs-feature" }
+      {
+        "title": "Git Management",
+        "path": "/features/git"
+      },
+      {
+        "title": "Repo Management",
+        "path": "/features/repo"
+      },
+      {
+        "title": "Task Management",
+        "path": "/features/task"
+      },
+      {
+        "title": "System Utilities",
+        "path": "/features/magic"
+      },
+      {
+        "title": "Script Management",
+        "path": "/features/script"
+      },
+      {
+        "title": "Docs Management",
+        "path": "/features/docs-feature"
+      }
     ]
   },
   {
@@ -40,14 +90,35 @@
     "icon": "terminal",
     "collapsible": true,
     "children": [
-      { "title": "Git", "path": "/spec/git" },
-      { "title": "Repo", "path": "/spec/repo" },
-      { "title": "Agent", "path": "/spec/agent" },
-      { "title": "Task", "path": "/spec/task" },
-      { "title": "Magic", "path": "/spec/magic" },
-      { "title": "Script", "path": "/spec/script" },
-      { "title": "Docs", "path": "/spec/docs-cmd" }
+      {
+        "title": "Git",
+        "path": "/spec/git"
+      },
+      {
+        "title": "Repo",
+        "path": "/spec/repo"
+      },
+      {
+        "title": "Task",
+        "path": "/spec/task"
+      },
+      {
+        "title": "Magic",
+        "path": "/spec/magic"
+      },
+      {
+        "title": "Script",
+        "path": "/spec/script"
+      },
+      {
+        "title": "Docs",
+        "path": "/spec/docs-cmd"
+      }
     ]
   },
-  { "title": "Agents", "path": "/Agents", "icon": "robot" }
+  {
+    "title": "Agents",
+    "path": "/Agents",
+    "icon": "robot"
+  }
 ]

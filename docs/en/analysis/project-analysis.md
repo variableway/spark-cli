@@ -10,22 +10,25 @@ Spark CLI is a Go-based command-line tool that positions itself as a CLI backend
 
 | Layer | Choice |
 |-------|--------|
-| Language | Go 1.25 |
+| Language | Go 1.27 (see `go.mod`) |
 | CLI framework | Cobra |
 | Config | Viper |
 | Terminal UI | PTerm + Bubble Tea |
-| Testing | Ginkgo / Gomega |
-| Docs | docmd |
+| Testing | Ginkgo / Gomega (`internal/`) + standard `testing` (`cmd/`) |
+| Build | Makefile + Taskfile |
+| Docs | docmd (bilingual zh/en) |
 
 ## Modules
 
 | Module | Command | Capability |
 |--------|---------|------------|
-| Git management | `spark git` | Multi-repo update, repo init, submodule management, Gitcode remote, org clone |
+| Git management | `spark git` | Multi-repo update, clone, repo init, submodule management, Gitcode remote, batch clone (GitHub/GitLab), issues, scan, push |
+| Repo management | `spark repo` | Registry-file driven scan / clone / list, an alternative to submodules |
 | Task management | `spark task` | Task create, dispatch, sync, AI implement |
-| System utilities | `spark magic` | DNS flush, pip/go/node mirror switching |
+| System utilities | `spark magic` | DNS flush, pip/go/node mirror switching, directory cleanup, dotfiles deploy |
 | Script management | `spark script` | Custom script discovery and execution |
 | Docs management | `spark docs` | Docs structure init, docmd site config |
+| Process diagnostics | `spark witr` | Why-Is-This-Running process inspection |
 
 ## Architecture
 
@@ -34,18 +37,25 @@ main.go → cmd.Execute()
 │
 ├── cmd/                    # Cobra command definitions
 │   ├── git/                # Git commands
+│   ├── repo/               # Registry-based repo management
 │   ├── magic/              # System utilities
 │   ├── script/             # Script management
 │   ├── docs/               # Docs management
-│   └── task.go             # Task commands
+│   ├── task.go             # Task commands
+│   ├── version.go          # Version info
+│   └── witr.go             # Process diagnostics bridge
 │
 └── internal/               # Business logic
     ├── config/             # Config loading & migration
-    ├── git/                # Core Git operations
+    ├── git/                # Core Git operations (+ scanner/)
     ├── github/             # GitHub API interactions
+    ├── gitlab/             # GitLab API interactions (batch clone)
+    ├── registry/           # Registry file scan/read/merge
     ├── script/             # Script discovery & execution
     ├── task/               # Task workflow
-    └── tui/                # Terminal UI components
+    ├── templates/          # Embedded nvim/ghostty dotfiles
+    ├── tui/                # Terminal UI components
+    └── witr/               # Process diagnostics engine
 ```
 
 **Design notes**:
@@ -70,12 +80,12 @@ The legacy `.monolize.yaml` config is auto-migrated to `.spark.yaml`, which is r
 ## Areas for Improvement
 
 ### 1. Test coverage is thin
-- `internal/mono/` has no tests.
-- `cmd/` lacks integration tests.
+- `internal/witr/` coverage is still concentrated in the `output` subpackage.
+- `cmd/` lacks integration tests (pure functions are covered with standard `testing`).
 - Existing test quality is good (Ginkgo BDD style), but the surface needs to expand.
 
 ### 2. Heavy reliance on external commands
-Lots of `exec.Command` calls into `git`, `gh`, `kimi`, `npm`, with no abstraction layer. Consequences:
+Lots of `exec.Command` calls into `git`, `gh`, `glab`, `kimi`, `npm`, with no abstraction layer. Consequences:
 - Hard to run in environments without these tools.
 - Unit tests have to mock entire environments.
 - Error messages are not always precise.
@@ -93,13 +103,13 @@ Lots of `exec.Command` calls into `git`, `gh`, `kimi`, `npm`, with no abstractio
 ### 5. Missing config validation
 - No validation of config values.
 - No schema definition for the config file.
-- Limited env-var override support.
+- Limited env-var override support (keys such as `gitlab.token` contain a `.`, so `viper.AutomaticEnv` cannot map them and `os.Getenv` is needed instead).
 
 ## Recommendations
 
 | Priority | Improvement | Expected benefit |
 |----------|-------------|------------------|
-| High | Add tests for `internal/mono/` | Higher code reliability |
+| High | Add tests across the `internal/` packages | Higher code reliability |
 | High | Extract an external-command abstraction | Testability + maintainability |
 | Medium | Unify the mirror-switch pattern in `magic` | Removes ~60% of duplicated code |
 | Medium | Add config validation | Fewer user config errors |

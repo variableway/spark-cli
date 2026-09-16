@@ -220,10 +220,10 @@ spark git url [repo-path]
 
 ## spark git batch-clone
 
-克隆 GitHub 组织或用户下的所有仓库。自动检测账号类型。
+根据输入自动识别 GitHub 或 GitLab，克隆组织/用户/群组下的所有仓库。GitHub 走 API 分页；GitLab 优先走 REST API v4（有 token 时），回退到 `glab`，最后再试无凭证 API。
 
 ```
-spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exclude <pattern>] [-o <dir>]
+spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exclude <pattern>] [--include-forks] [-o <dir>] [--token <token>]
 ```
 
 | 标志 | 类型 | 默认值 | 必填 | 说明 |
@@ -233,10 +233,19 @@ spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exc
 | `--exclude` | string | | 否 | 排除匹配的仓库（逗号分隔） |
 | `--include-forks` | bool | `false` | 否 | 包含 fork 的仓库 |
 | `-o, --output` | string | `.` | 否 | 克隆输出目录 |
+| `--token` | string | | 否 | GitLab 私有 Token（也可由 `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` 环境变量或 `~/.spark.yaml` 的 `gitlab.token` 提供）；显式指定时不受 `gitlab.host` 作用域限制 |
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `account-name-or-url` | string | 是 | 组织名、用户名或 URL |
+| `account-name-or-url` | string | 是 | 组织名、用户名或 URL（GitLab 支持群组/子群组路径，可省略 `https://`） |
+
+**GitLab 实现要点**：
+
+- 群组路径调用 API v4 时必须 URL 编码（`group/sub` → `group%2Fsub`），否则嵌套群组会 404；`include_subgroups=true` 递归拉取
+- 私有实例/私有群组未认证时返回 **404 而非 401**，因此错误信息区分「未提供凭证」/「凭证无效或无权访问」/「路径不存在」
+- 克隆落盘路径按命名空间相对路径展开（`observability/tenant-observability/argocd-tenant-plugin`），避免子群组同名项目互相覆盖
+- Token 优先级：`--token` > `gitlab.token`（`~/.spark.yaml`）> `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`
+- `gitlab.host`（可选）把自动发现的凭证限定到该实例，避免自托管实例的 token 被发往 `gitlab.com`
 
 ---
 

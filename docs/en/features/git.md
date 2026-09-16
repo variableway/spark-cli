@@ -71,18 +71,32 @@ spark git init --skip-gh --owner variableway    # Local init only
 
 ### Batch Cloning
 
-Clone every repo for a GitHub organization or user, or refresh the repo status list in the README.
+Auto-detects GitHub or GitLab from the input and clones every repo for an organization, user, or group, or refreshes the repo status list in the README.
 
 ```bash
-# Clone an organization's repos
+# Clone a GitHub organization's repos
 spark git batch-clone variableway -o ./repos
 
-# Clone a user's repos
+# Clone a GitHub user's repos
 spark git batch-clone jackwener -o ./repos
+
+# Clone a GitLab group (nested subgroups supported, https:// optional)
+spark git batch-clone gitlab.com/gitlab-com/gl-infra -o ./repos
+spark git batch-clone https://gitlab.example.com/myorg/mygroup --token glpat-xxxx
+
+# Only clone repos whose names match the given patterns
+spark git batch-clone variableway --include cli,tool --exclude docs
 
 # Refresh org status
 spark git update-org-status variableway --update-dot-github
 ```
+
+**Key improvements**:
+
+- GitLab group paths are URL-encoded as API v4 requires, and nested subgroups are walked recursively (`include_subgroups=true`)
+- Clone paths expand the namespace-relative path (e.g. `observability/tenant-observability/argocd-tenant-plugin`), so same-named projects in different subgroups never collide
+- Token precedence: `--token` > `gitlab.token` (`~/.spark.yaml`) > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`
+- `gitlab.host` scopes auto-discovered credentials to that instance, so a self-hosted token is never sent to `gitlab.com`
 
 ### Create Issues from Markdown
 
@@ -130,8 +144,7 @@ spark git scan . --skip-api --db ~/.innate/feeds.db
 
 | Parameter | Description |
 |-----------|-------------|
-| `-p, --path` | Directory to scan (repeatable), default `["."]` |
-| `-p, --path` | Directory containing Git repositories, default `.` |
+| `-p, --path` | Directory containing Git repositories (repeatable), default `["."]` |
 | `-n, --name` | Submodule path name (remote mode), default: repo name |
 | `-o, --output` | Output path |
 | `--ssh` | Use SSH for cloning (`batch-clone`) |
@@ -139,6 +152,8 @@ spark git scan . --skip-api --db ~/.innate/feeds.db
 | `--private` | Create a private repo (`init`) |
 | `--skip-gh` | Skip GitHub remote creation (`init`) |
 | `--include` / `--exclude` | Include/exclude match patterns (`batch-clone`) |
+| `--include-forks` | Include forked repos (`batch-clone`) |
+| `--token` | GitLab private token (`batch-clone`); also via `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` or `gitlab.token` |
 | `-r, --repo` | Target repo (`owner/repo`); auto-resolved from current repo if omitted |
 | `-d, --dir` | Document directory (directory mode) |
 | `-f, --file` | Task file (task mode) |
@@ -150,7 +165,8 @@ spark git scan . --skip-api --db ~/.innate/feeds.db
 ## Dependencies
 
 - The `git` command-line tool
-- The `gh` CLI (`issues`, `batch-clone`, `update-org-status` need GitHub API access)
+- The `gh` CLI (`issues`, GitHub `batch-clone`, `update-org-status` need GitHub API access)
+- GitLab `batch-clone` needs the `glab` CLI, or a `--token` / `gitlab.token` / `GITLAB_TOKEN` (the token needs `read_api`, plus `read_repository` to clone private repos)
 
 ## Related
 

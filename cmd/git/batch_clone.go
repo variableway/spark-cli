@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"spark/internal/github"
 	"spark/internal/gitlab"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -37,9 +39,18 @@ GitHub:
 
 GitLab (self-hosted or gitlab.com):
   spark git batch-clone https://gitlab.example.com/myorg/mygroup/mysubgroup
+  spark git batch-clone https://gitlab.example.com/myorg/mygroup/mysubgroup --token <token>
+  spark git batch-clone gitlab.example.com/myorg/mygroup/mysubgroup
   spark git batch-clone https://gitlab.com/mygroup/myproject
 
-For private GitLab instances, use --token or set GITLAB_TOKEN env var.`,
+Nested groups are supported at any depth and cloned recursively (include_subgroups).
+Each project is written to <output>/<namespace-relative-path> so that subgroups
+are preserved and same-named projects never collide.
+
+For private GitLab instances, provide a token via --token, the GITLAB_TOKEN
+(or GITLAB_PRIVATE_TOKEN) env var, or gitlab.token in ~/.spark.yaml.
+It needs the read_api scope, plus read_repository to clone private repositories.
+Alternatively authenticate glab: glab auth login --hostname <your-gitlab-host>`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		input := args[0]
@@ -48,20 +59,42 @@ For private GitLab instances, use --token or set GITLAB_TOKEN env var.`,
 			outputDir = "."
 		}
 
-		token := batchCloneToken
-		if token == "" {
-			token = os.Getenv("GITLAB_TOKEN")
-		}
-		if token == "" {
-			token = os.Getenv("GITLAB_PRIVATE_TOKEN")
-		}
-
 		if gitlab.IsGitLabURL(input) {
-			return runGitLabBatchClone(input, outputDir, token)
+			return runGitLabBatchClone(cmd, input, outputDir)
 		}
 
 		return runGitHubBatchClone(input, outputDir)
 	},
+}
+
+// resolveGitLabToken resolves the credential and the place it came from.
+// gitlab.host, when set, scopes the automatically discovered credentials
+// (config file and env vars) to that instance; --token is always used.
+func resolveGitLabToken(cmd *cobra.Command, targetHost string) (string, string) {
+	if cmd.Flags().Changed("token") {
+		flagToken, _ := cmd.Flags().GetString("token")
+		return flagToken, gitlab.TokenSourceFlag
+	}
+
+	configHost := viper.GetString("gitlab.host")
+	scoped := func(source string) bool {
+		if configHost == "" || gitlab.ExtractHost(configHost) == targetHost {
+			return true
+		}
+		fmt.Fprintf(os.Stderr, "Ignoring %s: it is scoped to %s, but the current instance is %s\n", source, configHost, targetHost)
+		return false
+	}
+
+	if token := viper.GetString("gitlab.token"); token != "" && scoped(gitlab.TokenSourceConfig) {
+		return token, gitlab.TokenSourceConfig
+	}
+	if token := os.Getenv("GITLAB_TOKEN"); token != "" && scoped(gitlab.TokenSourceEnv) {
+		return token, gitlab.TokenSourceEnv
+	}
+	if token := os.Getenv("GITLAB_PRIVATE_TOKEN"); token != "" && scoped(gitlab.TokenSourceEnvAlt) {
+		return token, gitlab.TokenSourceEnvAlt
+	}
+	return "", ""
 }
 
 func runGitHubBatchClone(input, outputDir string) error {
@@ -143,16 +176,22 @@ func runGitHubBatchClone(input, outputDir string) error {
 	return nil
 }
 
-func runGitLabBatchClone(input, outputDir, token string) error {
+func runGitLabBatchClone(cmd *cobra.Command, input, outputDir string) error {
 	baseURL, groupPath, err := gitlab.ParseGitLabURL(input)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("GitLab instance: %s\n", baseURL)
-	fmt.Printf("Fetching projects from: %s\n\n", groupPath)
+	token, tokenSource := resolveGitLabToken(cmd, gitlab.ExtractHost(baseURL))
 
-	projects, accountType, err := gitlab.GetReposForAccount(baseURL, groupPath, token)
+	fmt.Printf("GitLab instance: %s\n", baseURL)
+	fmt.Printf("Fetching projects from: %s\n", groupPath)
+	if token != "" {
+		fmt.Printf("Using token from: %s\n", tokenSource)
+	}
+	fmt.Println()
+
+	projects, accountType, err := gitlab.GetReposForAccount(baseURL, groupPath, token, tokenSource)
 	if err != nil {
 		return err
 	}
@@ -182,9 +221,10 @@ func runGitLabBatchClone(input, outputDir, token string) error {
 	for i, project := range projectsToClone {
 		fmt.Printf("[%d/%d] ", i+1, len(projectsToClone))
 
-		repoPath := fmt.Sprintf("%s/%s", outputDir, project.Path)
+		relPath := gitlab.ProjectRelativePath(project, groupPath)
+		repoPath := filepath.Join(outputDir, relPath)
 		if _, err := os.Stat(repoPath); !os.IsNotExist(err) {
-			fmt.Printf("Skipping %s (already exists)\n", project.Path)
+			fmt.Printf("Skipping %s (already exists)\n", relPath)
 			skipCount++
 			continue
 		}
@@ -196,11 +236,10 @@ func runGitLabBatchClone(input, outputDir, token string) error {
 			cloneURL = project.HTTPURL
 		}
 
-		fmt.Printf("Cloning %s...\n", project.Path)
+		fmt.Printf("Cloning %s...\n", relPath)
 
-		parentDir := fmt.Sprintf("%s/%s", outputDir, dirName(project.Path))
-		if err := os.MkdirAll(parentDir, 0755); err != nil {
-			fmt.Printf("  Error: failed to create directory %s: %v\n", parentDir, err)
+		if err := os.MkdirAll(filepath.Dir(repoPath), 0755); err != nil {
+			fmt.Printf("  Error: failed to create directory %s: %v\n", filepath.Dir(repoPath), err)
 			failCount++
 			continue
 		}
@@ -210,10 +249,10 @@ func runGitLabBatchClone(input, outputDir, token string) error {
 		cloneCmd.Stderr = os.Stderr
 
 		if err := cloneCmd.Run(); err != nil {
-			fmt.Printf("  Error: failed to clone %s: %v\n", project.Path, err)
+			fmt.Printf("  Error: failed to clone %s: %v\n", relPath, err)
 			failCount++
 		} else {
-			fmt.Printf("  Successfully cloned %s\n", project.Path)
+			fmt.Printf("  Successfully cloned %s\n", relPath)
 			successCount++
 		}
 	}
@@ -224,14 +263,6 @@ func runGitLabBatchClone(input, outputDir, token string) error {
 	fmt.Printf("Failed: %d\n", failCount)
 
 	return nil
-}
-
-func dirName(pathWithNamespace string) string {
-	parts := strings.Split(pathWithNamespace, "/")
-	if len(parts) > 1 {
-		return parts[len(parts)-1]
-	}
-	return pathWithNamespace
 }
 
 func matchesPattern(name, pattern string) bool {
@@ -257,5 +288,7 @@ func init() {
 	batchCloneCmd.Flags().StringVar(&batchCloneExclude, "exclude", "", "Exclude repos matching pattern (comma-separated)")
 	batchCloneCmd.Flags().BoolVar(&batchCloneIncludeFork, "include-forks", false, "Include forked repositories")
 	batchCloneCmd.Flags().StringVarP(&batchCloneOutput, "output", "o", ".", "Output directory for cloned repositories")
-	batchCloneCmd.Flags().StringVar(&batchCloneToken, "token", "", "GitLab private token (or set GITLAB_TOKEN env var)")
+	batchCloneCmd.Flags().StringVar(&batchCloneToken, "token", "", "GitLab private token (or set GITLAB_TOKEN env var, or gitlab.token in ~/.spark.yaml)")
+
+	viper.BindPFlag("gitlab.token", batchCloneCmd.Flags().Lookup("token"))
 }

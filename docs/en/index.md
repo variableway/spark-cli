@@ -15,12 +15,13 @@ A CLI tool for daily dev automation and AI skill integration.
 
 | Layer | Technology |
 |-------|-----------|
-| Language | Go 1.25 |
+| Language | Go 1.27 (see `go.mod`) |
 | CLI Framework | Cobra |
 | Config | Viper (`~/.spark.yaml`) |
 | TUI | PTerm + Bubble Tea |
-| Testing | Ginkgo / Gomega (BDD) |
-| Docs | docmd |
+| Testing | Ginkgo / Gomega (BDD, `internal/`) + standard `testing` (`cmd/`) |
+| Build | Makefile + Taskfile |
+| Docs | docmd (bilingual zh/en) |
 
 ## Architecture
 
@@ -28,17 +29,26 @@ A CLI tool for daily dev automation and AI skill integration.
 main.go → cmd.Execute()
 ├── cmd/                    Cobra command definitions
 │   ├── git/                Git repo management commands
-│   ├── magic/              System utilities (DNS, mirrors)
+│   ├── repo/               Registry-file repo management (scan/clone/list)
+│   ├── magic/              System utilities (DNS, mirrors, clean, copy-config)
 │   ├── script/             Script management commands
-│   └── task.go             Task workflow commands
+│   ├── docs/               Documentation scaffolding commands
+│   ├── task.go             Task workflow commands
+│   ├── version.go          spark version
+│   └── witr.go             Process diagnostics bridge
 ├── internal/               Business logic by domain
 │   ├── config/             Config loading & migration
-│   ├── git/                Core git operations
+│   ├── git/                Core git operations (+ scanner/)
 │   ├── github/             GitHub API interactions
+│   ├── gitlab/             GitLab API interactions (batch-clone)
+│   ├── registry/           registry file scan/read/merge
 │   ├── script/             Script discovery & execution
 │   ├── task/               Task dispatch/sync/issue CRUD
-│   └── tui/                Shared terminal UI components
-├── docs/                   Documentation (docmd)
+│   ├── templates/          Embedded nvim/ghostty dotfiles
+│   ├── tui/                Shared terminal UI components
+│   └── witr/               Why-Is-This-Running engine
+├── pkg/witr/model/         Shared witr data model
+├── docs/zh, docs/en/       Bilingual docmd site
 └── scripts/                User-defined automation scripts
 ```
 
@@ -83,18 +93,43 @@ go test ./internal/git/... -v -run TestFunctionName
 
 | Command | Description |
 |---------|-------------|
+| `spark git clone <url-or-slug> [dir] [-- <git-args>]` | Clone a GitHub repo via `gh repo clone` (SSH by default) |
 | `spark git update [--ssh]` | Update all repos to latest version (`--ssh` forces SSH) |
 | `spark git submodule add [-p <path>]` | Add existing repos as submodules |
-| `spark git sync [repo]` | Sync all submodules to latest |
+| `spark git submodule add <repo-url> [-n <name>]` | Add a remote repo as a submodule |
+| `spark git submodule init [-j <n>] [-r] [--name <name>]` | Initialize missing submodules |
+| `spark git submodule status` | Show submodule initialization status |
+| `spark git submodule ensure-ssh` | Rewrite HTTPS submodule URLs to SSH |
+| `spark git sync [repo] [-r]` | Sync all submodules to latest |
 | `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
 | `spark git init [--owner <owner>] [--skip-gh]` | Initialize git repo, create GitHub remote |
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
-| `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
+| `spark git batch-clone <account-or-url> [--ssh] [--include] [--exclude] [--include-forks] [-o <dir>] [--token]` | Clone all repos from a GitHub org/user or a GitLab group/user |
 | `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
 | `spark git issues [-r <owner/repo>] (-d <dir> \| -f <file>) [--dry-run] [-l <labels>]` | Create GitHub issues from markdown docs/tasks |
 | `spark git push-all [-p <path>]` | Commit and push all changes in repositories |
 | `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
+
+---
+
+### spark repo — Repository Management
+
+| Command | Description |
+|---------|-------------|
+| `spark repo scan [folder-name]` | Scan a directory and write `registry_<folder>.yaml` |
+| `spark repo clone -f <file> [-r <name>]` | Clone repos listed in a registry file |
+| `spark repo list -f <file>` | List repos in a registry file |
+
+Registry files (`registry_<folder>.yaml`) replace submodules for managing many repos in one directory.
+
+---
+
+### spark version — Version Info
+
+| Command | Description |
+|---------|-------------|
+| `spark version` | Print version / commit / build date |
 
 ---
 
@@ -164,6 +199,12 @@ repo-path:
 git:
   username: your-name
   email: your@email.com
+  scanner:
+    db: ~/.innate/feeds.db
+gitlab:
+  host: gitlab.example.com   # optional: scope the token to this instance
+  token: glpat-xxxx          # GitLab token for batch-clone
+github-owner: your-username  # default for spark git init --owner
 task_dir: /path/to/tasks
 github_owner: your-username
 work_dir: ./workspace
@@ -175,6 +216,14 @@ Online docs: https://variableway.github.io/spark-cli/
 
 | Path | Content |
 |------|---------|
-| [docs/en/usage/](/en/usage/usage) | Per-command usage guides |
-| [docs/en/analysis/](/en/analysis/project-analysis) | Architecture & RFC documents |
-| [CLAUDE.md](https://github.com/variableway/spark-cli/blob/main/CLAUDE.md) | Claude Code development guide |
+| [usage/](/en/usage/usage) | Command usage guide overview |
+| [usage/git.md](/en/usage/git) | Git repository management |
+| [usage/repo.md](/en/usage/repo) | Repository management (registry) |
+| [usage/task.md](/en/usage/task) | Task management |
+| [usage/magic.md](/en/usage/magic) | System utilities |
+| [usage/script.md](/en/usage/script) | Script management |
+| [usage/docs-cmd.md](/en/usage/docs-cmd) | Docs management |
+| [usage/witr.md](/en/usage/witr) | Process diagnostics |
+| [Agents.md](/en/Agents) | Full command reference (site mirror) |
+| [../../AGENTS.md](../../AGENTS.md) | Authoritative source: AI assistant instructions |
+| [../../CLAUDE.md](../../CLAUDE.md) | Claude Code development guide |

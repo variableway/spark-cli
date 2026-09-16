@@ -26,11 +26,11 @@
 
 ## 技术栈
 
-- **语言**: Go 1.24+
+- **语言**: Go 1.27+（见 `go.mod`）
 - **CLI 框架**: [Cobra](https://github.com/spf13/cobra) + [Viper](https://github.com/spf13/viper)
-- **终端 UI**: [pterm](https://github.com/pterm/pterm) + 自定义 TUI 组件
-- **测试框架**: [Ginkgo](https://github.com/onsi/ginkgo) + [Gomega](https://github.com/onsi/gomega) (BDD 风格)
-- **构建系统**: Makefile（跨平台：Windows / Linux / macOS）
+- **终端 UI**: [pterm](https://github.com/pterm/pterm) + [Bubble Tea](https://github.com/charmbracelet/bubbletea) + 自定义 TUI 组件
+- **测试框架**: [Ginkgo](https://github.com/onsi/ginkgo) + [Gomega](https://github.com/onsi/gomega)（BDD 风格，`internal/`）+ 标准 `testing`（`cmd/`）
+- **构建系统**: Makefile + Taskfile（跨平台：Windows / Linux / macOS）
 
 ## 项目结构
 
@@ -82,7 +82,7 @@ spark-cli/
 │   ├── git/                 # Git 操作封装（finder/updater/init/submodule/pusher + scanner 子包）
 │   │   └── scanner/         # git scan 使用的扫描与 SQLite 持久化
 │   ├── github/              # GitHub API（org / markdown issue）
-│   ├── gitlab/              # GitLab API（用于 batch-clone）
+│   ├── gitlab/              # GitLab API（batch-clone：URL 解析、token 来源、嵌套群组）
 │   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
 │   ├── script/              # 脚本发现（配置 + scripts/ 目录）与执行
 │   ├── task/                # 任务 init/dispatch/sync、issue CRUD、impl（kimi）
@@ -90,15 +90,24 @@ spark-cli/
 │   ├── tui/                 # PTerm 上层封装（确认对话框、选择器）
 │   └── witr/                # Why-Is-This-Running 进程诊断引擎
 ├── pkg/
-├── docs/
-│   ├── usage/               # 每个命令的使用说明
-│   ├── specs/               # 规约文档
-│   ├── analysis/            # 架构分析
-│   └── features/            # 功能说明
-├── scripts/                 # 默认脚本目录（spark script 使用）
+│   └── witr/model/          # witr 的共享数据模型
+├── docs/                    # docmd 文档站点（中英双语）
+│   ├── zh/                  # 中文（默认 locale，渲染于根 URL）
+│   │   ├── usage/           # 每个命令的使用说明
+│   │   ├── spec/            # 规约文档
+│   │   ├── features/        # 功能说明
+│   │   ├── analysis/        # 架构分析与 RFC
+│   │   ├── quick-start/     # 快速开始
+│   │   ├── Agents.md        # AGENTS.md 的站点镜像
+│   │   └── navigation.json  # 侧边栏导航
+│   ├── en/                  # 英文镜像（渲染于 /en/），层级与 zh/ 完全平行
+│   └── ...
+├── scripts/                 # 默认脚本目录（spark script 使用）+ 安装/校验脚本
+├── tasks/                   # spark task 的任务目录（issues/config/analysis/mindstorm/planning/prd）
 ├── .vscode/                 # VS Code 配置（tasks/launch/settings）
 ├── Makefile                 # 构建脚本（build/build-linux/build-darwin/test/lint/clean）
-├── docmd.config.js          # docmd 站点配置
+├── Taskfile.yml             # Task 版等价命令（build/install/install-binary/verify-install）
+├── docmd.config.js          # docmd 站点配置（i18n.default: zh）
 ├── go.mod / go.sum
 └── package.json             # docmd 依赖
 ```
@@ -109,35 +118,37 @@ spark-cli/
 spark
 ├── version                 (显示 spark version / commit / build date)
 ├── git
-│   ├── init
-│   ├── clone
-│   ├── update               (--ssh)
+│   ├── init                 (--owner, -r/--repo, --private, --skip-gh)
+│   ├── clone                (<url-or-slug> [directory] [-- <git-args>])
+│   ├── update               (-p, --ssh)
 │   ├── submodule
-│   │   ├── add              (-n, --name)
+│   │   ├── add              (<path-or-url>, -n, --name)
 │   │   ├── init             (-r, --recursive, -j, --parallel, --name)
 │   │   ├── status           (-r, --recursive)
 │   │   └── ensure-ssh
-│   ├── sync                 (-r, --recursive)
-│   ├── gitcode              (--url)
-│   ├── config               (--username, --email)
-│   ├── url
-│   ├── batch-clone          (--ssh, --include, --exclude, --include-forks, -o, --token)
+│   ├── sync                 ([repo-path], -r, --recursive)
+│   ├── gitcode              (-p, --url)
+│   ├── config               ([repo-path], --username, --email)
+│   ├── url                  ([repo-path])
+│   ├── batch-clone          (<account-name-or-url>, --ssh, --include, --exclude,
+│   │                         --include-forks, -o, --token)
 │   ├── issues               (-r, -f, -d, -l, --dry-run)
-│   ├── update-org-status    (--dry-run, -o, --update-dot-github, --section, --skip-push)
-│   ├── push-all
-│   └── scan                 (-d, --db, --skip-api)
+│   ├── update-org-status    (<org-name-or-url>, --dry-run, -o, --update-dot-github,
+│   │                         --section, --skip-push)
+│   ├── push-all             (-p)
+│   └── scan                 ([folder-path], -d, --db, --skip-api)
 ├── repo
 │   ├── scan                 ([folder-name])
 │   ├── clone                (-r, --repo, -f, --file)
 │   └── list                 (-f, --file)
 ├── task                     (--task-dir, --owner, --work-dir, --tui)
-│   ├── dispatch             (--dest)
-│   ├── sync                 (--work-path)
+│   ├── dispatch             ([task-name], --dest)
+│   ├── sync                 ([task-name], --work-path)
 │   ├── list
 │   ├── init
-│   ├── create               (--content)
-│   ├── delete               (--force)
-│   └── impl
+│   ├── create               (<feature-name>, --content)
+│   ├── delete               (<feature-name>, --force)
+│   └── impl                 (<feature-name>)
 ├── script
 │   ├── list
 │   └── run
@@ -183,6 +194,31 @@ spark
 - 增加 `internal/gitlab` 子包；
 - `spark git batch-clone <git-host>/<group>/<subgroup>` 同时支持自托管 GitLab；
 - 支持 `--token` / `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` 环境变量认证。
+- 详细命令清单见下文「CLI 命令完整参考」。
+
+### 5. GitLab 嵌套群组与凭证作用域 (2026-09-16)
+- **嵌套群组**：`detectAccountType` / `apiGetGroupProjects` / `apiGetUserProjects` 统一用
+  `escapePath`（`url.PathEscape`）编码路径，`include_subgroups=true` 递归拉取任意层级子群组；
+  `ProjectRelativePath` 按命名空间相对路径落盘，避免子群组同名项目互相覆盖。
+- **无 scheme 输入**：`IsGitLabURL` 识别 `gitlab.com/group/sub`，`ParseGitLabURL` 自动补 `https://`。
+- **凭证来源可追溯**：新增 `TokenSourceFlag` / `TokenSourceConfig` / `TokenSourceEnv` / `TokenSourceEnvAlt`
+  常量与 `tokenOrigin()`，`cmd/git.resolveGitLabToken` 按
+  `--token` > `gitlab.token` > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN` 解析，
+  启动打印 `Using token from: ...`，报错中指明被拒绝凭证的来源。
+- **凭证 host 作用域**：新增 `gitlab.host` 配置，将自动发现的凭证限定到该实例，
+  不匹配时打印 `Ignoring ...: it is scoped to ...` 并跳过；`internal/gitlab.ExtractHost`
+  负责把 URL / 裸域名 / `host:port` 归一化为小写 host 用于比较。
+- **错误分类**：私有实例未认证返回 404 而非 401，`detectAccountType` 据此区分
+  「凭证被拒绝」/「未提供凭证」/「路径不存在」三种提示。
+- **测试**：`internal/gitlab/gitlab_test.go`（含 `httptest` 模拟嵌套群组与 401/404）与
+  `cmd/git/batch_clone_test.go`（`resolveGitLabToken` 的 host 作用域表驱动用例）。
+
+### 6. repo registry 与 magic/docs 命令
+- `spark repo`（`cmd/repo/` + `internal/registry`）以 `registry_<folder>.yaml` 取代 submodule
+  管理目录下的多个仓库：`scan` / `clone` / `list`。
+- `spark magic`（`cmd/magic/`）提供 `clean` / `copy-config` / `flush-dns` / `pip|go|node {list,use,current}`。
+- `spark docs`（`cmd/docs/`）提供 `init` / `site`，用于 docmd 站点脚手架。
+- `spark version`（`cmd/version.go`）打印 version / commit / build date。
 
 ## CLI 命令完整参考
 
@@ -366,15 +402,36 @@ spark git config --username foo --email bar     # 显式覆盖
 spark git batch-clone variableway
 spark git batch-clone https://github.com/variableway
 
-# GitLab（自托管或 gitlab.com，递归支持子群组）
+# GitLab（自托管或 gitlab.com，任意层级嵌套群组均递归支持）
 spark git batch-clone https://gitlab.example.com/myorg/mygroup
 spark git batch-clone https://gitlab.example.com/myorg/mygroup/subgroup
+spark git batch-clone https://gitlab.com/gitlab-com/gl-infra --token <token>
+spark git batch-clone gitlab.com/gitlab-com/gl-infra         # 可省略 https://
 
 # 通用
 spark git batch-clone variableway --ssh
 spark git batch-clone variableway -o ./repos
 spark git batch-clone <url> --token <token>      # 也支持 GITLAB_TOKEN / GITLAB_PRIVATE_TOKEN 环境变量
 ```
+
+GitLab 实现要点：
+
+- `gitlab.IsGitLabURL` 支持无 scheme 输入（`gitlab.com/group/sub`），只要首个路径段是含 `.` 的域名即判定为 GitLab；
+  `gitlab.ParseGitLabURL` 自动补 `https://` 前缀，因此 `spark git batch-clone gitlab.com/gitlab-com/gl-infra` 合法
+- 群组路径在调用 API v4 时必须 URL 编码（`group/sub/project` → `group%2Fsub%2Fproject`），
+  否则嵌套群组会 404，见 `internal/gitlab.escapePath`（`detectAccountType` 与两个 projects 拉取函数共用）
+- 解析顺序：有 `--token` 时优先走 REST API（可给出精确错误），否则回退 `glab`，最后再试无凭证 API
+- 克隆落盘路径按命名空间相对路径展开（`internal/gitlab.ProjectRelativePath`），
+  如 `archiver`、`observability/tenant-observability/argocd-tenant-plugin`，避免子群组同名项目互相覆盖
+- Token 优先级：`--token` > `~/.spark.yaml` 的 `gitlab.token`（`viper.BindPFlag`）> `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`；
+  来源标签由 `cmd/git.resolveGitLabToken` 计算，启动时打印 `Using token from: ...`，
+  报错中也带上该来源（配置文件里残留的失效 token 会盖住环境变量，需据此排查）
+- `gitlab.host`（可选）把自动发现的凭证（配置文件 + 环境变量）限定到该实例：
+  host 不匹配时跳过该凭证并提示 `Ignoring ...: it is scoped to ...`，
+  避免自托管实例的 token 被发往 `gitlab.com` 导致公开群组也鉴权失败；
+  `--token` 属显式指定不受限制，未配置 host 时保持旧行为（见 `internal/gitlab.ExtractHost`）
+- 私有实例/私有群组未认证时返回 404 而非 401，因此错误信息会区分
+  “未提供凭证” / “凭证无效或无权访问” / “路径不存在”三种情况，避免把缺 token 误报成 not found
 
 | 选项 | 说明 |
 |------|------|
@@ -383,7 +440,10 @@ spark git batch-clone <url> --token <token>      # 也支持 GITLAB_TOKEN / GITL
 | `--exclude` | 跳过名称含任一模式（逗号分隔）的仓库 |
 | `--include-forks` | 包含 fork 仓库（GitHub 通过 `repo.Fork` 判定；GitLab 通过 `forked_from` 字段） |
 | `-o, --output` | 输出目录（默认 `.`） |
-| `--token` | GitLab 私有 Token（也可由 `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` 环境变量提供） |
+| `--token` | GitLab 私有 Token（显式指定，不受 `gitlab.host` 限制；也可由 `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` 环境变量或 `~/.spark.yaml` 的 `gitlab.token` 提供） |
+
+> Token 来源常量定义在 `internal/gitlab.TokenSourceFlag` / `TokenSourceConfig` / `TokenSourceEnv` / `TokenSourceEnvAlt`，
+> 由 `cmd/git.resolveGitLabToken` 按上述优先级返回并打印 `Using token from: ...`。
 
 #### `spark git issues`
 两种模式：从目录中每个 Markdown 文件创建 Issue，或从任务文件（`## Task <id>...`）创建 Issue。
@@ -758,6 +818,13 @@ git:
   scanner:
     db: ~/.innate/feeds.db         # spark git scan 默认 SQLite 路径
 
+gitlab:
+  host: gitlab.example.com         # 可选：把自动发现的凭证限定到该实例（不配则发给任何实例）
+  token: glpat-xxxx                # spark git batch-clone 的 GitLab Token（= --token = GITLAB_TOKEN）
+                                   # 需 read_api 权限，克隆私有仓库还需 read_repository
+                                   # 优先级高于环境变量，残留的失效 token 会盖住 GITLAB_TOKEN
+
+github-owner: your-github-username # spark git init --owner 默认值
 task_dir: ~/tasks                  # spark task --task-dir
 github_owner: your-github-username # spark task --owner
 work_dir: ~/workspace              # spark task --work-dir
@@ -765,6 +832,22 @@ work_dir: ~/workspace              # spark task --work-dir
 default_branch: main
 auto_commit: true
 ```
+
+配置键与实际读取位置（`viper.GetString` / `viper.GetStringSlice`）：
+
+| 配置键 | 读取处 |
+|--------|--------|
+| `repo-path`（全局 `-p, --path`） | `cmd/git/update.go`、`push_all.go`、`magic/clean.go`、`gitcode.go` |
+| `git.username` / `git.email` | `cmd/git/config.go`、`cmd/git/init.go` |
+| `git.scanner.db`（`--db`） | `cmd/git/scan.go` |
+| `gitlab.host` / `gitlab.token`（`--token`） | `cmd/git/batch_clone.go` |
+| `github-owner` | `cmd/git/init.go` |
+| `task_dir` / `github_owner` / `work_dir` | `cmd/task.go` |
+| `dest` / `work-path` | `cmd/task.go`（`dispatch` / `sync` 的 flag） |
+| `spark.scripts_dir` | `cmd/script/list.go`、`cmd/script/run.go` |
+
+GitLab Token 的环境变量为何用 `os.Getenv` 而非 `viper.AutomaticEnv()`：viper 会把 `gitlab.token`
+映射为 `GITLAB.TOKEN`，而 shell 无法定义含 `.` 的变量名，因此环境变量一律走显式 `os.Getenv`。
 
 配置键命名转换：`~/.spark.yaml` 中使用 snake_case（`task_dir`、`github_owner`、`work_dir`、`repo_path`），通过 `viper.BindPFlag` 与持久 flag 关联。结构体 tag 中习惯仍使用 camelCase。脚本相关：
 
@@ -816,6 +899,7 @@ cd spark-cli/spark-skills
    - 新功能必须添加 BDD 风格测试
    - 测试文件以 `_test.go` 结尾，测试套件（`*_suite_test.go`）注册 Ginkgo runner
    - 测试覆盖：`config` / `git`（含 `scanner`）/ `script` / `task` / `github` / `gitlab` / `witr/output`
+   - `cmd/` 下的纯函数（如 `resolveGitLabToken`、`parseRepoSlug`）用标准 `testing` 直接覆盖即可
 
 3. **构建一致性**
    - 优先更新 `Makefile` 以保持构建一致性
@@ -823,7 +907,8 @@ cd spark-cli/spark-skills
    - 提交前运行 `make lint` 和 `make test`
 
 4. **文档更新**
-   - 新增/修改命令时同步更新 `docs/usage/` 对应文档与本 `AGENTS.md`
+   - 新增/修改命令时同步更新 `docs/zh/usage/` 与 `docs/en/usage/` 对应文档、本 `AGENTS.md` 与 `CLAUDE.md`
+   - `docs/zh/Agents.md`、`docs/en/Agents.md` 是站点内的镜像，同样需要跟进
    - 保持 `AGENTS.md` 命令层级与实际 `cmd/` / `internal/` 实现一致
    - 文档主要为中文 UI；命令行/代码标识符保持英文
    - 文档站点 `docs/` 已支持中英双语（`docmd.config.js` 中 `i18n.default: 'zh'`）：

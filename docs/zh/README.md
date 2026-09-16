@@ -10,12 +10,13 @@ A CLI tool for daily dev automation and AI skill integration.
 
 | Layer | Technology |
 |-------|-----------|
-| Language | Go 1.25 |
+| Language | Go 1.27 (see `go.mod`) |
 | CLI Framework | Cobra |
 | Config | Viper (`~/.spark.yaml`) |
 | TUI | PTerm + Bubble Tea |
-| Testing | Ginkgo / Gomega (BDD) |
-| Docs | docmd |
+| Testing | Ginkgo / Gomega (BDD, `internal/`) + standard `testing` (`cmd/`) |
+| Build | Makefile + Taskfile |
+| Docs | docmd (bilingual zh/en) |
 
 ## Architecture
 
@@ -23,17 +24,26 @@ A CLI tool for daily dev automation and AI skill integration.
 main.go → cmd.Execute()
 ├── cmd/                    Cobra command definitions
 │   ├── git/                Git repo management commands
-│   ├── magic/              System utilities (DNS, mirrors)
+│   ├── repo/               Registry-file repo management (scan/clone/list)
+│   ├── magic/              System utilities (DNS, mirrors, clean, copy-config)
 │   ├── script/             Script management commands
-│   └── task.go             Task workflow commands
+│   ├── docs/               Documentation scaffolding commands
+│   ├── task.go             Task workflow commands
+│   ├── version.go          spark version
+│   └── witr.go             Process diagnostics bridge
 ├── internal/               Business logic by domain
 │   ├── config/             Config loading & migration
-│   ├── git/                Core git operations
+│   ├── git/                Core git operations (+ scanner/)
 │   ├── github/             GitHub API interactions
+│   ├── gitlab/             GitLab API interactions (batch-clone)
+│   ├── registry/           registry file scan/read/merge
 │   ├── script/             Script discovery & execution
 │   ├── task/               Task dispatch/sync/issue CRUD
-│   └── tui/                Shared terminal UI components
-├── docs/                   Documentation (docmd)
+│   ├── templates/          Embedded nvim/ghostty dotfiles
+│   ├── tui/                Shared terminal UI components
+│   └── witr/               Why-Is-This-Running engine
+├── pkg/witr/model/         Shared witr data model
+├── docs/zh, docs/en/       Bilingual docmd site
 └── scripts/                User-defined automation scripts
 ```
 
@@ -46,15 +56,15 @@ make build-linux    # Cross-compile Linux amd64
 make build-darwin   # Cross-compile macOS amd64
 make test           # Run all unit tests
 make test-bdd       # BDD-style tests (Ginkgo)
+make lint           # Static analysis (go vet)
+make clean          # Remove binary
 ```
 
 验证安装的二进制确实是最新的：
+
 ```bash
 spark version       # -> spark v0.3.2 / commit 1ef84d7 / build date ...
 spark --version     # -> spark version v0.3.2
-```
-make lint           # Static analysis (go vet)
-make clean          # Remove binary
 ```
 
 Run a single test:
@@ -77,18 +87,43 @@ go test ./internal/git/... -v -run TestFunctionName
 
 | Command | Description |
 |---------|-------------|
+| `spark git clone <url-or-slug> [dir] [-- <git-args>]` | Clone a GitHub repo via `gh repo clone` (SSH by default) |
 | `spark git update [--ssh]` | Update all repos to latest version (`--ssh` 强制 SSH) |
 | `spark git submodule add [-p <path>]` | Add existing repos as submodules |
-| `spark git sync [repo]` | Sync all submodules to latest |
+| `spark git submodule add <repo-url> [-n <name>]` | Add a remote repo as a submodule |
+| `spark git submodule init [-j <n>] [-r] [--name <name>]` | Initialize missing submodules |
+| `spark git submodule status` | Show submodule initialization status |
+| `spark git submodule ensure-ssh` | Rewrite HTTPS submodule URLs to SSH |
+| `spark git sync [repo] [-r]` | Sync all submodules to latest |
 | `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
 | `spark git init [--owner <owner>] [--skip-gh]` | Initialize git repo, create GitHub remote |
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
-| `spark git batch-clone <account> [--ssh] [--include] [--exclude] [-o <dir>]` | Clone all repos from GitHub org/user |
+| `spark git batch-clone <account-or-url> [--ssh] [--include] [--exclude] [--include-forks] [-o <dir>] [--token]` | Clone all repos from a GitHub org/user or a GitLab group/user |
 | `spark git update-org-status <org> [--dry-run] [--update-dot-github] [--section <name>]` | Update org README with repo list |
 | `spark git issues [-r <owner/repo>] (-d <dir> \| -f <file>) [--dry-run] [-l <labels>]` | Create GitHub issues from markdown docs/tasks |
 | `spark git push-all [-p <path>]` | Commit and push all changes in repositories |
 | `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
+
+---
+
+### spark repo — Repository Management
+
+| Command | Description |
+|---------|-------------|
+| `spark repo scan [folder-name]` | Scan a directory and write `registry_<folder>.yaml` |
+| `spark repo clone -f <file> [-r <name>]` | Clone repos listed in a registry file |
+| `spark repo list -f <file>` | List repos in a registry file |
+
+Registry files (`registry_<folder>.yaml`) replace submodules for managing many repos in one directory.
+
+---
+
+### spark version — Version Info
+
+| Command | Description |
+|---------|-------------|
+| `spark version` | Print version / commit / build date |
 
 ---
 
@@ -158,6 +193,12 @@ repo-path:
 git:
   username: your-name
   email: your@email.com
+  scanner:
+    db: ~/.innate/feeds.db
+gitlab:
+  host: gitlab.example.com   # 可选：把 token 限定到该实例
+  token: glpat-xxxx          # batch-clone 的 GitLab Token
+github-owner: your-username  # spark git init --owner 默认值
 task_dir: /path/to/tasks
 github_owner: your-username
 work_dir: ./workspace
@@ -169,6 +210,14 @@ Online docs: https://variableway.github.io/spark-cli/
 
 | Path | Content |
 |------|---------|
-| [docs/usage/](docs/usage/) | Per-command usage guides |
-| [docs/analysis/](docs/analysis/) | Architecture & RFC documents |
-| [CLAUDE.md](CLAUDE.md) | Claude Code development guide |
+| [usage/](usage/usage.md) | 命令使用指南总览 |
+| [usage/git.md](usage/git.md) | Git 仓库管理 |
+| [usage/repo.md](usage/repo.md) | 仓库管理（registry） |
+| [usage/task.md](usage/task.md) | 任务管理 |
+| [usage/magic.md](usage/magic.md) | 系统工具 |
+| [usage/script.md](usage/script.md) | 脚本管理 |
+| [usage/docs-cmd.md](usage/docs-cmd.md) | 文档管理 |
+| [usage/witr.md](usage/witr.md) | 进程诊断 |
+| [Agents.md](Agents.md) | 命令完整参考（站点镜像） |
+| [../../AGENTS.md](../../AGENTS.md) | 权威来源：AI 助手指令 |
+| [../../CLAUDE.md](../../CLAUDE.md) | Claude Code 开发指南 |

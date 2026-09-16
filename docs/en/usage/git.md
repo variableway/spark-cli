@@ -291,7 +291,7 @@ Auto-detect GitHub or GitLab from the input and clone every repository for the g
 | `--exclude` | | | Exclude matching repos (comma-separated) |
 | `--include-forks` | | `false` | Include forked repos |
 | `--output` | `-o` | `.` | Output directory |
-| `--token` | | | GitLab private token (or `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` env var) |
+| `--token` | | | GitLab private token (or `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` env var, or `gitlab.token` in `~/.spark.yaml`) |
 
 ```bash
 # GitHub
@@ -302,11 +302,62 @@ spark git batch-clone variableway --ssh         # Use SSH
 spark git batch-clone variableway --include spark --exclude test
 spark git batch-clone variableway -o ./repos  # Specify the output directory
 
-# GitLab (self-hosted or gitlab.com, supports subgroups)
+# GitLab (self-hosted or gitlab.com, supports subgroups at any depth)
 spark git batch-clone https://gitlab.example.com/myorg/mygroup
-spark git batch-clone https://gitlab.com/mygroup/myproject
+spark git batch-clone https://gitlab.com/gitlab-com/gl-infra
 spark git batch-clone https://gitlab.example.com/myorg --token <token>
+spark git batch-clone gitlab.com/gitlab-com/gl-infra   # https:// may be omitted
 ```
+
+Nested groups (e.g. `gitlab-com/gl-infra`) are fetched recursively, including all
+subgroups. Each project is cloned to `<output>/<namespace-relative-path>`, for example
+`archiver` or `observability/tenant-observability/argocd-tenant-plugin`, so the subgroup
+layout is preserved and same-named projects in different subgroups never overwrite each other.
+
+### Credentials for private instances
+
+Self-hosted instances and private groups return 404 (not 401) when unauthenticated, so a
+token must be configured first. Create a Personal Access Token on that instance (needs the
+`read_api` scope, plus `read_repository` to clone private repositories):
+`https://<your-gitlab-host>/-/user_settings/personal_access_tokens`
+
+Four sources, highest precedence first:
+`--token` > `gitlab.token` in `~/.spark.yaml` > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`.
+
+```bash
+# 1) Per invocation
+spark git batch-clone https://gitlab.example.com/myorg/mygroup --token glpat-xxxx
+
+# 2) Environment variable (add to ~/.zshrc to persist)
+export GITLAB_TOKEN=glpat-xxxx
+# GITLAB_PRIVATE_TOKEN is also supported
+
+# 3) ~/.spark.yaml (recommended: configure once, works everywhere)
+```
+
+```yaml
+gitlab:
+  host: gitlab.example.com   # optional: scope the credentials to this instance
+  token: glpat-xxxx
+```
+
+`gitlab.host` scopes the automatically discovered credentials (config file and env vars)
+to that instance: once `host` is set, another instance (e.g. the public `gitlab.com`) is
+queried anonymously and spark reports `Ignoring ...: it is scoped to ...`. `--token` is an
+explicit credential and is never scoped. Without `host` the previous behavior applies and
+the credentials are sent to any target instance.
+
+Note: a token in `~/.spark.yaml` takes precedence over environment variables. A revoked
+`gitlab.token` left in the config file keeps authentication failing even when a valid
+`GITLAB_TOKEN` is exported. The command prints `Using token from: ...` and the error names
+the source of the rejected token, so the origin is easy to trace.
+
+You can also reuse `glab` credentials: `glab auth login --hostname gitlab.example.com`,
+then verify with `glab auth status`.
+
+Cloning private repositories additionally requires git-side credentials: prefer `--ssh`
+(using your SSH key), otherwise let git remember HTTPS credentials
+(e.g. `git config --global credential.helper osxkeychain`).
 
 ---
 

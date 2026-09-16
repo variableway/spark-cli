@@ -1,466 +1,318 @@
 # AGENTS.md
 
-本文档记录了 AI 助手在本项目中执行的关键任务、系统集成工作以及完整的功能说明。
+本文档记录 AI 助手在本项目中执行的关键任务、系统集成工作以及完整的功能说明。
+仓库根目录的 [`AGENTS.md`](../../AGENTS.md) 与 [`CLAUDE.md`](../../CLAUDE.md) 是权威来源，本页为站点镜像。
 
 ## 项目概述
 
-**Spark** 是一个 CLI 工具，用于管理多个 Git 仓库。它提供以下核心功能：
+**Spark** 是一个 CLI 工具（`module spark`，二进制 `spark`），用于管理多个 Git 仓库、脚本、任务工作流，并附带实用系统工具。基于 **Cobra**（CLI）、**Viper**（配置）、**PTerm** + **Bubble Tea**（终端 UI），BDD 测试使用 **Ginkgo/Gomega**。
 
-1. **多仓库更新** - 批量更新多个 Git 仓库到最新版本
-2. **Submodule 管理** - 将本地仓库或远程 URL 添加为子模块
-3. **子模块同步** - 同步 Mono 仓库中的所有子模块
-4. **Git 用户配置** - 配置仓库的 Git 用户信息
-5. **任务管理** - 任务分发、同步和 GitHub 仓库创建
-6. **Gitcode 远程管理** - 为仓库添加 Gitcode 远程地址
+核心功能：
+
+1. **多仓库更新** — 批量更新多个 Git 仓库到最新版本（支持 SSH）
+2. **仓库克隆** — `git clone` 通过 `gh repo clone` 克隆 GitHub 仓库（默认 SSH）；`batch-clone` 支持 GitHub 组织/用户与 GitLab 群组/用户
+3. **Submodule 管理** — `submodule add`（URL 或本地目录）、`submodule init`、`submodule status`、`submodule ensure-ssh`、`git sync`
+4. **Git 用户配置** — `spark git config` 配置仓库的 Git 用户信息
+5. **Gitcode 远程管理** — `spark git gitcode` 添加 Gitcode 远程地址
+6. **组织状态** — `spark git update-org-status` 将组织仓库列表写入 README
+7. **仓库扫描** — `spark git scan` 扫描目录中的仓库并保存到 SQLite
+8. **仓库推送** — `spark git push-all` 批量提交推送所有更改
+9. **Issue 创建** — `spark git issues` 从 Markdown/任务文件创建 GitHub Issue
+10. **任务管理** — `spark task` 任务分发、同步、issue CRUD 与 `impl`（基于 `kimi` CLI）
+11. **脚本管理** — 从 `~/.spark.yaml` 或 `scripts/` 目录发现并执行脚本
+12. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
+13. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
+14. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
+15. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
 
 ## 技术栈
 
-- **语言**: Go 1.24+
-- **CLI 框架**: [Cobra](https://github.com/spf13/cobra) + [Viper](https://github.com/spf13/viper)
-- **终端 UI**: [pterm](https://github.com/pterm/pterm) + 自定义 TUI 组件
-- **测试框架**: [Ginkgo](https://github.com/onsi/ginkgo) + [Gomega](https://github.com/onsi/gomega) (BDD 风格)
-- **构建系统**: Makefile (跨平台支持)
+| 分层 | 技术 |
+|------|------|
+| 语言 | Go 1.27+（见 `go.mod`） |
+| CLI 框架 | [Cobra](https://github.com/spf13/cobra) + [Viper](https://github.com/spf13/viper) |
+| 终端 UI | [pterm](https://github.com/pterm/pterm) + [Bubble Tea](https://github.com/charmbracelet/bubbletea) |
+| 测试 | [Ginkgo](https://github.com/onsi/ginkgo) + [Gomega](https://github.com/onsi/gomega)（`internal/`）、标准 `testing`（`cmd/`） |
+| 构建 | Makefile + Taskfile（Windows / Linux / macOS） |
+| 文档 | docmd（中英双语） |
 
 ## 项目结构
 
 ```
-spark/
-├── cmd/                    # CLI 命令定义
-│   ├── root.go            # 根命令和全局配置
-│   ├── task.go            # 任务管理命令
-│   └── git/               # Git 相关命令
-│       ├── git.go         # Git 父命令
-│       ├── config.go      # Git 用户配置
-│       ├── update.go      # 仓库更新命令
-│       ├── submodule.go   # 子模块管理命令
-│       ├── sync.go        # 子模块同步命令
-│       └── gitcode.go     # Gitcode 远程管理
-├── internal/              # 内部业务逻辑
-│   ├── config/            # 配置管理
-│   ├── git/               # Git 操作封装
-│   ├── task/              # 任务管理器
-│   └── tui/               # 终端 UI 组件
-├── docs/                  # 文档
-│   ├── usage/             # 使用说明文档
-│   └── tasks/             # 任务相关文档
-├── .vscode/               # VS Code 配置
-├── Makefile               # 构建脚本
-└── main.go                # 入口文件
+spark-cli/
+├── main.go                  # 入口（调用 cmd.Execute()）
+├── cmd/
+│   ├── root.go              # 根命令、全局 flag、配置加载与 .monolize.yaml 自动迁移
+│   ├── task.go              # task 命令及所有子命令
+│   ├── version.go           # spark version
+│   ├── witr.go              # 桥接到 internal/witr/app.Root()
+│   ├── git/                 # init/clone/update/submodule/sync/gitcode/config/url/
+│   │                        # batch-clone/issues/update-org-status/push-all/scan
+│   ├── repo/                # registry 文件驱动的仓库管理（scan/clone/list）
+│   ├── magic/               # clean/copy-config/flush-dns/pip/go/node
+│   ├── script/              # list/run
+│   └── docs/                # init/site
+├── internal/
+│   ├── config/              # 配置加载
+│   ├── git/                 # Git 操作封装（finder/updater/init/submodule/pusher + scanner）
+│   ├── github/              # GitHub API（org / markdown issue）
+│   ├── gitlab/              # GitLab API（batch-clone：URL 解析、token 来源、嵌套群组）
+│   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
+│   ├── script/              # 脚本发现与执行
+│   ├── task/                # 任务 init/dispatch/sync、issue CRUD、impl（kimi）
+│   ├── templates/           # 嵌入的 dotfiles（nvim + ghostty）
+│   ├── tui/                 # PTerm 上层封装
+│   └── witr/                # Why-Is-This-Running 进程诊断引擎
+├── pkg/witr/model/          # witr 共享数据模型
+├── docs/{zh,en}/            # docmd 站点（中文为默认 locale，英文镜像在 /en/）
+├── scripts/                 # 默认脚本目录 + 安装/校验脚本
+├── Makefile / Taskfile.yml  # 构建与测试入口
+└── docmd.config.js          # docmd 配置（i18n.default: zh）
 ```
 
-## 自动化任务记录
-
-### 1. BDD 测试集成 (2026-02-26)
-- **任务**: 为 `internal` 包添加 BDD 风格的单元测试。
-- **工具**: 引入了 `Ginkgo` 和 `Gomega` 框架。
-- **覆盖范围**: `internal/config` 和 `internal/git`。
-- **验证**: 所有测试已通过 `make test-bdd` 验证。
-
-### 2. 跨平台 Makefile 构建 (2026-02-26)
-- **任务**: 创建支持 Windows, Linux, Mac 的构建系统。
-- **功能**:
-    - 自动 OS 检测。
-    - 交叉编译支持 (`build-linux`, `build-darwin`)。
-    - 统一的清理和测试接口。
-
-### 3. VS Code 环境标准化 (2026-02-26)
-- **任务**: 优化 `.vscode` 目录配置。
-- **成果**:
-    - `tasks.json`: 与 Makefile 深度绑定。
-    - `launch.json`: 提供标准化的调试模板。
-    - `settings.json`: 统一 Go 语言开发规范。
-
-## CLI 命令完整列表
+## CLI 命令完整参考
 
 ### 全局选项
 
 | 选项 | 说明 |
 |------|------|
-| `--config` | 指定配置文件 (默认: `$HOME/.spark.yaml`) |
-| `-p, --path` | 指定要扫描的目录路径 (可多次使用) |
+| `--config` | 配置文件路径（默认：`$HOME/.spark.yaml`） |
+| `-p, --path` | 仓库扫描目录路径（StringSlice，默认 `["."]`，绑定 viper key `repo-path`） |
 
-### Git 仓库管理
+配置初始化（`initConfig` + `migrateOldConfig`）：`--config` 优先；启动时若存在旧版 `~/.monolize.yaml`
+且 `~/.spark.yaml` 不存在则自动重命名迁移；`viper.AutomaticEnv()` 启用环境变量覆盖。
 
-#### `spark git`
-Git 仓库管理命令的父命令，包含以下子命令：
+---
 
-```bash
-spark git update       # 更新多个仓库
-spark git submodule add     # 添加现有仓库为子模块
-spark git sync    # 同步子模块
-spark git gitcode      # 添加 Gitcode 远程
-spark git config       # 配置 Git 用户
-spark git url          # 获取仓库 URL
-spark git init         # 初始化仓库并创建 GitHub 远程
-spark git batch-clone  # 克隆用户/组织所有仓库
-spark git issues       # 从 Markdown 文档/任务创建 GitHub Issue
-```
-
-#### `spark git update`
-扫描指定目录中的所有 Git 仓库并更新到最新版本。
+### `spark git` — Git 仓库管理
 
 ```bash
-spark git update -p /path/to/repos
-spark git update -p ~/workspace -p ~/projects
-spark git update --ssh                       # 强制通过 SSH 更新（HTTPS 不稳定时使用）
+spark git init [--owner <o>] [-r <name>] [--private] [--skip-gh]   # 初始化并创建 GitHub 远程
+spark git clone <url-or-slug> [directory] [-- <git-args>]          # gh repo clone（默认 SSH）
+spark git update [-p <dir>] [--ssh]                                # 扫描并更新所有仓库
+spark git submodule add <path-or-url> [-n <name>]                  # 添加子模块
+spark git submodule init [-r] [-j <n>] [--name <n>]                # 初始化子模块
+spark git submodule status [-r]                                    # 子模块状态
+spark git submodule ensure-ssh                                     # HTTPS → SSH 重写
+spark git sync [repo-path] [-r]                                    # 同步子模块到最新
+spark git gitcode [-p <dir>] [--url <url>]                         # 添加 Gitcode 远程
+spark git config [repo-path] [--username <u>] [--email <e>]        # 配置 Git 用户
+spark git url [repo-path]                                          # 打印 remote URL
+spark git batch-clone <account-or-url> [flags]                     # 批量克隆 GitHub/GitLab 账号
+spark git issues (-d <dir> | -f <file>) [-r <owner/repo>] [-l ...] [--dry-run]
+spark git update-org-status <org> [--dry-run] [-o <path>] [--update-dot-github] [--section <n>] [--skip-push]
+spark git push-all [-p <dir>]                                      # commit + push 所有仓库
+spark git scan [folder-path] [-d <db>] [--skip-api]                # 扫描并写入 SQLite
 ```
 
-详细文档: [docs/usage/git.md](docs/usage/git.md)
+`spark git clone` 支持 `https://github.com/owner/repo.git`、`git@github.com:owner/repo.git`、
+`github.com/owner/repo`、`owner/repo` 四种输入，`--` 之后的参数透传给 `git clone`。
 
-#### `spark git submodule`
-将本地 Git 仓库添加为子模块，或将远程仓库克隆为子模块。
-
-**本地模式**：
-```bash
-spark git submodule add                    # 添加当前目录下的仓库
-spark git submodule add -p /path/to/repos  # 添加指定目录下的仓库
-spark git submodule add ./spark-cli        # 将指定目录作为子模块添加
-```
+`spark git batch-clone` 选项：
 
 | 选项 | 说明 |
 |------|------|
-| `-n, --name` | 子模块路径名称 (默认: 仓库名) |
+| `--ssh` | 使用 SSH URL（GitHub `git@github.com:...`，GitLab `git@<host>:...`） |
+| `--include` / `--exclude` | 名称包含/排除模式（逗号分隔） |
+| `--include-forks` | 包含 fork 仓库 |
+| `-o, --output` | 输出目录（默认 `.`） |
+| `--token` | GitLab 私有 Token（显式指定，不受 `gitlab.host` 限制） |
 
-**智能检测行为**：
+GitLab 实现要点：
 
-| 场景 | 输出 |
+- 支持无 scheme 输入（`gitlab.com/gitlab-com/gl-infra`），`internal/gitlab.ParseGitLabURL` 自动补 `https://`
+- API v4 的群组路径必须 URL 编码（`group/sub` → `group%2Fsub`），见 `internal/gitlab.escapePath`；
+  配合 `include_subgroups=true` 递归任意层级子群组
+- 克隆落盘路径按命名空间相对路径展开（`internal/gitlab.ProjectRelativePath`），
+  如 `observability/tenant-observability/argocd-tenant-plugin`，避免子群组同名项目互相覆盖
+- Token 优先级：`--token` > `gitlab.token` > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`，
+  由 `cmd/git.resolveGitLabToken` 解析并打印 `Using token from: ...`
+- `gitlab.host` 把自动发现的凭证限定到该实例，不匹配时打印
+  `Ignoring ...: it is scoped to ...` 并跳过；`--token` 不受限制
+- 私有实例/私有群组未认证时返回 404 而非 401，错误信息据此区分
+  「凭证被拒绝」/「未提供凭证」/「路径不存在」
+
+---
+
+### `spark repo` — 仓库管理
+
+通过 registry 文件管理目录下的多个 GitHub 仓库（替代 submodule）：
+
+```bash
+spark repo scan [folder-name]                        # 扫描目录写入 registry_<folder>.yaml
+spark repo clone -f registry_<folder>.yaml           # 克隆 registry 中全部仓库
+spark repo clone -r <name> -f registry_<folder>.yaml # 仅克隆指定仓库
+spark repo list -f registry_<folder>.yaml            # 列出 registry 中的仓库
+```
+
+| 选项 | 命令 | 说明 |
+|------|------|------|
+| `-r, --repo` | `clone` | 仅克隆指定名称的仓库（省略则全部） |
+| `-f, --file` | `clone` / `list` | registry 文件（必填） |
+
+---
+
+### `spark task` — 任务管理
+
+```bash
+spark task init                              # 初始化 tasks/ 目录结构
+spark task list                              # 列出任务目录与 issue 文件
+spark task create <feature-name> [--content] # 新建 issue 文件
+spark task delete <feature-name> [--force]   # 删除 issue 文件
+spark task impl <feature-name>               # 使用 kimi CLI 实现 issue
+spark task dispatch [task-name] [--dest]     # 分发任务并创建 GitHub 仓库
+spark task sync [task-name] [--work-path]    # 同步实现回任务目录
+```
+
+| 选项（持久） | 说明 |
 |------|------|
-| 目标已是 submodule（160000） | `Skipping <name>: already as submodule` |
-| 目标与父仓库 URL 相同（worktree） | `Skipping <name>: already as submodule` |
-| 目录存在但不是 submodule | `Skipping <name>: directory already exists (use 'git submodule add' manually)` |
-| 正常添加 | `Adding submodule: <name> (<url>)` |
+| `--task-dir` | 任务目录（绑定 `task_dir`） |
+| `--owner` | GitHub owner（绑定 `github_owner`） |
+| `--work-dir` | 工作目录（绑定 `work_dir`，默认 `.`） |
+| `--tui` | 是否启用 TUI（默认 `true`，关闭用 `--tui=false`） |
 
-#### `spark git sync`
-同步当前仓库中所有子模块到最新版本。包含 `git submodule update --init`，确保缺失的子模块也会被 clone。
+任务目录结构（`task init` 创建）：`issues/`、`config/`、`analysis/`、`mindstorm/`、`planning/`、`prd/`。
 
-```bash
-spark git sync ./my-repo
-```
+---
 
-#### `spark git gitcode`
-为 GitHub 仓库添加 Gitcode 作为远程地址。
-
-```bash
-spark git gitcode -p /path/to/repos
-spark git gitcode -p ~/workspace --url https://custom.gitcode.url
-```
-
-详细文档: [docs/usage/gitcode.md](docs/usage/gitcode.md)
-
-#### `spark git init`
-初始化当前目录为 Git 仓库并创建 GitHub 远程仓库。
-
-```bash
-spark git init --owner variableway              # 初始化并创建远程仓库
-spark git init --owner variableway --private    # 创建私有仓库
-spark git init --skip-gh --owner variableway    # 仅本地初始化，跳过 GitHub
-```
-
-| 选项 | 说明 |
-|------|------|
-| `--owner` | GitHub 所有者 (默认: 从配置文件读取) |
-| `-r, --repo` | 仓库名称 (默认: 当前目录名) |
-| `--private` | 创建私有仓库 |
-| `--skip-gh` | 跳过创建 GitHub 远程仓库 |
-
-#### `spark git config`
-配置当前仓库的 Git 用户信息。
-
-```bash
-spark git config                              # 查看当前配置
-spark git config --username foo --email bar   # 设置用户信息
-```
-
-| 选项 | 说明 |
-|------|------|
-| `--username` | Git 用户名 (默认: 从配置文件读取) |
-| `--email` | Git 邮箱 (默认: 从配置文件读取) |
-
-配置优先级：
-1. 命令行参数 (`--username`, `--email`)
-2. 配置文件 (`~/.spark.yaml` 中的 `git.username` 和 `git.email`)
-
-#### `spark git url`
-获取当前仓库的 Git 远程 URL。
-
-```bash
-spark git url              # 当前目录
-spark git url /path/to/repo
-```
-
-#### `spark git batch-clone`
-克隆 GitHub 组织或个人账号的所有仓库到本地。
-
-```bash
-spark git batch-clone variableway                    # 使用组织名
-spark git batch-clone https://github.com/variableway # 使用 URL
-spark git batch-clone variableway --ssh              # 使用 SSH
-spark git batch-clone variableway -o ./repos         # 指定输出目录
-```
-
-| 选项 | 说明 |
-|------|------|
-| `--ssh` | 使用 SSH URL 而非 HTTPS |
-| `--include` | 只克隆匹配模式的仓库 (逗号分隔) |
-| `--exclude` | 排除匹配模式的仓库 (逗号分隔) |
-| `--include-forks` | 包含 fork 的仓库 |
-| `-o, --output` | 输出目录 (默认: 当前目录) |
-
-#### `spark git issues`
-从 Markdown 创建 GitHub Issue，支持目录模式和任务文件模式。
-
-```bash
-# 目录模式：目录下每个 .md 文件创建一个 Issue
-spark git issues -d ./docs -r owner/repo
-
-# 任务模式：按 # Task / ## Task 分段创建 Issue
-spark git issues -f tasks/issues/task-bug-fix.md -r owner/repo
-
-# 自动从当前仓库解析 owner/repo
-spark git issues -f tasks/issues/task-bug-fix.md --dry-run
-```
-
-| 选项 | 说明 |
-|------|------|
-| `-r, --repo` | 目标仓库（`owner/repo`），未指定时自动解析 |
-| `-d, --dir` | Markdown 目录（目录模式） |
-| `-f, --file` | 任务文件（任务模式） |
-| `-l, --labels` | Issue 标签（逗号分隔） |
-| `--dry-run` | 仅预览，不创建 Issue |
-
-#### `spark git update-org-status`
-获取 GitHub 组织的所有仓库信息，按 star 数量排序，并更新到 README.md。
-
-```bash
-spark git update-org-status variableway                    # 更新本地 .github/README.md
-spark git update-org-status variableway --update-dot-github # 更新 .github 仓库
-spark git update-org-status https://github.com/variableway # 使用 URL
-spark git update-org-status variableway --dry-run          # 预览输出，不写入文件
-spark git update-org-status variableway -o ./docs/README.md # 指定输出路径
-spark git update-org-status variableway --section "Projects" # 指定 section 名称
-spark git update-org-status variableway --skip-push        # 跳过 git push
-```
-
-| 选项 | 说明 |
-|------|------|
-| `--dry-run` | 预览内容，不写入文件 |
-| `-o, --output` | 本地模式输出路径 (默认: `.github/README.md`) |
-| `--update-dot-github` | 直接更新组织的 .github 仓库 |
-| `--section` | 要更新的 section 名称 (默认: "Project List") |
-| `--skip-push` | 跳过 git commit 和 push |
-
-**特性：**
-- 默认更新本地 `.github/README.md` 文件
-- 使用 `--update-dot-github` 直接更新组织的 `.github` 仓库
-- 只更新指定的 section，保留其他所有内容不变
-- 自动克隆、修改、提交并推送更改
-
-### 脚本管理
-
-#### `spark script`
-管理和执行自定义脚本。
-
-```bash
-spark script list                    # 列出所有可用脚本
-spark script run <script-name>       # 执行指定脚本
-```
-
-#### `spark script list`
-列出所有可用的脚本。
+### `spark script` — 脚本管理
 
 ```bash
 spark script list
+spark script run <script-name> [args...]
 ```
 
-脚本来源：
-1. `~/.spark.yaml` 中的 `spark.scripts` 配置
-2. 当前目录下 `scripts/` 文件夹中的脚本文件
+搜索顺序：`~/.spark.yaml` 的 `spark.scripts` → `spark.scripts_dir`（默认 `scripts/`）下的脚本文件。
+支持扩展名：`.sh` `.bash` `.zsh` `.py` `.rb` `.pl` `.ps1` `.bat` `.cmd`。
 
-#### `spark script run`
-执行指定名称的脚本。
+---
+
+### `spark magic` — 系统工具
 
 ```bash
-spark script run hello               # 执行 hello 脚本
-spark script run deploy prod         # 执行 deploy 脚本，传入参数 prod
-spark script run copy-template my-feature  # 复制模板文件
+spark magic clean [-m node|python]     # 清理 node_modules / .venv
+spark magic copy-config [<user@host:path>]  # 部署内置 nvim + ghostty 模板
+spark magic flush-dns                  # 刷新 DNS（macOS/Windows/Linux）
+spark magic pip {list,use,current}     # default/tsinghua/aliyun/douban/ustc/tencent
+spark magic go {list,use,current}      # default/aliyun/tsinghua/goproxy/ustc/nju
+spark magic node {list,use,current}    # default/taobao/aliyun/tencent/huawei/ustc
 ```
 
-**配置文件示例** (`~/.spark.yaml`):
+`copy-config` 的模板来自 `internal/templates/dotfiles/`，构建时通过 `//go:embed` 嵌入，
+优先使用 `rsync`，缺失时回退 `cp`。
+
+---
+
+### `spark docs` — 文档管理
+
+```bash
+spark docs init [--root <dir>]   # 创建 docs 目录结构
+spark docs site [--root <dir>]   # 初始化 docmd 站点配置
+```
+
+---
+
+### `spark witr` — 进程诊断
+
+```bash
+spark witr nginx
+spark witr --pid 1234 --tree
+spark witr --port 8080
+spark witr --file /var/lib/dpkg/lock
+spark witr --container redis --json
+```
+
+| 选项 | 说明 |
+|------|------|
+| `--pid` | 按 PID 查找（可多次） |
+| `--port` / `-o` | 按端口查找（可多次） |
+| `--file` / `-f` | 按文件查找（可多次） |
+| `--container` / `-c` | 按容器名查找（可多次） |
+| `--tree` / `-t` | 显示进程祖先树 |
+| `--env` | 显示进程环境变量 |
+| `--json` | JSON 输出 |
+| `--short` / `-s` | 单行简短输出 |
+| `--warnings` | 仅显示可疑的环境/参数/父进程 |
+| `--verbose` | 扩展信息（内存、I/O、fd） |
+| `--exact` / `-x` | 精确匹配 |
+| `--no-color` | 禁用颜色 |
+
+---
+
+### `spark version`
+
+打印 version / commit / build date（由 Makefile 的 ldflags 注入到 `internal/witr/version`）。
+
+## 配置文件
+
+配置文件位于 `~/.spark.yaml`，从旧版 `~/.monolize.yaml` 自动迁移。完整示例见 `.spark.yaml.example`：
 
 ```yaml
+repo-path:
+  - ~/workspace
+  - ~/projects
+
+git:
+  username: your-name
+  email: your-email@example.com
+  scanner:
+    db: ~/.innate/feeds.db         # spark git scan 默认 SQLite 路径
+
+gitlab:
+  host: gitlab.example.com         # 可选：把自动发现的凭证限定到该实例
+  token: glpat-xxxx                # 需 read_api，克隆私有仓库还需 read_repository
+
+github-owner: your-github-username # spark git init --owner 默认值
+task_dir: ~/tasks                  # spark task --task-dir
+github_owner: your-github-username # spark task --owner
+work_dir: ~/workspace              # spark task --work-dir
+
 spark:
-  scripts_dir: "scripts"  # 脚本目录，默认为 scripts/
+  scripts_dir: scripts
   scripts:
     - name: hello
       content: |
         #!/bin/bash
         echo "Hello, World!"
-    - name: deploy
-      content: |
-        #!/bin/bash
-        echo "Deploying to $1 environment..."
 ```
 
-**支持的脚本类型**:
-- Shell: `.sh`, `.bash`, `.zsh`
-- Python: `.py`
-- Ruby: `.rb`
-- Perl: `.pl`
-- PowerShell: `.ps1`
-- Batch: `.bat`, `.cmd`
+| 配置键 | 读取处 |
+|--------|--------|
+| `repo-path`（全局 `-p, --path`） | `cmd/git/update.go`、`push_all.go`、`magic/clean.go`、`gitcode.go` |
+| `git.username` / `git.email` | `cmd/git/config.go`、`cmd/git/init.go` |
+| `git.scanner.db`（`--db`） | `cmd/git/scan.go` |
+| `gitlab.host` / `gitlab.token`（`--token`） | `cmd/git/batch_clone.go` |
+| `github-owner` | `cmd/git/init.go` |
+| `task_dir` / `github_owner` / `work_dir` | `cmd/task.go` |
+| `dest` / `work-path` | `cmd/task.go`（`dispatch` / `sync` 的 flag） |
+| `spark.scripts_dir` | `cmd/script/list.go`、`cmd/script/run.go` |
 
-**跨平台支持**: Mac、Linux、Windows
-
-### 任务管理
-
-#### `spark task`
-任务管理和 issue 实现命令。
-
-```bash
-# 初始化任务目录结构
-spark task init                    # 创建 tasks/ 目录结构
-
-# 列出所有任务和 issue
-spark task list                    # 列出任务目录和 issue 文件
-
-# 创建新 issue
-spark task create my-feature       # 创建 tasks/issues/my-feature.md
-spark task create my-feature --content "Custom description"
-
-# 删除 issue
-spark task delete my-feature       # 删除 issue 文件
-spark task delete my-feature --force  # 强制删除不提示
-
-# 实现 issue（使用 kimi CLI）
-spark task impl my-feature         # 执行 issue 实现
-
-# 分发和同步任务
-spark task dispatch my-task --dest ./workspace
-spark task sync my-task --work-path ./workspace
-```
-
-| 子命令 | 说明 |
-|--------|------|
-| `init` | 初始化任务目录结构 |
-| `list` | 列出所有任务和 issue |
-| `create` | 创建新 issue 文件（文件名空格自动转换为 `-`）|
-| `delete` | 删除 issue 文件 |
-| `impl` | 实现 issue（使用 kimi CLI）|
-| `dispatch` | 分发任务到新目录 |
-| `sync` | 同步任务回任务目录 |
-
-**Issue 文件创建说明**:
-- 文件名中的空格和下划线会自动转换为 `-`
-- `--content` 参数的内容会写入 `## 描述` section
-
-**任务目录结构**:
-```
-tasks/
-├── issues/                # issue 文件目录
-├── config/                # 配置任务目录
-├── analysis/              # 分析任务目录
-├── mindstorm/             # 头脑风暴目录
-├── planning/              # 规划任务目录
-└── prd/                   # PRD 文档目录
-```
-
-支持 `--tui` 标志启用交互式终端 UI。
-
-详细文档: [docs/usage/task.md](docs/usage/task.md)
-
-## Spark Skills
-
-个人 Skill 集合仓库，用于增强 spark-cli 的功能。
-
-**仓库地址**: `variableway/spark-cli` 中的 `spark-skills/` 目录
-
-### 已包含 Skills
-
-| Skill | 描述 | 路径 |
-|-------|------|------|
-| `github-task-workflow` | GitHub 任务工作流管理 | `spark-skills/github-task-workflow/` |
-| `spark-task-init` | spark task 初始化 | `spark-skills/spark-task-init-skill/` |
-
-### 使用方式
-
-```bash
-# 安装 skills 到各 Agent
-cd spark-skills
-./install.sh kimi
-./install.sh claude-code
-
-# 项目级一键配置
-bash spark-skills/setup-project.sh
-```
-
-### Skill 目录结构
-
-```
-spark-skills/
-├── github-task-workflow/     # GitHub 任务工作流 Skill
-├── spark-task-init-skill/    # Task 初始化 Skill
-├── install.sh                # 安装脚本
-└── README.md                 # 说明文档
-```
-
-详细文档: [spark-skills/README.md](spark-skills/README.md)
+GitLab Token 的环境变量用 `os.Getenv` 而非 `viper.AutomaticEnv()`：viper 会把 `gitlab.token`
+映射为 `GITLAB.TOKEN`，而 shell 无法定义含 `.` 的变量名。
 
 ## 构建与测试
 
-### 构建命令
-
 ```bash
-make build          # 为当前系统编译 (Windows 生成 .exe)
-make build-linux    # 交叉编译 Linux 版
-make build-darwin   # 交叉编译 macOS 版
+make build          # 编译 + 打 version/commit/date ldflags + 安装到 ~/.local/bin/spark
+make build-linux    # 交叉编译 Linux amd64
+make build-darwin   # 交叉编译 macOS amd64
+make test           # go test ./... -v
+make test-bdd       # ginkgo -v ./internal/...
+make lint           # go vet ./...
 make clean          # 清理构建产物
 ```
 
-### 测试命令
+`Taskfile.yml` 提供等价命令：`task build` / `task install` / `task install-binary` / `task verify-install`。
+
+运行单个测试：
 
 ```bash
-make test           # 运行所有单元测试
-make test-bdd       # 以 BDD 风格运行测试
-make lint           # 运行静态检查 (go vet)
-```
-
-## 配置文件
-
-配置文件位于 `~/.spark.yaml`，支持以下配置项：
-
-```yaml
-repo-path:
-  - /path/to/repos
-  - /another/path
-
-task-dir: /path/to/tasks
-github-owner: your-username
-work-dir: ./workspace
-
-git:
-  username: your-name      # 默认 Git 用户名
-  email: your@email.com    # 默认 Git 邮箱
+go test ./internal/git/... -v -run TestUpdateRepository
 ```
 
 ## 助手指令参考
 
-本项目旨在保持高内聚、低耦合的 Go 代码风格。在进行后续开发时，请务必：
-
-1. **代码风格**
-   - 遵循 Go 标准代码规范
-   - 不添加注释（除非明确要求）
-   - 使用现有的库和工具模式
-
-2. **测试要求**
-   - 新功能必须添加 BDD 风格测试
-   - 测试文件以 `_test.go` 结尾
-   - 使用 Ginkgo/Gomega 框架
-
-3. **构建一致性**
-   - 优先更新 `Makefile` 以保持构建一致性
-   - 确保 `.vscode` 配置的通用性
-   - 提交前运行 `make lint` 和 `make test`
-
-4. **文档更新**
-   - 新增命令时更新 `docs/usage/` 目录
-   - 保持 AGENTS.md 与功能同步
+1. **代码风格**：遵循 Go 标准规范；不添加注释（除非明确要求）；沿用既有库与模式（Cobra + Viper + PTerm + Ginkgo/Gomega）
+2. **测试要求**：新功能必须添加测试；`internal/` 用 Ginkgo/Gomega BDD 风格，`cmd/` 下的纯函数用标准 `testing`
+3. **构建一致性**：优先更新 `Makefile`；确保 `.vscode` 配置通用；提交前运行 `make lint` 与 `make test`
+4. **文档更新**：同步 `docs/zh/**` 与 `docs/en/**`、`docs/{zh,en}/navigation.json`、`docs/{zh,en}/Agents.md`、仓库根 `AGENTS.md` 与 `CLAUDE.md`

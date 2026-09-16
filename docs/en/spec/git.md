@@ -221,10 +221,10 @@ No flags.
 
 ## spark git batch-clone
 
-Clone every repository under a GitHub organization or user. Auto-detects the account type.
+Auto-detects GitHub or GitLab from the input and clones every repository under an organization, user, or group. GitHub goes through the API with pagination; GitLab prefers the REST API v4 (when a token is present), falls back to `glab`, and finally tries the unauthenticated API.
 
 ```
-spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exclude <pattern>] [-o <dir>]
+spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exclude <pattern>] [--include-forks] [-o <dir>] [--token <token>]
 ```
 
 | Flag | Type | Default | Required | Description |
@@ -234,10 +234,19 @@ spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exc
 | `--exclude` | string | | No | Exclude matching repos (comma-separated) |
 | `--include-forks` | bool | `false` | No | Include forked repos |
 | `-o, --output` | string | `.` | No | Clone output directory |
+| `--token` | string | | No | GitLab private token (also via the `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` environment variables or `gitlab.token` in `~/.spark.yaml`); when passed explicitly it is not scoped by `gitlab.host` |
 
 | Argument | Type | Required | Description |
 |----------|------|----------|-------------|
-| `account-name-or-url` | string | Yes | Organization name, username, or URL |
+| `account-name-or-url` | string | Yes | Organization name, username, or URL (GitLab accepts group/subgroup paths, with or without the `https://` prefix) |
+
+**GitLab implementation notes**:
+
+- Group paths must be URL-encoded when calling API v4 (`group/sub` → `group%2Fsub`), otherwise nested groups 404; `include_subgroups=true` walks them recursively
+- Private instances and private groups return **404 rather than 401** when unauthenticated, so errors distinguish "no credentials provided" / "credentials rejected or lack access" / "path not found"
+- Clone paths expand the namespace-relative path (`observability/tenant-observability/argocd-tenant-plugin`) so same-named projects in different subgroups never collide
+- Token precedence: `--token` > `gitlab.token` (`~/.spark.yaml`) > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`
+- `gitlab.host` (optional) scopes auto-discovered credentials to that instance, so a self-hosted token is never sent to `gitlab.com`
 
 ---
 

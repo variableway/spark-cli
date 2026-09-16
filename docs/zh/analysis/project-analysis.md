@@ -10,22 +10,25 @@ Spark CLI 是一个 Go 语言编写的命令行工具，定位为日常开发自
 
 | 层面 | 技术选型 |
 |------|---------|
-| 语言 | Go 1.25 |
+| 语言 | Go 1.27（见 `go.mod`） |
 | CLI 框架 | Cobra |
 | 配置管理 | Viper |
 | 终端 UI | PTerm + Bubble Tea |
-| 测试框架 | Ginkgo / Gomega |
-| 文档生成 | docmd |
+| 测试框架 | Ginkgo / Gomega（`internal/`）+ 标准 `testing`（`cmd/`） |
+| 构建 | Makefile + Taskfile |
+| 文档生成 | docmd（中英双语） |
 
 ## 功能模块
 
 | 模块 | 命令 | 功能 |
 |------|------|------|
-| Git 管理 | `spark git` | 多仓库更新、仓库初始化、子模块管理、Gitcode 远程、组织克隆 |
+| Git 管理 | `spark git` | 多仓库更新、克隆、仓库初始化、子模块管理、Gitcode 远程、批量克隆（GitHub/GitLab）、Issue、扫描、推送 |
+| 仓库管理 | `spark repo` | registry 文件驱动的 scan / clone / list，用于替代 submodule |
 | 任务管理 | `spark task` | 任务创建、分发、同步、AI 实现 |
-| 系统工具 | `spark magic` | DNS 刷新、pip/go/node 镜像源切换 |
+| 系统工具 | `spark magic` | DNS 刷新、pip/go/node 镜像源切换、目录清理、dotfiles 部署 |
 | 脚本管理 | `spark script` | 自定义脚本发现与执行 |
 | 文档管理 | `spark docs` | 文档结构初始化、docmd 站点配置 |
+| 进程诊断 | `spark witr` | Why-Is-This-Running 进程排查 |
 
 ## 架构设计
 
@@ -34,18 +37,25 @@ main.go → cmd.Execute()
 │
 ├── cmd/                    # Cobra 命令定义层
 │   ├── git/                # Git 操作命令组
+│   ├── repo/               # registry 仓库管理命令组
 │   ├── magic/              # 系统工具命令组
 │   ├── script/             # 脚本管理命令组
 │   ├── docs/               # 文档管理命令组
-│   └── task.go             # 任务命令
+│   ├── task.go             # 任务命令
+│   ├── version.go          # 版本信息
+│   └── witr.go             # 进程诊断桥接
 │
 └── internal/               # 业务逻辑层
     ├── config/             # 配置加载与迁移
-    ├── git/                # Git 核心操作
+    ├── git/                # Git 核心操作（含 scanner/）
     ├── github/             # GitHub API 交互
+    ├── gitlab/             # GitLab API 交互（批量克隆）
+    ├── registry/           # registry 文件扫描/读写/合并
     ├── script/             # 脚本发现与执行
     ├── task/               # 任务工作流
-    └── tui/                # 终端 UI 组件
+    ├── templates/          # 内嵌 nvim/ghostty dotfiles
+    ├── tui/                # 终端 UI 组件
+    └── witr/               # 进程诊断引擎
 ```
 
 **设计特点：**
@@ -70,12 +80,12 @@ Cobra + Viper + PTerm 是 Go CLI 开发的成熟组合，降低了开发和维�
 ## 需要改进的方面
 
 ### 1. 测试覆盖不足
-- `internal/mono/` 完全没有测试
-- cmd/ 层缺少集成测试
+- `internal/witr/` 的覆盖仍以 `output` 子包为主
+- cmd/ 层缺少集成测试（纯函数已用标准 `testing` 覆盖）
 - 现有测试质量不错（使用 Ginkgo BDD 风格），但覆盖面需要扩展
 
 ### 2. 外部命令依赖过重
-大量使用 `exec.Command` 调用 `git`、`gh`、`kimi`、`npm` 等外部命令，缺少抽象层。这导致：
+大量使用 `exec.Command` 调用 `git`、`gh`、`glab`、`kimi`、`npm` 等外部命令，缺少抽象层。这导致：
 - 难以在不安装这些工具的环境中运行
 - 单元测试需要 mock 整个环境
 - 错误信息不够精确
@@ -93,13 +103,13 @@ Cobra + Viper + PTerm 是 Go CLI 开发的成熟组合，降低了开发和维�
 ### 5. 配置验证缺失
 - 没有对配置值进行验证
 - 缺少配置文件的 schema 定义
-- 环境变量覆盖支持不足
+- 环境变量覆盖支持不足（`gitlab.token` 等键含 `.`，无法用 `viper.AutomaticEnv`，只能 `os.Getenv` 兜底）
 
 ## 改进建议
 
 | 优先级 | 改进项 | 预期收益 |
 |--------|--------|---------|
-| 高 | 补充 internal/mono/ 的测试 | 提高代码可靠性 |
+| 高 | 补充 internal/ 各包的测试 | 提高代码可靠性 |
 | 高 | 提取外部命令执行抽象层 | 可测试性 + 可维护性 |
 | 中 | 统一 magic 命令的 mirror 切换模式 | 减少 60% 重复代码 |
 | 中 | 添加配置验证 | 减少用户配置错误 |

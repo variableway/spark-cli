@@ -27,29 +27,35 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
 
 - **`main.go`** → calls `cmd.Execute()`
 - **`cmd/`** — Cobra command definitions. `root.go` loads config from `~/.spark.yaml` and auto-migrates from legacy `~/.monolize.yaml`. Subdirectories group commands:
-  - `cmd/git/` — Git repo management commands
+  - `cmd/git/` — Git repo management commands (incl. `batch_clone.go`)
+  - `cmd/repo/` — Registry-file based repo management (scan/clone/list), an alternative to submodules
   - `cmd/magic/` — System utility commands (DNS flush, mirror switching, clean, copy-config)
   - `cmd/script/` — Script management commands
   - `cmd/docs/` — Documentation scaffolding commands
   - `cmd/task.go` — Top-level task commands in the root `cmd/` package
+  - `cmd/version.go` — `spark version`
   - `cmd/witr.go` — Process diagnostics bridge
 - **`internal/`** — Business logic, separated by domain:
   - `config/` — Configuration loading and management
   - `git/` — Core Git operations (find repos, update, remote management, submodule, URL conversion, scanner)
   - `github/` — GitHub API interactions (list org repos, parse org URLs)
-  - `gitlab/` — GitLab API interactions (batch-clone)
+  - `gitlab/` — GitLab API interactions (batch-clone: URL parsing, token sources, nested groups)
+  - `registry/` — scan/read/merge logic for the `repo` command's registry files
   - `script/` — Script discovery (from config and `scripts/` dir) and execution
   - `task/` — Task init/dispatch/sync, issue CRUD, and implementation via `kimi` CLI
   - `templates/` — Embedded dotfiles (nvim, ghostty) for `magic copy-config`
   - `tui/` — Shared terminal UI components (spinner, dialogs, selector)
   - `witr/` — Why-Is-This-Running process diagnostics engine
-- **`docs/usage/`** — Usage documentation per command
+- **`pkg/witr/model/`** — Shared data model for the witr commands
+- **`docs/`** — docmd site, bilingual: `docs/zh/` (default locale, rendered at the site root) and `docs/en/` (rendered under `/en/`), each with `usage/`, `spec/`, `features/`, `analysis/`, `quick-start/`, `Agents.md` and `navigation.json`
 
 ### Command Hierarchy
 
 ```
 spark
+├── version
 ├── git [init|clone|update|submodule [add|init|status|ensure-ssh]|sync|gitcode|config|url|batch-clone|issues|update-org-status|push-all|scan]
+├── repo [scan|clone|list]
 ├── task [list|init|dispatch|sync|create|delete|impl]
 ├── script [list|run]
 ├── magic [flush-dns|clean|copy-config|pip|go|node]
@@ -59,21 +65,24 @@ spark
 
 ### Key Patterns
 
-- **TUI mode**: `task` and other commands accept `--tui` flag for interactive mode with Bubble Tea selectors and PTerm spinners. CLI mode is the default.
+- **TUI mode**: `task` and other commands accept a `--tui` flag (default `true`) for interactive mode with Bubble Tea selectors and PTerm spinners.
 - **Config binding**: Flags are bound to Viper via `viper.BindPFlag()` in `init()` functions. Config keys use snake_case in YAML but camelCase in struct tags.
+- **Config keys are namespaced ad hoc**: `repo-path` (global `-p, --path`), `git.username` / `git.email`, `git.scanner.db`, `gitlab.host` / `gitlab.token`, `github-owner`, `task_dir` / `github_owner` / `work_dir`, `dest` / `work-path`, `spark.scripts_dir`.
 - **Script sources**: Scripts can come from `~/.spark.yaml` (`spark.scripts` or top-level `scripts`) or from a `scripts/` directory. Config scripts take precedence.
+- **GitLab credentials**: resolved in `cmd/git.resolveGitLabToken` with the priority `--token` > `gitlab.token` > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`. `gitlab.host`, when set, scopes the automatically discovered credentials (config + env) to that instance so they are never sent elsewhere; `--token` is exempt. Env vars are read with `os.Getenv` (not `viper.AutomaticEnv`, which would map `gitlab.token` to the unusable name `GITLAB.TOKEN`) and the source is reported via the `gitlab.TokenSource*` constants.
+- **GitLab nested groups**: group paths must be URL-encoded for API v4 (`internal/gitlab.escapePath`), and `include_subgroups=true` recurses into every subgroup. Cloned paths are derived from the namespace-relative path (`internal/gitlab.ProjectRelativePath`) so same-named projects in different subgroups don't collide. Private instances return 404 rather than 401 when unauthenticated, so error messages distinguish "credentials rejected" / "no credentials" / "path not found".
 
 ### Config
 
-User config at `~/.spark.yaml`. Key sections: `repo-path` (list of directories to scan), `git` (default username/email, scanner db), `task_dir`, `github_owner`, `work_dir`, `spark.scripts`.
+User config at `~/.spark.yaml`. Key sections: `repo-path` (list of directories to scan), `git` (default username/email, scanner db), `gitlab` (host + token), `github-owner`, `task_dir`, `github_owner`, `work_dir`, `spark.scripts`.
 
 ## Development Conventions
 
 - Follow standard Go conventions; no comments unless explicitly requested
-- New features require BDD-style tests using Ginkgo/Gomega
+- New features require BDD-style tests using Ginkgo/Gomega for `internal/` packages; plain `testing` is used for `cmd/` helpers (e.g. `resolveGitLabToken`, `parseRepoSlug`)
 - Test files use `_test.go` suffix, live alongside source in `internal/`
 - Test suite files (`*_suite_test.go`) register the Ginkgo test runner for each package
-- Keep `Makefile` as the single source of truth for build/test commands
-- New commands should have usage docs in `docs/usage/`
+- Keep `Makefile` as the single source of truth for build/test commands (`Taskfile.yml` mirrors it)
+- New commands should have usage docs in `docs/zh/usage/` and `docs/en/usage/`
 - The UI language is primarily Chinese (documentation, user-facing messages)
-- The docs site (`docs/`) is bilingual: Chinese is the default locale rendered at the site root; the English mirror lives under `/en/`. When adding or changing a doc, update both `docs/zh/...` and `docs/en/...` and keep the per-locale `navigation.json` files (`docs/zh/navigation.json`, `docs/en/navigation.json`) in sync. See `docmd.config.js` for the i18n config.
+- The docs site (`docs/`) is bilingual: Chinese is the default locale rendered at the site root; the English mirror lives under `/en/`. When adding or changing a doc, update both `docs/zh/...` and `docs/en/...` and keep the per-locale `navigation.json` files (`docs/zh/navigation.json`, `docs/en/navigation.json`) in sync. See `docmd.config.js` for the i18n config. `docs/zh/Agents.md` and `docs/en/Agents.md` mirror the root `AGENTS.md` and need the same follow-up.

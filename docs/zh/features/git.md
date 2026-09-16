@@ -71,18 +71,32 @@ spark git init --skip-gh --owner variableway    # 仅本地初始化
 
 ### 批量克隆
 
-克隆 GitHub 组织或用户下所有仓库，或更新 README 中的仓库状态列表。
+根据输入自动识别 GitHub 或 GitLab，克隆组织/用户/群组下所有仓库，或更新 README 中的仓库状态列表。
 
 ```bash
-# 克隆组织仓库
+# 克隆 GitHub 组织仓库
 spark git batch-clone variableway -o ./repos
 
-# 克隆用户仓库
+# 克隆 GitHub 用户仓库
 spark git batch-clone jackwener -o ./repos
+
+# 克隆 GitLab 群组（支持嵌套子群组，可省略 https://）
+spark git batch-clone gitlab.com/gitlab-com/gl-infra -o ./repos
+spark git batch-clone https://gitlab.example.com/myorg/mygroup --token glpat-xxxx
+
+# 仅克隆名称含指定模式的仓库
+spark git batch-clone variableway --include cli,tool --exclude docs
 
 # 更新组织状态
 spark git update-org-status variableway --update-dot-github
 ```
+
+**核心改进**：
+
+- GitLab 群组路径按 API v4 要求 URL 编码，嵌套子群组递归拉取（`include_subgroups=true`）
+- 克隆落盘路径按命名空间相对路径展开（如 `observability/tenant-observability/argocd-tenant-plugin`），避免子群组同名项目互相覆盖
+- Token 来源优先级：`--token` > `gitlab.token`（`~/.spark.yaml`）> `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`
+- `gitlab.host` 可把自动发现的凭证限定到该实例，避免自托管实例的 token 被发往 `gitlab.com`
 
 ### Markdown 创建 Issue
 
@@ -130,8 +144,7 @@ spark git scan . --skip-api --db ~/.innate/feeds.db
 
 | 参数 | 说明 |
 |------|------|
-| `-p, --path` | 指定扫描目录（支持多个），默认 `["."]` |
-| `-p, --path` | 包含 Git 仓库的目录，默认 `.` |
+| `-p, --path` | 包含 Git 仓库的目录（支持多个），默认 `["."]` |
 | `-n, --name` | 子模块路径名称（远程模式），默认仓库名 |
 | `-o, --output` | 输出路径 |
 | `--ssh` | 使用 SSH 克隆（batch-clone） |
@@ -139,6 +152,8 @@ spark git scan . --skip-api --db ~/.innate/feeds.db
 | `--private` | 创建私有仓库（init） |
 | `--skip-gh` | 跳过 GitHub 远程创建（init） |
 | `--include` / `--exclude` | 包含/排除匹配模式（batch-clone） |
+| `--include-forks` | 包含 fork 仓库（batch-clone） |
+| `--token` | GitLab 私有 Token（batch-clone），也可用 `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` 或 `gitlab.token` |
 | `-r, --repo` | 目标仓库（未指定时自动从当前仓库解析） |
 | `-d, --dir` | 文档目录（目录模式） |
 | `-f, --file` | 任务文件（任务模式） |
@@ -150,7 +165,8 @@ spark git scan . --skip-api --db ~/.innate/feeds.db
 ## 依赖
 
 - `git` 命令行工具
-- `gh` CLI（issues、batch-clone、update-org-status 需要 GitHub API 访问）
+- `gh` CLI（issues、GitHub batch-clone、update-org-status 需要 GitHub API 访问）
+- GitLab batch-clone 需要 `glab` CLI，或提供 `--token` / `gitlab.token` / `GITLAB_TOKEN`（Token 需 `read_api`，克隆私有仓库还需 `read_repository`）
 
 ## 相关文档
 
