@@ -400,10 +400,10 @@ spark git update-org-status variableway --section "My Projects"
 spark git issues -d ./docs -r variableway/spark-cli
 
 # 任务模式：从任务文件按 Task 段落创建 Issue
-spark git issues -f tasks/issues/task-bug-fix.md -r variableway/spark-cli
+spark git issues -f ./issues/task-bug-fix.md -r variableway/spark-cli
 
 # 自动从当前仓库解析 owner/repo
-spark git issues -f tasks/issues/task-bug-fix.md --dry-run
+spark git issues -f ./issues/task-bug-fix.md --dry-run
 ```
 
 ## spark git push-all
@@ -459,9 +459,3 @@ spark git scan . --db ~/data/my-repos.db      # 指定数据库路径
 - 按仓库路径 upsert 到 SQLite，重复扫描会更新已有记录
 
 **数据库字段**：`path`、`name`、`remote_url`、`repo_type`、`owner`、`repo`、`description`、`stars`、`forks`、`language`、`updated_at`、`scanned_at`
-
----
-
-## 相关命令
-
-- [任务管理](./task.md)

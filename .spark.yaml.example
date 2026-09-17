@@ -33,18 +33,6 @@ gitlab:
   token: glpat-xxxxxxxxxxxxxxxxxxxx
 
 # =============================================================================
-# Task Management
-# =============================================================================
-# Task directory containing all task templates
-task_dir: ~/tasks
-
-# GitHub owner/username for creating repositories (used by task dispatch)
-github_owner: your-github-username
-
-# Working directory for dispatched tasks
-work_dir: ~/workspace
-
-# =============================================================================
 # General Settings
 # =============================================================================
 # Default path for operations

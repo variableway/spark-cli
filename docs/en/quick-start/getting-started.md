@@ -20,7 +20,7 @@ repo-path:
 git:
   username: your-name
   email: your@email.com
-github_owner: your-username
+github-owner: your-username
 ```
 
 ## Common Commands
@@ -44,15 +44,6 @@ spark magic pip use tsinghua                  # Python → Tsinghua mirror
 spark magic go use goproxy                    # Go → goproxy.cn
 spark magic node use taobao                   # Node → Taobao mirror
 spark magic clean                             # Clean node_modules and .venv
-```
-
-### Task Management
-
-```bash
-spark task init                               # Initialize the task directory
-spark task create my-feature                  # Create an issue file
-spark task dispatch my-feature                # Dispatch to the work directory
-spark task sync my-feature                    # Sync back to the task directory
 ```
 
 ### Documentation

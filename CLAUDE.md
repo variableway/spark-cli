@@ -21,7 +21,7 @@ go test ./internal/git/... -v -run TestFunctionName
 
 ## Architecture
 
-Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Git repositories, scripts, and task workflows. Built with **Cobra** (CLI), **Viper** (config), **PTerm** + **Bubble Tea** (TUI), tested with **Ginkgo/Gomega** (BDD).
+Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Git repositories, scripts, and system utilities. Built with **Cobra** (CLI), **Viper** (config), **PTerm** + **Bubble Tea** (TUI), tested with **Ginkgo/Gomega** (BDD).
 
 ### Code Structure
 
@@ -32,7 +32,6 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
   - `cmd/magic/` — System utility commands (DNS flush, mirror switching, clean, copy-config)
   - `cmd/script/` — Script management commands
   - `cmd/docs/` — Documentation scaffolding commands
-  - `cmd/task.go` — Top-level task commands in the root `cmd/` package
   - `cmd/version.go` — `spark version`
   - `cmd/witr.go` — Process diagnostics bridge
 - **`internal/`** — Business logic, separated by domain:
@@ -42,9 +41,7 @@ Spark is a Go CLI tool (`module spark`, binary `spark`) for managing multiple Gi
   - `gitlab/` — GitLab API interactions (batch-clone: URL parsing, token sources, nested groups)
   - `registry/` — scan/read/merge logic for the `repo` command's registry files
   - `script/` — Script discovery (from config and `scripts/` dir) and execution
-  - `task/` — Task init/dispatch/sync, issue CRUD, and implementation via `kimi` CLI
   - `templates/` — Embedded dotfiles (nvim, ghostty) for `magic copy-config`
-  - `tui/` — Shared terminal UI components (spinner, dialogs, selector)
   - `witr/` — Why-Is-This-Running process diagnostics engine
 - **`pkg/witr/model/`** — Shared data model for the witr commands
 - **`docs/`** — docmd site, bilingual: `docs/zh/` (default locale, rendered at the site root) and `docs/en/` (rendered under `/en/`), each with `usage/`, `spec/`, `features/`, `analysis/`, `quick-start/`, `Agents.md` and `navigation.json`
@@ -56,7 +53,6 @@ spark
 ├── version
 ├── git [init|clone|update|submodule [add|init|status|ensure-ssh]|sync|gitcode|config|url|batch-clone|issues|update-org-status|push-all|scan]
 ├── repo [scan|clone|list]
-├── task [list|init|dispatch|sync|create|delete|impl]
 ├── script [list|run]
 ├── magic [flush-dns|clean|copy-config|pip|go|node]
 ├── docs [init|site]
@@ -65,16 +61,15 @@ spark
 
 ### Key Patterns
 
-- **TUI mode**: `task` and other commands accept a `--tui` flag (default `true`) for interactive mode with Bubble Tea selectors and PTerm spinners.
 - **Config binding**: Flags are bound to Viper via `viper.BindPFlag()` in `init()` functions. Config keys use snake_case in YAML but camelCase in struct tags.
-- **Config keys are namespaced ad hoc**: `repo-path` (global `-p, --path`), `git.username` / `git.email`, `git.scanner.db`, `gitlab.host` / `gitlab.token`, `github-owner`, `task_dir` / `github_owner` / `work_dir`, `dest` / `work-path`, `spark.scripts_dir`.
+- **Config keys are namespaced ad hoc**: `repo-path` (global `-p, --path`), `git.username` / `git.email`, `git.scanner.db`, `gitlab.host` / `gitlab.token`, `github-owner`, `spark.scripts_dir`.
 - **Script sources**: Scripts can come from `~/.spark.yaml` (`spark.scripts` or top-level `scripts`) or from a `scripts/` directory. Config scripts take precedence.
 - **GitLab credentials**: resolved in `cmd/git.resolveGitLabToken` with the priority `--token` > `gitlab.token` > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`. `gitlab.host`, when set, scopes the automatically discovered credentials (config + env) to that instance so they are never sent elsewhere; `--token` is exempt. Env vars are read with `os.Getenv` (not `viper.AutomaticEnv`, which would map `gitlab.token` to the unusable name `GITLAB.TOKEN`) and the source is reported via the `gitlab.TokenSource*` constants.
 - **GitLab nested groups**: group paths must be URL-encoded for API v4 (`internal/gitlab.escapePath`), and `include_subgroups=true` recurses into every subgroup. Cloned paths are derived from the namespace-relative path (`internal/gitlab.ProjectRelativePath`) so same-named projects in different subgroups don't collide. Private instances return 404 rather than 401 when unauthenticated, so error messages distinguish "credentials rejected" / "no credentials" / "path not found".
 
 ### Config
 
-User config at `~/.spark.yaml`. Key sections: `repo-path` (list of directories to scan), `git` (default username/email, scanner db), `gitlab` (host + token), `github-owner`, `task_dir`, `github_owner`, `work_dir`, `spark.scripts`.
+User config at `~/.spark.yaml`. Key sections: `repo-path` (list of directories to scan), `git` (default username/email, scanner db), `gitlab` (host + token), `github-owner`, `spark.scripts`.
 
 ## Development Conventions
 

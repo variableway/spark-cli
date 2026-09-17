@@ -110,10 +110,10 @@ spark git update-org-status variableway --update-dot-github
 spark git issues -d ./docs -r variableway/spark-cli
 
 # 任务模式
-spark git issues -f tasks/issues/task-bug-fix.md -r variableway/spark-cli
+spark git issues -f ./issues/task-bug-fix.md -r variableway/spark-cli
 
 # 自动识别当前仓库 + 预览
-spark git issues -f tasks/issues/task-bug-fix.md --dry-run
+spark git issues -f ./issues/task-bug-fix.md --dry-run
 ```
 
 ### 批量推送更改

@@ -20,7 +20,7 @@ repo-path:
 git:
   username: your-name
   email: your@email.com
-github_owner: your-username
+github-owner: your-username
 ```
 
 ## 常用命令
@@ -44,15 +44,6 @@ spark magic pip use tsinghua                  # Python → 清华源
 spark magic go use goproxy                    # Go → goproxy.cn
 spark magic node use taobao                   # Node → 淘宝源
 spark magic clean                             # 清理 node_modules 和 .venv
-```
-
-### 任务管理
-
-```bash
-spark task init                               # 初始化任务目录
-spark task create my-feature                  # 创建 issue 文件
-spark task dispatch my-feature                # 分发到工作目录
-spark task sync my-feature                    # 同步回任务目录
 ```
 
 ### 文档管理

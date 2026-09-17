@@ -24,7 +24,6 @@ Spark CLI 是一个 Go 语言编写的命令行工具，定位为日常开发自
 |------|------|------|
 | Git 管理 | `spark git` | 多仓库更新、克隆、仓库初始化、子模块管理、Gitcode 远程、批量克隆（GitHub/GitLab）、Issue、扫描、推送 |
 | 仓库管理 | `spark repo` | registry 文件驱动的 scan / clone / list，用于替代 submodule |
-| 任务管理 | `spark task` | 任务创建、分发、同步、AI 实现 |
 | 系统工具 | `spark magic` | DNS 刷新、pip/go/node 镜像源切换、目录清理、dotfiles 部署 |
 | 脚本管理 | `spark script` | 自定义脚本发现与执行 |
 | 文档管理 | `spark docs` | 文档结构初始化、docmd 站点配置 |
@@ -41,7 +40,6 @@ main.go → cmd.Execute()
 │   ├── magic/              # 系统工具命令组
 │   ├── script/             # 脚本管理命令组
 │   ├── docs/               # 文档管理命令组
-│   ├── task.go             # 任务命令
 │   ├── version.go          # 版本信息
 │   └── witr.go             # 进程诊断桥接
 │
@@ -52,16 +50,13 @@ main.go → cmd.Execute()
     ├── gitlab/             # GitLab API 交互（批量克隆）
     ├── registry/           # registry 文件扫描/读写/合并
     ├── script/             # 脚本发现与执行
-    ├── task/               # 任务工作流
     ├── templates/          # 内嵌 nvim/ghostty dotfiles
-    ├── tui/                # 终端 UI 组件
     └── witr/               # 进程诊断引擎
 ```
 
 **设计特点：**
 - cmd/ 只负责参数解析和调用 internal/ 的逻辑
 - internal/ 包之间低耦合，各司其职
-- 支持 `--tui` 标志在 CLI 和交互模式间切换
 
 ## 优点
 
@@ -85,7 +80,7 @@ Cobra + Viper + PTerm 是 Go CLI 开发的成熟组合，降低了开发和维�
 - 现有测试质量不错（使用 Ginkgo BDD 风格），但覆盖面需要扩展
 
 ### 2. 外部命令依赖过重
-大量使用 `exec.Command` 调用 `git`、`gh`、`glab`、`kimi`、`npm` 等外部命令，缺少抽象层。这导致：
+大量使用 `exec.Command` 调用 `git`、`gh`、`glab`、`npm` 等外部命令，缺少抽象层。这导致：
 - 难以在不安装这些工具的环境中运行
 - 单元测试需要 mock 整个环境
 - 错误信息不够精确

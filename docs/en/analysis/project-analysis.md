@@ -24,7 +24,6 @@ Spark CLI is a Go-based command-line tool that positions itself as a CLI backend
 |--------|---------|------------|
 | Git management | `spark git` | Multi-repo update, clone, repo init, submodule management, Gitcode remote, batch clone (GitHub/GitLab), issues, scan, push |
 | Repo management | `spark repo` | Registry-file driven scan / clone / list, an alternative to submodules |
-| Task management | `spark task` | Task create, dispatch, sync, AI implement |
 | System utilities | `spark magic` | DNS flush, pip/go/node mirror switching, directory cleanup, dotfiles deploy |
 | Script management | `spark script` | Custom script discovery and execution |
 | Docs management | `spark docs` | Docs structure init, docmd site config |
@@ -41,7 +40,6 @@ main.go → cmd.Execute()
 │   ├── magic/              # System utilities
 │   ├── script/             # Script management
 │   ├── docs/               # Docs management
-│   ├── task.go             # Task commands
 │   ├── version.go          # Version info
 │   └── witr.go             # Process diagnostics bridge
 │
@@ -52,16 +50,13 @@ main.go → cmd.Execute()
     ├── gitlab/             # GitLab API interactions (batch clone)
     ├── registry/           # Registry file scan/read/merge
     ├── script/             # Script discovery & execution
-    ├── task/               # Task workflow
     ├── templates/          # Embedded nvim/ghostty dotfiles
-    ├── tui/                # Terminal UI components
     └── witr/               # Process diagnostics engine
 ```
 
 **Design notes**:
 - `cmd/` is responsible for arg parsing and calling `internal/` logic.
 - The `internal/` packages are loosely coupled; each has a single responsibility.
-- The `--tui` flag toggles between CLI and interactive mode.
 
 ## Strengths
 
@@ -85,7 +80,7 @@ The legacy `.monolize.yaml` config is auto-migrated to `.spark.yaml`, which is r
 - Existing test quality is good (Ginkgo BDD style), but the surface needs to expand.
 
 ### 2. Heavy reliance on external commands
-Lots of `exec.Command` calls into `git`, `gh`, `glab`, `kimi`, `npm`, with no abstraction layer. Consequences:
+Lots of `exec.Command` calls into `git`, `gh`, `glab`, `npm`, with no abstraction layer. Consequences:
 - Hard to run in environments without these tools.
 - Unit tests have to mock entire environments.
 - Error messages are not always precise.

@@ -17,12 +17,11 @@
 7. **仓库扫描** — `spark git scan` 扫描目录中的仓库并保存到 SQLite
 8. **仓库推送** — `spark git push-all` 批量提交推送所有更改
 9. **Issue 创建** — `spark git issues` 从 Markdown/任务文件创建 GitHub Issue
-10. **任务管理** — `spark task` 任务分发、同步、issue CRUD 与 `impl`（基于 `kimi` CLI）
-11. **脚本管理** — 从 `~/.spark.yaml` 或 `scripts/` 目录发现并执行脚本
-12. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
-13. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
-14. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
-15. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
+10. **脚本管理** — 从 `~/.spark.yaml` 或 `scripts/` 目录发现并执行脚本
+11. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
+12. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
+13. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
+14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
 
 ## 技术栈
 
@@ -39,7 +38,6 @@ spark-cli/
 ├── main.go                  # 入口（调用 cmd.Execute()）
 ├── cmd/
 │   ├── root.go              # 根命令、全局 flag、配置加载与 .monolize.yaml 自动迁移
-│   ├── task.go              # task 命令及所有子命令（dispatch/sync/list/init/create/delete/impl）
 │   ├── witr.go              # 桥接到 internal/witr/app.Root()
 │   ├── git/                 # Git 仓库管理命令
 │   │   ├── git.go           # GitCmd 父命令
@@ -85,9 +83,7 @@ spark-cli/
 │   ├── gitlab/              # GitLab API（batch-clone：URL 解析、token 来源、嵌套群组）
 │   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
 │   ├── script/              # 脚本发现（配置 + scripts/ 目录）与执行
-│   ├── task/                # 任务 init/dispatch/sync、issue CRUD、impl（kimi）
 │   ├── templates/           # 嵌入的 dotfiles（nvim + ghostty）
-│   ├── tui/                 # PTerm 上层封装（确认对话框、选择器）
 │   └── witr/                # Why-Is-This-Running 进程诊断引擎
 ├── pkg/
 │   └── witr/model/          # witr 的共享数据模型
@@ -103,7 +99,6 @@ spark-cli/
 │   ├── en/                  # 英文镜像（渲染于 /en/），层级与 zh/ 完全平行
 │   └── ...
 ├── scripts/                 # 默认脚本目录（spark script 使用）+ 安装/校验脚本
-├── tasks/                   # spark task 的任务目录（issues/config/analysis/mindstorm/planning/prd）
 ├── .vscode/                 # VS Code 配置（tasks/launch/settings）
 ├── Makefile                 # 构建脚本（build/build-linux/build-darwin/test/lint/clean）
 ├── Taskfile.yml             # Task 版等价命令（build/install/install-binary/verify-install）
@@ -141,14 +136,6 @@ spark
 │   ├── scan                 ([folder-name])
 │   ├── clone                (-r, --repo, -f, --file)
 │   └── list                 (-f, --file)
-├── task                     (--task-dir, --owner, --work-dir, --tui)
-│   ├── dispatch             ([task-name], --dest)
-│   ├── sync                 ([task-name], --work-path)
-│   ├── list
-│   ├── init
-│   ├── create               (<feature-name>, --content)
-│   ├── delete               (<feature-name>, --force)
-│   └── impl                 (<feature-name>)
 ├── script
 │   ├── list
 │   └── run
@@ -172,7 +159,7 @@ spark
 ### 1. BDD 测试集成 (2026-02-26)
 - **任务**: 为 `internal` 包添加 BDD 风格的单元测试。
 - **工具**: 引入了 `Ginkgo` 和 `Gomega` 框架。
-- **覆盖范围**: `internal/config`、`internal/git`（含 finder/updater/submodule）、`internal/script`、`internal/task`、`internal/github`（issue/markdown_issue/org）、`internal/gitlab`、`internal/witr/output`。
+- **覆盖范围**: `internal/config`、`internal/git`（含 finder/updater/submodule）、`internal/script`、`internal/github`（issue/markdown_issue/org）、`internal/gitlab`、`internal/witr/output`。
 - **验证**: 所有测试已通过 `make test-bdd` 验证。
 
 ### 2. 跨平台 Makefile 构建 (2026-02-26)
@@ -453,7 +440,7 @@ GitLab 实现要点：
 spark git issues -d ./docs -r owner/repo
 
 # 任务模式
-spark git issues -f tasks/issues/task-bug-fix.md -r owner/repo
+spark git issues -f ./issues/task-bug-fix.md -r owner/repo
 
 # 自动从当前仓库解析 owner/repo（需 GitHub remote）
 spark git issues -d ./docs --dry-run
@@ -563,54 +550,6 @@ projects:
 | 选项 | 说明 |
 |------|------|
 | `-f, --file` | registry 文件（必填） |
-
----
-
-### `spark task` — 任务管理
-
-```bash
-spark task init                    # 初始化 tasks/ 目录结构
-spark task list                    # 列出任务目录与 issue 文件
-spark task create <feature>        # 新建 issue 文件（--content 写入 ## 描述）
-spark task delete <feature>        # 删除 issue 文件（--force 跳过确认）
-spark task impl <feature>          # 使用 kimi CLI 实现 issue
-spark task dispatch [task-name]    # 复制任务到 --dest 并创建 GitHub 仓库
-spark task sync [task-name]        # 将 --work-path 中的实现同步回任务目录
-```
-
-> TUI 模式默认开启（通过 `--tui=false` 关闭）。TUI 启用时通过 PTerm 任务列表、确认对话框与进度条交互。
-
-| 选项（持久） | 说明 |
-|------|------|
-| `--task-dir` | 任务目录（绑定到 `task_dir`） |
-| `--owner` | GitHub owner（绑定到 `github_owner`） |
-| `--work-dir` | 工作目录（绑定到 `work_dir`，默认 `.`） |
-| `--tui` | 是否启用 TUI（默认 `true`；关闭用 `--tui=false`） |
-
-| 子命令 | 选项 | 说明 |
-|--------|------|------|
-| `dispatch` | `--dest` | 任务分发目标路径（默认 `<work-dir>/<task-name>`） |
-| `sync` | `--work-path` | 已分发任务的工作路径 |
-| `create` | `--content` | 自定义内容写入 `## 描述` |
-| `delete` | `--force` | 强制删除不提示 |
-
-任务目录结构（`task init` 创建）：
-
-```
-tasks/
-├── issues/
-├── config/
-├── analysis/
-├── mindstorm/
-├── planning/
-└── prd/
-```
-
-`task impl` 依赖：kimi CLI、`github-task-workflow` 工具。流程：
-1. 读取 issue 文件
-2. 创建 GitHub issue
-3. 通过 kimi CLI 执行实现
-4. 更新 issue 与提交更改
 
 ---
 
@@ -825,9 +764,6 @@ gitlab:
                                    # 优先级高于环境变量，残留的失效 token 会盖住 GITLAB_TOKEN
 
 github-owner: your-github-username # spark git init --owner 默认值
-task_dir: ~/tasks                  # spark task --task-dir
-github_owner: your-github-username # spark task --owner
-work_dir: ~/workspace              # spark task --work-dir
 
 default_branch: main
 auto_commit: true
@@ -842,14 +778,12 @@ auto_commit: true
 | `git.scanner.db`（`--db`） | `cmd/git/scan.go` |
 | `gitlab.host` / `gitlab.token`（`--token`） | `cmd/git/batch_clone.go` |
 | `github-owner` | `cmd/git/init.go` |
-| `task_dir` / `github_owner` / `work_dir` | `cmd/task.go` |
-| `dest` / `work-path` | `cmd/task.go`（`dispatch` / `sync` 的 flag） |
 | `spark.scripts_dir` | `cmd/script/list.go`、`cmd/script/run.go` |
 
 GitLab Token 的环境变量为何用 `os.Getenv` 而非 `viper.AutomaticEnv()`：viper 会把 `gitlab.token`
 映射为 `GITLAB.TOKEN`，而 shell 无法定义含 `.` 的变量名，因此环境变量一律走显式 `os.Getenv`。
 
-配置键命名转换：`~/.spark.yaml` 中使用 snake_case（`task_dir`、`github_owner`、`work_dir`、`repo_path`），通过 `viper.BindPFlag` 与持久 flag 关联。结构体 tag 中习惯仍使用 camelCase。脚本相关：
+配置键命名转换：`~/.spark.yaml` 中使用 snake_case，通过 `viper.BindPFlag` 与持久 flag 关联。结构体 tag 中习惯仍使用 camelCase。脚本相关：
 
 ```yaml
 spark:
@@ -869,23 +803,6 @@ spark:
 
 ---
 
-## Spark Skills（外部）
-
-> ⚠️ Skill 集合位于 **外部仓库** `variableway/spark-cli` 的 `spark-skills/` 目录，**不包含在本仓库内**。请按官方仓库说明安装：
-
-| Skill | 描述 |
-|-------|------|
-| `github-task-workflow` | GitHub 任务工作流管理 |
-| `spark-task-init` | `spark task` 初始化辅助 |
-
-```bash
-git clone https://github.com/variableway/spark-cli
-cd spark-cli/spark-skills
-./install.sh kimi        # 或 ./install.sh claude-code
-```
-
----
-
 ## 助手指令参考
 
 本项目保持高内聚、低耦合的 Go 代码风格。在进行后续开发时，请务必：
@@ -898,7 +815,7 @@ cd spark-cli/spark-skills
 2. **测试要求**
    - 新功能必须添加 BDD 风格测试
    - 测试文件以 `_test.go` 结尾，测试套件（`*_suite_test.go`）注册 Ginkgo runner
-   - 测试覆盖：`config` / `git`（含 `scanner`）/ `script` / `task` / `github` / `gitlab` / `witr/output`
+   - 测试覆盖：`config` / `git`（含 `scanner`）/ `script` / `github` / `gitlab` / `witr/output`
    - `cmd/` 下的纯函数（如 `resolveGitLabToken`、`parseRepoSlug`）用标准 `testing` 直接覆盖即可
 
 3. **构建一致性**

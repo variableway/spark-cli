@@ -88,7 +88,7 @@ The approach is **highly feasible** on all three axes (technical, maintenance, e
 |------------|--------|
 | **Tech stack** | Go 1.24+, Cobra, Viper |
 | **Distribution** | Single-binary executable, cross-platform (Windows/Linux/macOS) |
-| **Existing modules** | `git`, `task` |
+| **Existing modules** | `git`, `repo` |
 | **Testing** | Ginkgo + Gomega (BDD style) |
 | **Config** | `~/.spark.yaml` (Viper auto-read) |
 | **Core constraint** | Integration must remain **opt-in** — never require Node.js or Python for users who only use the core features. |
@@ -109,7 +109,7 @@ The approach is **highly feasible** on all three axes (technical, maintenance, e
 
 1. **Unified entry**: `spark hub` owns the lifecycle (detection, diagnostics, passthrough) for every external CLI.
 2. **Common shortcuts**: the most-used capabilities become first-class subcommands, lowering the cognitive load.
-3. **Core stays clean**: external deps live in `internal/hub` and never bleed into `git`, `task`, etc.
+3. **Core stays clean**: external deps live in `internal/hub` and never bleed into `git`, `repo`, etc.
 4. **Progressive enhancement**: users who don't install external CLIs still get a fully functional Spark core.
 
 ---

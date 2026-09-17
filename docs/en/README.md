@@ -28,7 +28,6 @@ main.go → cmd.Execute()
 │   ├── magic/              System utilities (DNS, mirrors, clean, copy-config)
 │   ├── script/             Script management commands
 │   ├── docs/               Documentation scaffolding commands
-│   ├── task.go             Task workflow commands
 │   ├── version.go          spark version
 │   └── witr.go             Process diagnostics bridge
 ├── internal/               Business logic by domain
@@ -38,9 +37,7 @@ main.go → cmd.Execute()
 │   ├── gitlab/             GitLab API interactions (batch-clone)
 │   ├── registry/           registry file scan/read/merge
 │   ├── script/             Script discovery & execution
-│   ├── task/               Task dispatch/sync/issue CRUD
 │   ├── templates/          Embedded nvim/ghostty dotfiles
-│   ├── tui/                Shared terminal UI components
 │   └── witr/               Why-Is-This-Running engine
 ├── pkg/witr/model/         Shared witr data model
 ├── docs/zh, docs/en/       Bilingual docmd site
@@ -127,22 +124,6 @@ Registry files (`registry_<folder>.yaml`) replace submodules for managing many r
 
 ---
 
-### spark task — Task Management
-
-| Command | Description |
-|---------|-------------|
-| `spark task init` | Initialize task directory structure |
-| `spark task list` | List all tasks and issues |
-| `spark task create <name> [--content <text>]` | Create issue file |
-| `spark task delete <name> [--force]` | Delete issue file |
-| `spark task impl <name>` | Implement issue via kimi CLI |
-| `spark task dispatch [name] [--dest <path>]` | Dispatch task to workspace |
-| `spark task sync [name] [--work-path <path>]` | Sync task back |
-
-Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
-
----
-
 ### spark magic — System Utilities
 
 | Command | Description |
@@ -199,9 +180,6 @@ gitlab:
   host: gitlab.example.com   # optional: scope the token to this instance
   token: glpat-xxxx          # GitLab token for batch-clone
 github-owner: your-username  # default for spark git init --owner
-task_dir: /path/to/tasks
-github_owner: your-username
-work_dir: ./workspace
 ```
 
 ## Documentation
@@ -213,7 +191,6 @@ Online docs: https://variableway.github.io/spark-cli/
 | [usage/](usage/usage.md) | Command usage guide overview |
 | [usage/git.md](usage/git.md) | Git repository management |
 | [usage/repo.md](usage/repo.md) | Repository management (registry) |
-| [usage/task.md](usage/task.md) | Task management |
 | [usage/magic.md](usage/magic.md) | System utilities |
 | [usage/script.md](usage/script.md) | Script management |
 | [usage/docs-cmd.md](usage/docs-cmd.md) | Docs management |

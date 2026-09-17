@@ -22,10 +22,6 @@
         "path": "/usage/repo"
       },
       {
-        "title": "Task Management",
-        "path": "/usage/task"
-      },
-      {
         "title": "System Utilities",
         "path": "/usage/magic"
       },
@@ -68,10 +64,6 @@
         "path": "/features/repo"
       },
       {
-        "title": "Task Management",
-        "path": "/features/task"
-      },
-      {
         "title": "System Utilities",
         "path": "/features/magic"
       },
@@ -97,10 +89,6 @@
       {
         "title": "Repo",
         "path": "/spec/repo"
-      },
-      {
-        "title": "Task",
-        "path": "/spec/task"
       },
       {
         "title": "Magic",

@@ -5,7 +5,7 @@ The [`AGENTS.md`](../../AGENTS.md) and [`CLAUDE.md`](../../CLAUDE.md) at the rep
 
 ## Project Overview
 
-**Spark** is a CLI tool (`module spark`, binary `spark`) for managing multiple Git repositories, scripts, and task workflows, with practical system utilities bundled in. Built with **Cobra** (CLI), **Viper** (config), **PTerm** + **Bubble Tea** (terminal UI), and **Ginkgo/Gomega** for BDD testing.
+**Spark** is a CLI tool (`module spark`, binary `spark`) for managing multiple Git repositories and scripts, with practical system utilities bundled in. Built with **Cobra** (CLI), **Viper** (config), **PTerm** + **Bubble Tea** (terminal UI), and **Ginkgo/Gomega** for BDD testing.
 
 Core capabilities:
 
@@ -18,12 +18,11 @@ Core capabilities:
 7. **Repo scanning** — `spark git scan` scans repositories in a directory and saves them to SQLite
 8. **Repo pushing** — `spark git push-all` batch-commits and pushes all changes
 9. **Issue creation** — `spark git issues` creates GitHub Issues from Markdown/task files
-10. **Task management** — `spark task` task dispatch, sync, issue CRUD, and `impl` (based on the `kimi` CLI)
-11. **Script management** — discover and run scripts from `~/.spark.yaml` or the `scripts/` directory
-12. **System utilities** — `spark magic` provides DNS cache flushing, `node_modules`/`.venv` cleanup, pip/npm/go mirror switching, and Neovim/Ghostty template deployment
-13. **Docs management** — `spark docs init`/`spark docs site` (docmd site initialization)
-14. **Process diagnostics** — `spark witr` (Why Is This Running), inspecting why a process or port is running
-15. **Repo management** — `spark repo` manages multiple GitHub repositories in a directory via a registry file (`scan`/`clone`/`list`), replacing submodules
+10. **Script management** — discover and run scripts from `~/.spark.yaml` or the `scripts/` directory
+11. **System utilities** — `spark magic` provides DNS cache flushing, `node_modules`/`.venv` cleanup, pip/npm/go mirror switching, and Neovim/Ghostty template deployment
+12. **Docs management** — `spark docs init`/`spark docs site` (docmd site initialization)
+13. **Process diagnostics** — `spark witr` (Why Is This Running), inspecting why a process or port is running
+14. **Repo management** — `spark repo` manages multiple GitHub repositories in a directory via a registry file (`scan`/`clone`/`list`), replacing submodules
 
 ## Tech Stack
 
@@ -43,7 +42,6 @@ spark-cli/
 ├── main.go                  # Entry point (calls cmd.Execute())
 ├── cmd/
 │   ├── root.go              # Root command, global flags, config loading and .monolize.yaml auto-migration
-│   ├── task.go              # The task command and all its subcommands
 │   ├── version.go           # spark version
 │   ├── witr.go              # Bridge to internal/witr/app.Root()
 │   ├── git/                 # init/clone/update/submodule/sync/gitcode/config/url/
@@ -59,9 +57,7 @@ spark-cli/
 │   ├── gitlab/              # GitLab API (batch-clone: URL parsing, token sources, nested groups)
 │   ├── registry/            # Scan/read-write/merge logic for the repo command
 │   ├── script/              # Script discovery and execution
-│   ├── task/                # Task init/dispatch/sync, issue CRUD, impl (kimi)
 │   ├── templates/           # Embedded dotfiles (nvim + ghostty)
-│   ├── tui/                 # PTerm wrapper layer
 │   └── witr/                # Why-Is-This-Running process diagnostics engine
 ├── pkg/witr/model/          # Shared witr data model
 ├── docs/{zh,en}/            # docmd site (Chinese is the default locale, English mirror at /en/)
@@ -153,29 +149,6 @@ spark repo list -f registry_<folder>.yaml            # List the repos in the reg
 
 ---
 
-### `spark task` — Task management
-
-```bash
-spark task init                              # Initialize the tasks/ directory structure
-spark task list                              # List task directories and issue files
-spark task create <feature-name> [--content] # Create a new issue file
-spark task delete <feature-name> [--force]   # Delete an issue file
-spark task impl <feature-name>               # Implement the issue via the kimi CLI
-spark task dispatch [task-name] [--dest]     # Dispatch the task and create a GitHub repository
-spark task sync [task-name] [--work-path]    # Sync the implementation back to the task directory
-```
-
-| Option (persistent) | Description |
-|------|------|
-| `--task-dir` | Task directory (bound to `task_dir`) |
-| `--owner` | GitHub owner (bound to `github_owner`) |
-| `--work-dir` | Working directory (bound to `work_dir`, default `.`) |
-| `--tui` | Whether to enable the TUI (default `true`; disable with `--tui=false`) |
-
-Task directory structure (created by `task init`): `issues/`, `config/`, `analysis/`, `mindstorm/`, `planning/`, `prd/`.
-
----
-
 ### `spark script` — Script management
 
 ```bash
@@ -264,9 +237,6 @@ gitlab:
   token: glpat-xxxx                # Requires read_api; cloning private repos also requires read_repository
 
 github-owner: your-github-username # Default for spark git init --owner
-task_dir: ~/tasks                  # spark task --task-dir
-github_owner: your-github-username # spark task --owner
-work_dir: ~/workspace              # spark task --work-dir
 
 spark:
   scripts_dir: scripts
@@ -284,8 +254,6 @@ spark:
 | `git.scanner.db` (`--db`) | `cmd/git/scan.go` |
 | `gitlab.host` / `gitlab.token` (`--token`) | `cmd/git/batch_clone.go` |
 | `github-owner` | `cmd/git/init.go` |
-| `task_dir` / `github_owner` / `work_dir` | `cmd/task.go` |
-| `dest` / `work-path` | `cmd/task.go` (flags of `dispatch` / `sync`) |
 | `spark.scripts_dir` | `cmd/script/list.go`, `cmd/script/run.go` |
 
 The GitLab token environment variable uses `os.Getenv` rather than `viper.AutomaticEnv()`: viper would map

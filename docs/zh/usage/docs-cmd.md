@@ -68,4 +68,3 @@ docmd build                                   # 构建静态站点
 ## 相关命令
 
 - [脚本管理](./script.md)
-- [任务管理](./task.md)

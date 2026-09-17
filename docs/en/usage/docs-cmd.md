@@ -68,4 +68,3 @@ docmd build                                   # Build the static site
 ## Related
 
 - [Script Management](./script)
-- [Task Management](./task)

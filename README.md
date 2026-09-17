@@ -26,7 +26,6 @@ main.go → cmd.Execute()
 │   ├── magic/              System utilities (DNS, mirrors, clean, dotfiles)
 │   ├── script/             Script management
 │   ├── docs/               Documentation scaffolding
-│   ├── task.go             Task workflow commands
 │   └── witr.go             Process diagnostics
 ├── internal/               Business logic by domain
 │   ├── config/             Config loading & migration
@@ -34,9 +33,7 @@ main.go → cmd.Execute()
 │   ├── github/             GitHub API
 │   ├── gitlab/             GitLab API (batch-clone)
 │   ├── script/             Script discovery & execution
-│   ├── task/               Task dispatch/sync/issue CRUD
 │   ├── templates/          Embedded dotfiles (nvim, ghostty)
-│   ├── tui/                Shared terminal UI components
 │   └── witr/               Why-Is-This-Running engine
 ├── docs/                   Documentation (docmd)
 └── scripts/                User-defined automation scripts
@@ -98,22 +95,6 @@ go test ./internal/git/... -v -run TestFunctionName
 
 ---
 
-### spark task — Task Management
-
-| Command | Description |
-|---------|-------------|
-| `spark task init` | Initialize task directory structure |
-| `spark task list` | List all tasks and issues |
-| `spark task create <name> [--content]` | Create issue file |
-| `spark task delete <name> [--force]` | Delete issue file |
-| `spark task impl <name>` | Implement issue via kimi CLI |
-| `spark task dispatch [name] [--dest]` | Dispatch task to workspace |
-| `spark task sync [name] [--work-path]` | Sync task back |
-
-Flags: `--task-dir`, `--owner`, `--work-dir`, `--tui`
-
----
-
 ### spark magic — System Utilities
 
 | Command | Description |
@@ -164,9 +145,6 @@ git:
   email: your@email.com
   scanner:
     db: ~/.innate/feeds.db
-task_dir: /path/to/tasks
-github_owner: your-username
-work_dir: ./workspace
 ```
 
 ## Related Projects

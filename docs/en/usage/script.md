@@ -53,5 +53,4 @@ Or place executable files in the `scripts/` directory.
 
 ## Related
 
-- [Task Management](./task)
 - [Docs Management](./docs-cmd)

@@ -18,12 +18,11 @@
 7. **仓库扫描** — `spark git scan` 扫描目录中的仓库并保存到 SQLite
 8. **仓库推送** — `spark git push-all` 批量提交推送所有更改
 9. **Issue 创建** — `spark git issues` 从 Markdown/任务文件创建 GitHub Issue
-10. **任务管理** — `spark task` 任务分发、同步、issue CRUD 与 `impl`（基于 `kimi` CLI）
-11. **脚本管理** — 从 `~/.spark.yaml` 或 `scripts/` 目录发现并执行脚本
-12. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
-13. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
-14. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
-15. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
+10. **脚本管理** — 从 `~/.spark.yaml` 或 `scripts/` 目录发现并执行脚本
+11. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
+12. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
+13. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
+14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
 
 ## 技术栈
 
@@ -43,7 +42,6 @@ spark-cli/
 ├── main.go                  # 入口（调用 cmd.Execute()）
 ├── cmd/
 │   ├── root.go              # 根命令、全局 flag、配置加载与 .monolize.yaml 自动迁移
-│   ├── task.go              # task 命令及所有子命令
 │   ├── version.go           # spark version
 │   ├── witr.go              # 桥接到 internal/witr/app.Root()
 │   ├── git/                 # init/clone/update/submodule/sync/gitcode/config/url/
@@ -59,9 +57,7 @@ spark-cli/
 │   ├── gitlab/              # GitLab API（batch-clone：URL 解析、token 来源、嵌套群组）
 │   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
 │   ├── script/              # 脚本发现与执行
-│   ├── task/                # 任务 init/dispatch/sync、issue CRUD、impl（kimi）
 │   ├── templates/           # 嵌入的 dotfiles（nvim + ghostty）
-│   ├── tui/                 # PTerm 上层封装
 │   └── witr/                # Why-Is-This-Running 进程诊断引擎
 ├── pkg/witr/model/          # witr 共享数据模型
 ├── docs/{zh,en}/            # docmd 站点（中文为默认 locale，英文镜像在 /en/）
@@ -149,29 +145,6 @@ spark repo list -f registry_<folder>.yaml            # 列出 registry 中的仓
 |------|------|------|
 | `-r, --repo` | `clone` | 仅克隆指定名称的仓库（省略则全部） |
 | `-f, --file` | `clone` / `list` | registry 文件（必填） |
-
----
-
-### `spark task` — 任务管理
-
-```bash
-spark task init                              # 初始化 tasks/ 目录结构
-spark task list                              # 列出任务目录与 issue 文件
-spark task create <feature-name> [--content] # 新建 issue 文件
-spark task delete <feature-name> [--force]   # 删除 issue 文件
-spark task impl <feature-name>               # 使用 kimi CLI 实现 issue
-spark task dispatch [task-name] [--dest]     # 分发任务并创建 GitHub 仓库
-spark task sync [task-name] [--work-path]    # 同步实现回任务目录
-```
-
-| 选项（持久） | 说明 |
-|------|------|
-| `--task-dir` | 任务目录（绑定 `task_dir`） |
-| `--owner` | GitHub owner（绑定 `github_owner`） |
-| `--work-dir` | 工作目录（绑定 `work_dir`，默认 `.`） |
-| `--tui` | 是否启用 TUI（默认 `true`，关闭用 `--tui=false`） |
-
-任务目录结构（`task init` 创建）：`issues/`、`config/`、`analysis/`、`mindstorm/`、`planning/`、`prd/`。
 
 ---
 
@@ -263,9 +236,6 @@ gitlab:
   token: glpat-xxxx                # 需 read_api，克隆私有仓库还需 read_repository
 
 github-owner: your-github-username # spark git init --owner 默认值
-task_dir: ~/tasks                  # spark task --task-dir
-github_owner: your-github-username # spark task --owner
-work_dir: ~/workspace              # spark task --work-dir
 
 spark:
   scripts_dir: scripts
@@ -283,8 +253,6 @@ spark:
 | `git.scanner.db`（`--db`） | `cmd/git/scan.go` |
 | `gitlab.host` / `gitlab.token`（`--token`） | `cmd/git/batch_clone.go` |
 | `github-owner` | `cmd/git/init.go` |
-| `task_dir` / `github_owner` / `work_dir` | `cmd/task.go` |
-| `dest` / `work-path` | `cmd/task.go`（`dispatch` / `sync` 的 flag） |
 | `spark.scripts_dir` | `cmd/script/list.go`、`cmd/script/run.go` |
 
 GitLab Token 的环境变量用 `os.Getenv` 而非 `viper.AutomaticEnv()`：viper 会把 `gitlab.token`

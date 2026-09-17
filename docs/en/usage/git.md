@@ -404,10 +404,10 @@ The target repo can be passed via `-r`; if omitted, `owner/repo` is parsed from 
 spark git issues -d ./docs -r variableway/spark-cli
 
 # Task mode: split by Task sections
-spark git issues -f tasks/issues/task-bug-fix.md -r variableway/spark-cli
+spark git issues -f ./issues/task-bug-fix.md -r variableway/spark-cli
 
 # Auto-detect owner/repo from the current repo
-spark git issues -f tasks/issues/task-bug-fix.md --dry-run
+spark git issues -f ./issues/task-bug-fix.md --dry-run
 ```
 
 ## spark git push-all
@@ -463,9 +463,3 @@ spark git scan . --db ~/data/my-repos.db      # Use a custom database path
 - Upserts into SQLite by repo path; repeat scans update existing rows
 
 **Database fields**: `path`, `name`, `remote_url`, `repo_type`, `owner`, `repo`, `description`, `stars`, `forks`, `language`, `updated_at`, `scanned_at`
-
----
-
-## Related
-
-- [Task Management](./task)

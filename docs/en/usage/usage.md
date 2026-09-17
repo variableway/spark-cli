@@ -8,7 +8,6 @@ Spark is a CLI tool for daily dev automation and AI skill integration.
 |-------|-------------|
 | `spark git` | Git repository management (clone, update, submodules, Gitcode, batch-clone, issues, push, scan) |
 | `spark repo` | Repository management (registry-file driven scan / clone / list) |
-| `spark task` | Task management (create, dispatch, sync, implement) |
 | `spark script` | Custom script management |
 | `spark magic` | System utilities (DNS flush, directory cleaning, dotfile deploy, mirror switching) |
 | `spark docs` | Documentation management (init structure, site config) |
@@ -39,16 +38,12 @@ gitlab:
   host: gitlab.example.com   # optional: scope the token to this instance
   token: glpat-xxxx
 github-owner: your-username  # default for spark git init --owner
-task_dir: ./tasks
-github_owner: your-username
-work_dir: ./workspace
 ```
 
 ## Detailed Usage
 
 - [Git Repository Management](./git)
 - [Repository Management](./repo)
-- [Task Management](./task)
 - [System Utilities](./magic)
 - [Script Management](./script)
 - [Docs Management](./docs-cmd)

@@ -110,10 +110,10 @@ The unified `spark git issues` command creates GitHub issues from Markdown. Two 
 spark git issues -d ./docs -r variableway/spark-cli
 
 # Task mode
-spark git issues -f tasks/issues/task-bug-fix.md -r variableway/spark-cli
+spark git issues -f ./issues/task-bug-fix.md -r variableway/spark-cli
 
 # Auto-detect current repo + dry run
-spark git issues -f tasks/issues/task-bug-fix.md --dry-run
+spark git issues -f ./issues/task-bug-fix.md --dry-run
 ```
 
 ### Batch Push
