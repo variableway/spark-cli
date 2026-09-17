@@ -5,7 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.2] - 2026-09-17
+
+### Added
+
+- `spark repo` — Registry-file based multi-repository management (`scan` / `clone` / `list`) as an alternative to submodules, backed by `internal/registry`
+- `spark version` — Print version, commit and build date stamped via ldflags
+- `Taskfile.yml` — Task runner entry points mirroring the Makefile (build / install / install-binary / verify-install)
+- `scripts/install-binary.{sh,ps1}` and `scripts/verify-install.{sh,ps1}` — Binary installation and install verification helpers
+- Bilingual documentation site — `docs/zh/` (default locale) plus `docs/en/` mirror
+
+### Changed
+
+- `spark git batch-clone` — GitLab token provenance reporting (`--token` > `gitlab.token` > `GITLAB_TOKEN` > `GITLAB_PRIVATE_TOKEN`), `gitlab.host` scoping of auto-discovered credentials, and clearer "credentials rejected / no credentials / path not found" errors
+- `spark magic clean` — Reworked traversal and cleanup logic
+- Makefile — Version / commit / build-date ldflags stamping and cross-platform build targets
+- Dependencies updated, pnpm workspace metadata added
+
+### Fixed
+
+- `spark git submodule add` — Local directory and multi-repository additions no longer fail
+- `scripts/verify-install.sh` — Verification logic corrected
 
 ### Removed
 
@@ -44,5 +64,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core `spark git`, `spark task`, `spark script`, `spark magic`, `spark docs`, and `spark witr` commands
 - Cross-platform binaries (Linux, macOS amd64/arm64, Windows)
 
+[0.3.2]: https://github.com/variableway/spark-cli/compare/v0.2.0...v0.3.2
 [0.2.0]: https://github.com/variableway/spark-cli/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/variableway/spark-cli/releases/tag/v0.1.0
