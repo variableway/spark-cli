@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `spark task` — Task management commands and the `internal/task` package, along with the `task_dir` / `github_owner` / `work_dir` config keys
+- `internal/tui` — TUI helpers that were only used by `spark task`
+- `tasks/` — Legacy task/issue planning documents
+- `scripts/copy-template.sh` — Sample script that referenced `tasks/example-feature.md`
+- `.github-task-workflow.yaml` / `.github-task-workflow.active-issue` — GitHub Task Workflow tool config and state files
 
 ## [0.2.0] - 2026-07-07
 
