@@ -5,6 +5,7 @@ package proc
 import (
 	"net"
 	"os"
+	"runtime"
 	"testing"
 )
 
@@ -59,6 +60,10 @@ func TestIntegration_ReadProcessSelf(t *testing.T) {
 // that cannot exist (PID 0 is reserved by the kernel and never represents a
 // userland process).
 func TestIntegration_ReadProcessNonexistent(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		// On Windows PID 0 is the System Idle Process and is readable.
+		t.Skip("PID 0 is a valid process on Windows")
+	}
 	if _, err := ReadProcess(0); err == nil {
 		t.Errorf("ReadProcess(0) returned no error; want an error")
 	}

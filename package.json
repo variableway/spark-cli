@@ -9,6 +9,11 @@
     "preview": "npx serve site"
   },
   "dependencies": {
-    "@docmd/core": "^0.9.5"
+    "@docmd/core": "^0.9.8",
+    "@docmd/plugin-llms": "0.9.8",
+    "@docmd/plugin-mermaid": "0.9.8",
+    "@docmd/plugin-search": "0.9.8",
+    "@docmd/plugin-seo": "0.9.8",
+    "@docmd/plugin-sitemap": "0.9.8"
   }
 }

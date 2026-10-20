@@ -38,6 +38,7 @@ spark-cli/
 ├── main.go                  # 入口（调用 cmd.Execute()）
 ├── cmd/
 │   ├── root.go              # 根命令、全局 flag、配置加载与 .monolize.yaml 自动迁移
+│   ├── version.go           # spark version（打印 version / commit / build date）
 │   ├── witr.go              # 桥接到 internal/witr/app.Root()
 │   ├── git/                 # Git 仓库管理命令
 │   │   ├── git.go           # GitCmd 父命令
@@ -206,6 +207,23 @@ spark
 - `spark magic`（`cmd/magic/`）提供 `clean` / `copy-config` / `flush-dns` / `pip|go|node {list,use,current}`。
 - `spark docs`（`cmd/docs/`）提供 `init` / `site`，用于 docmd 站点脚手架。
 - `spark version`（`cmd/version.go`）打印 version / commit / build date。
+
+### 7. Windows 构建、pnpm 全局配置与文档补全 (2026-10-20)
+- **pnpm 全局地址指到 D 盘**：`store-dir=D:\.pnpm-store`、`global-dir=D:\pnpm\global`、
+  `global-bin-dir=D:\pnpm\bin`，`PNPM_HOME=D:\pnpm` + 用户 PATH 首位 `D:\pnpm\bin`
+  （用 `[Environment]::SetEnvironmentVariable` 写入，勿用 `setx`，1024 字符会截断 PATH）。
+  pnpm 升级至 12.14.0。
+- **Windows 构建链路**：`task build` 产出 `spark.exe` v0.3.2 并安装 `~/.local/bin`
+  （`spark.exe` + 裸名 `spark` 双份，sha256 校验）；`pnpm install && pnpm build` 产出文档站。
+- **测试修复**：`cmd/git` 子模块路径在 Windows 传 `research\name` 给 git 报
+  Invalid path，改用 `filepath.ToSlash`；`internal/witr/proc` 的 PID 0 测试假设在
+  Windows 不成立（System Idle Process 可读），改为 `t.Skip`。`go test ./...` 全绿。
+- **文档**：README 增补 Quick Start（`spark magic flush-dns`）与 Test Report 截图
+  （`docs/assets/test-report.png`）；新增 `docs/{zh,en}/usage/how-to-build.md`
+  （Go / Node / Bun 构建 + pnpm 环境）与 `docs/{zh,en}/quick-start/golang-cli-101.md`
+  （Golang CLI 入门第一课，含课程 Prompt 与 Skill 模板）。
+- **全局 innate-fe-cli**：`bun build --compile` 打出单二进制后以 NTFS 硬链接装入
+  `~/.local/bin`（`innate-fe` / `innate-fe-cli` 各含 `.exe`，4 名共享 1 份磁盘数据）。
 
 ## CLI 命令完整参考
 
@@ -714,6 +732,9 @@ task build          # 等价 make build（包括 Windows 的 spark.exe + spark �
 task install        # 等价 task build
 task install-binary # 仅复制已有 spark.exe 到 ~/.local/bin（不动 source）
 task verify-install # 等价 make verify-install
+task build:windows        # 交叉编译 Windows amd64 (spark_windows.exe)
+task build:windows:arm64  # 交叉编译 Windows arm64
+task build:all            # 全平台交叉编译
 ```
 
 **Windows 安装原理**：`~/.local/bin` 下同时存在 `spark.exe` 与去后缀名 `spark`，因为 bash 优先命中后者；install 步骤原子刷新两个文件，并立即打印 sha256 对比避免 stale 影子。
@@ -721,9 +742,26 @@ task verify-install # 等价 make verify-install
 **自检**：
 
 ```bash
-spark version       # -> spark v0.3.2 / commit 1ef84d7 / build date 2026-07-10T...
+spark version       # -> spark v0.3.2 / commit xxx / build date ...
 spark --version     # -> spark version v0.3.2
 ```
+
+### 文档站构建（Node 体系）
+
+文档站是独立的 Node 项目（`package.json` + `pnpm` + docmd），与 Go 二进制构建并行：
+
+```bash
+pnpm install        # 依赖硬链接自 pnpm store（Windows 可把 store 指到 D:\.pnpm-store）
+pnpm build          # docmd build -> site/（zh 在根，en 在 /en/）
+pnpm dev            # 本地预览
+```
+
+完整构建指南（Go 二进制 / 文档站 / Bun 单二进制 / Windows pnpm 全局地址）见
+[`docs/zh/usage/how-to-build.md`](docs/zh/usage/how-to-build.md)。
+pnpm 全局地址（省 C 盘）：`store-dir=D:\.pnpm-store`、`global-dir=D:\pnpm\global`、
+`global-bin-dir=D:\pnpm\bin`、`PNPM_HOME=D:\pnpm`。
+另：Bun 的 `bun build --compile` 也可像 Go 一样从 TS 产出单二进制（如
+`innate-fe-cli`），详见 how-to-build 第三节。
 
 ### 测试命令
 

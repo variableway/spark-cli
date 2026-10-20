@@ -10,7 +10,7 @@ A CLI tool for daily dev automation and AI skill integration.
 
 | Layer | Technology |
 |-------|-----------|
-| Language | Go 1.25 |
+| Language | Go 1.27 |
 | CLI Framework | Cobra + Viper |
 | Config | `~/.spark.yaml` |
 | TUI | PTerm + Bubble Tea |
@@ -23,21 +23,36 @@ A CLI tool for daily dev automation and AI skill integration.
 main.go → cmd.Execute()
 ├── cmd/                    Cobra command definitions
 │   ├── git/                Git repo management
+│   ├── repo/               Registry-file driven multi-repo management
 │   ├── magic/              System utilities (DNS, mirrors, clean, dotfiles)
 │   ├── script/             Script management
 │   ├── docs/               Documentation scaffolding
+│   ├── version.go          spark version
 │   └── witr.go             Process diagnostics
 ├── internal/               Business logic by domain
 │   ├── config/             Config loading & migration
 │   ├── git/                Core git operations (+ scanner)
 │   ├── github/             GitHub API
 │   ├── gitlab/             GitLab API (batch-clone)
+│   ├── registry/           repo registry scan/merge
 │   ├── script/             Script discovery & execution
 │   ├── templates/          Embedded dotfiles (nvim, ghostty)
 │   └── witr/               Why-Is-This-Running engine
+├── pkg/witr/model/         Shared witr data model
 ├── docs/                   Documentation (docmd)
 └── scripts/                User-defined automation scripts
 ```
+
+## Quick Start — the simplest feature
+
+Zero config, zero setup: flush your DNS cache.
+
+```bash
+spark magic flush-dns
+```
+
+That's it — one command, works on macOS / Windows / Linux.
+Next-easiest things to try: `spark version`, `spark script list`, `spark git url`.
 
 ## Build
 
@@ -48,21 +63,49 @@ make build-linux    # Cross-compile Linux amd64
 make build-darwin   # Cross-compile macOS amd64
 make test           # Run all unit tests
 make test-bdd       # BDD-style tests (Ginkgo)
-```
-
-验证安装的二进制确实是最新的：
-```bash
-spark version       # -> spark v0.3.2 / commit 1ef84d7 / build date ...
-spark --version     # -> spark version v0.3.2
-```
 make lint           # Static analysis (go vet)
 make clean          # Remove binary
+```
+
+On Windows use `task` instead of `make` (see `Taskfile.yml`):
+
+```bash
+task build          # Build spark.exe + install to ~/.local/bin (sha256 verified)
+task build:windows  # Cross-compile spark_windows.exe
+```
+
+Verify the installed binary is the one you just built:
+
+```bash
+spark version       # -> spark v0.3.2 / commit 89ad8e8 / build date ...
+spark --version     # -> spark version v0.3.2
 ```
 
 Run a single test:
 ```bash
 go test ./internal/git/... -v -run TestFunctionName
 ```
+
+The documentation site is a **Node** project (`package.json` + `pnpm`), built
+with [docmd](https://www.npmjs.com/package/@docmd/core):
+
+```bash
+pnpm install && pnpm build   # -> site/ (zh at root, en at /en/)
+```
+
+Full walkthrough (Go binary + docs site + pnpm on Windows):
+see [docs/zh/usage/how-to-build.md](docs/zh/usage/how-to-build.md)。
+
+## Test Report
+
+`go test ./...` on Windows (2026-10-20) — all packages pass:
+
+![spark-cli test report](docs/assets/test-report.png)
+
+```
+PASS  (15 packages ok, 9 without tests, 0 failed)
+```
+
 
 ## Commands
 
@@ -103,6 +146,16 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark magic clean [-m node\|python]` | Clean `node_modules` and `.venv` |
 | `spark magic copy-config [<target>]` | Deploy bundled nvim + ghostty templates |
 | `spark magic pip/go/node {list,use,current}` | Switch pip / Go / npm mirrors |
+
+---
+
+### spark repo — Multi-repo Registry
+
+| Command | Description |
+|---------|-------------|
+| `spark repo scan [folder-name]` | Scan directory, write `registry_<folder>.yaml` |
+| `spark repo clone -f <registry> [-r <name>]` | Clone all (or one) repos from a registry |
+| `spark repo list -f <registry>` | List repos in a registry |
 
 ---
 
@@ -157,8 +210,10 @@ Online docs: https://variableway.github.io/spark-cli/
 
 | Path | Content |
 |------|---------|
-| [docs/usage/](docs/usage/) | Per-command usage guides |
-| [docs/analysis/](docs/analysis/) | Architecture & RFC documents |
+| [docs/zh/usage/](docs/zh/usage/) | Per-command usage guides (Chinese, default) |
+| [docs/en/usage/](docs/en/usage/) | Per-command usage guides (English) |
+| [docs/zh/usage/how-to-build.md](docs/zh/usage/how-to-build.md) | How to build (Go binary + Node docs site) |
+| [docs/zh/analysis/](docs/zh/analysis/) | Architecture & RFC documents |
 | [AGENTS.md](AGENTS.md) | AI integration guide |
 | [CLAUDE.md](CLAUDE.md) | Claude Code development guide |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |

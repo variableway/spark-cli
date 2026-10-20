@@ -46,7 +46,7 @@ func TestAddNestedRepos(t *testing.T) {
 		t.Fatalf("read .gitmodules: %v", err)
 	}
 	for _, name := range repos {
-		path := filepath.Join("research", name)
+		path := "research/" + name
 		if !strings.Contains(string(gm), fmt.Sprintf("path = %s", path)) {
 			t.Errorf(".gitmodules missing entry for %s:\n%s", path, gm)
 		}
@@ -59,7 +59,7 @@ func TestAddNestedRepos(t *testing.T) {
 		t.Fatalf("ls-files --stage: %v", err)
 	}
 	for _, name := range repos {
-		path := filepath.Join("research", name)
+		path := "research/" + name
 		if !strings.Contains(string(out), "160000") || !strings.Contains(string(out), "\t"+path) {
 			t.Errorf("expected gitlink for %s, got:\n%s", path, out)
 		}

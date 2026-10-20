@@ -198,7 +198,9 @@ func addNestedRepos(repoPath, absFolder string) error {
 			continue
 		}
 
-		relPath := filepath.Join(relFolder, name)
+		// git requires slash-separated paths in update-index cacheinfo and
+		// .gitmodules; filepath.Join on Windows would yield "research\name".
+		relPath := filepath.ToSlash(filepath.Join(relFolder, name))
 
 		if isSubmoduleGitlink(repoPath, relPath) {
 			fmt.Printf("Skipping %s: already as submodule\n", relPath)

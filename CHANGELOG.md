@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.3] - 2026-10-20
+
+### Added
+
+- README — Quick Start (`spark magic flush-dns`) and a Test Report screenshot (`docs/assets/test-report.png`)
+- `docs/{zh,en}/usage/how-to-build.md` — Build guide: Go binary, Node docs site, Bun `build --compile` single binaries, and the Windows pnpm global-path setup (store / global-dir / bin on D:)
+- `docs/{zh,en}/quick-start/golang-cli-101.md` — Beginner lesson one (Go CLI basics, third-party packages, dependency management, Makefile vs Taskfile) with a ready-to-use course prompt and SKILL.md template
+- `pnpm-lock.yaml` — Lockfile for reproducible docs-site installs
+
+### Fixed
+
+- `spark git submodule add` — Nested-repo paths are slash-separated before being handed to git, fixing `Invalid path 'research\name'` on Windows
+- `internal/witr/proc` — `TestIntegration_ReadProcessNonexistent` skips on Windows, where PID 0 (System Idle Process) is a readable process
+
+### Changed
+
+- AGENTS.md — Structure tree gains `cmd/version.go`; build section covers Taskfile cross-compile targets and the docs-site build; new automation record
+- Docs navigation (`docs/{zh,en}/navigation.json`) — Quick Start group and How-to-Build entries
+
 ## [0.3.2] - 2026-09-17
 
 ### Added

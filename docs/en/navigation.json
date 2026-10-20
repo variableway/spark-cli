@@ -5,6 +5,21 @@
     "icon": "home"
   },
   {
+    "title": "Quick Start",
+    "icon": "rocket",
+    "collapsible": true,
+    "children": [
+      {
+        "title": "Getting Started",
+        "path": "/quick-start/getting-started"
+      },
+      {
+        "title": "Golang CLI Essentials · Lesson 1",
+        "path": "/quick-start/golang-cli-101"
+      }
+    ]
+  },
+  {
     "title": "User Guide",
     "icon": "book",
     "collapsible": true,
@@ -36,6 +51,10 @@
       {
         "title": "Process Diagnostics",
         "path": "/usage/witr"
+      },
+      {
+        "title": "Build & Environment (Windows)",
+        "path": "/usage/how-to-build"
       }
     ]
   },
