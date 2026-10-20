@@ -2,6 +2,7 @@ version: '3'
 
 vars:
   BINARY_NAME: spark
+  BIN_DIR: bin
   GO: go
   VERSION:
     sh: cat internal/witr/version/VERSION 2>/dev/null || echo dev
@@ -18,77 +19,85 @@ tasks:
     cmds:
       - task: build
 
-  build:
-    desc: Build for current OS, stamp version, install to ~/.local/bin
+  prepare-bin:
+    internal: true
     cmds:
-      - task: clean
-      - cmd: '{{.GO}} build -ldflags="-s -w -X spark/internal/witr/version.Version=v{{.VERSION}} -X spark/internal/witr/version.Commit={{.COMMIT}} -X spark/internal/witr/version.BuildDate={{.BUILD_DATE}}" -o {{.BINARY_NAME}}{{exeExt}} main.go'
-      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-binary.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+      - cmd: powershell -NoProfile -Command "New-Item -ItemType Directory -Force {{.BIN_DIR}} | Out-Null"
         platforms: [windows]
-      - cmd: 'bash scripts/install-binary.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
+      - cmd: 'mkdir -p {{.BIN_DIR}}'
         platforms: [linux, darwin]
-      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+
+  build:
+    desc: Build for current OS into bin/, stamp version, install to ~/.local/bin
+    cmds:
+      - task: prepare-bin
+      - cmd: '{{.GO}} build -ldflags="-s -w -X spark/internal/witr/version.Version=v{{.VERSION}} -X spark/internal/witr/version.Commit={{.COMMIT}} -X spark/internal/witr/version.BuildDate={{.BUILD_DATE}}" -o {{.BIN_DIR}}/{{.BINARY_NAME}}{{exeExt}} main.go'
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-binary.ps1 -Source '{{.BIN_DIR}}/{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
         platforms: [windows]
-      - cmd: 'bash scripts/verify-install.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
+      - cmd: 'bash scripts/install-binary.sh {{.BIN_DIR}}/{{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
         platforms: [linux, darwin]
-      - echo 'Installed {{.BINARY_NAME}} to ~/.local/bin'
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BIN_DIR}}/{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+        platforms: [windows]
+      - cmd: 'bash scripts/verify-install.sh {{.BIN_DIR}}/{{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
+        platforms: [linux, darwin]
+      - echo 'Built {{.BIN_DIR}}/{{.BINARY_NAME}}{{exeExt}}, installed to ~/.local/bin'
 
   build:linux:
-    desc: Cross-compile for Linux (amd64)
+    desc: Cross-compile for Linux (amd64) into bin/
     cmds:
       - task: cross-build
         vars:
           GOOS: linux
           GOARCH: amd64
-          OUTPUT: '{{.BINARY_NAME}}_linux'
+          OUTPUT: '{{.BIN_DIR}}/{{.BINARY_NAME}}_linux'
 
   build:linux:arm64:
-    desc: Cross-compile for Linux (arm64)
+    desc: Cross-compile for Linux (arm64) into bin/
     cmds:
       - task: cross-build
         vars:
           GOOS: linux
           GOARCH: arm64
-          OUTPUT: '{{.BINARY_NAME}}_linux_arm64'
+          OUTPUT: '{{.BIN_DIR}}/{{.BINARY_NAME}}_linux_arm64'
 
   build:darwin:
-    desc: Cross-compile for macOS (amd64)
+    desc: Cross-compile for macOS (amd64) into bin/
     cmds:
       - task: cross-build
         vars:
           GOOS: darwin
           GOARCH: amd64
-          OUTPUT: '{{.BINARY_NAME}}_darwin'
+          OUTPUT: '{{.BIN_DIR}}/{{.BINARY_NAME}}_darwin'
 
   build:darwin:arm64:
-    desc: Cross-compile for macOS (arm64/Apple Silicon)
+    desc: Cross-compile for macOS (arm64/Apple Silicon) into bin/
     cmds:
       - task: cross-build
         vars:
           GOOS: darwin
           GOARCH: arm64
-          OUTPUT: '{{.BINARY_NAME}}_darwin_arm64'
+          OUTPUT: '{{.BIN_DIR}}/{{.BINARY_NAME}}_darwin_arm64'
 
   build:windows:
-    desc: Cross-compile for Windows (amd64)
+    desc: Cross-compile for Windows (amd64) into bin/
     cmds:
       - task: cross-build
         vars:
           GOOS: windows
           GOARCH: amd64
-          OUTPUT: '{{.BINARY_NAME}}_windows.exe'
+          OUTPUT: '{{.BIN_DIR}}/{{.BINARY_NAME}}_windows.exe'
 
   build:windows:arm64:
-    desc: Cross-compile for Windows (arm64)
+    desc: Cross-compile for Windows (arm64) into bin/
     cmds:
       - task: cross-build
         vars:
           GOOS: windows
           GOARCH: arm64
-          OUTPUT: '{{.BINARY_NAME}}_windows_arm64.exe'
+          OUTPUT: '{{.BIN_DIR}}/{{.BINARY_NAME}}_windows_arm64.exe'
 
   build:all:
-    desc: Cross-compile for all platforms
+    desc: Cross-compile for all platforms into bin/
     cmds:
       - task: build:linux
       - task: build:linux:arm64
@@ -124,16 +133,16 @@ tasks:
       - '{{.GO}} vet ./...'
 
   clean:
-    desc: Remove build artifacts
+    desc: Remove build artifacts (bin/)
     cmds:
-      - cmd: powershell -NoProfile -Command "Remove-Item -Force -ErrorAction SilentlyContinue spark.exe,spark_windows.exe,spark_windows_arm64.exe,spark_linux,spark_linux_arm64,spark_darwin,spark_darwin_arm64; exit 0"
+      - cmd: powershell -NoProfile -Command "Remove-Item -Recurse -Force -ErrorAction SilentlyContinue {{.BIN_DIR}}; exit 0"
         platforms: [windows]
-      - cmd: 'rm -f {{.BINARY_NAME}} {{.BINARY_NAME}}.exe {{.BINARY_NAME}}_linux {{.BINARY_NAME}}_linux_arm64 {{.BINARY_NAME}}_darwin {{.BINARY_NAME}}_darwin_arm64 {{.BINARY_NAME}}_windows.exe {{.BINARY_NAME}}_windows_arm64.exe'
+      - cmd: 'rm -rf {{.BIN_DIR}}'
         platforms: [linux, darwin]
       - '{{.GO}} clean'
 
   install:
-    desc: Build and install to ~/.local/bin
+    desc: Build into bin/ and install to ~/.local/bin
     cmds:
       - task: build
 
@@ -141,26 +150,26 @@ tasks:
     desc: Build and run
     cmds:
       - task: build
-      - './{{.BINARY_NAME}}{{exeExt}} --help'
+      - './{{.BIN_DIR}}/{{.BINARY_NAME}}{{exeExt}} --help'
 
   install-binary:
-    desc: Copy the already-built binary into ~/.local/bin (no rebuild)
+    desc: Copy the already-built binary from bin/ into ~/.local/bin (no rebuild)
     cmds:
-      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-binary.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/install-binary.ps1 -Source '{{.BIN_DIR}}/{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
         platforms: [windows]
-      - cmd: 'bash scripts/install-binary.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
+      - cmd: 'bash scripts/install-binary.sh {{.BIN_DIR}}/{{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
         platforms: [linux, darwin]
-      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BIN_DIR}}/{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
         platforms: [windows]
-      - cmd: 'bash scripts/verify-install.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
+      - cmd: 'bash scripts/verify-install.sh {{.BIN_DIR}}/{{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
         platforms: [linux, darwin]
 
   verify-install:
-    desc: Compare installed binary sha256 against source
+    desc: Compare installed binary sha256 against bin/ source
     cmds:
-      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
+      - cmd: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-install.ps1 -Source '{{.BIN_DIR}}/{{.BINARY_NAME}}.exe' -InstallDir $HOME/.local/bin
         platforms: [windows]
-      - cmd: 'bash scripts/verify-install.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
+      - cmd: 'bash scripts/verify-install.sh {{.BIN_DIR}}/{{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
         platforms: [linux, darwin]
 
   cross-build:
@@ -171,5 +180,5 @@ tasks:
       GOOS: '{{.GOOS}}'
       GOARCH: '{{.GOARCH}}'
     cmds:
+      - task: prepare-bin
       - '{{.GO}} build -ldflags="-s -w -X spark/internal/witr/version.Version=v{{.VERSION}} -X spark/internal/witr/version.Commit={{.COMMIT}} -X spark/internal/witr/version.BuildDate={{.BUILD_DATE}}" -o {{.OUTPUT}} main.go'
-

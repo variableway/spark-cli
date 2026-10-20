@@ -734,9 +734,9 @@ spark witr nginx --json
 > "missing go.sum entry" 失败，导致 Windows/macOS/Linux 构建都不稳定。
 
 ```bash
-make build          # 编译 + 打 version/commit/date ldflags + 安装到 ~/.local/bin/spark
-make build-linux    # 交叉编译 Linux amd64 (spark_linux)
-make build-darwin   # 交叉编译 macOS amd64 (spark_darwin)
+make build          # 编译到 bin/ + 打 version/commit/date ldflags + 安装到 ~/.local/bin/spark
+make build-linux    # 交叉编译 Linux amd64 (bin/spark_linux)
+make build-darwin   # 交叉编译 macOS amd64 (bin/spark_darwin)
 make clean          # 移除二进制与构建产物
 make install        # 同 build
 make install-only   # 仅复制已有二进制到 ~/.local/bin（不动 source）
@@ -746,13 +746,13 @@ make verify-install # 对比 ~/.local/bin/spark 与源 spark.exe 的 sha256/大�
 `task` (Taskfile) 的等价命令：
 
 ```bash
-task build          # 等价 make build（包括 Windows 的 spark.exe + spark 同步）
+task build          # 等价 make build（产物在 bin/；Windows 同步 spark.exe + spark 到 ~/.local/bin）
 task install        # 等价 task build
 task install-binary # 仅复制已有 spark.exe 到 ~/.local/bin（不动 source）
 task verify-install # 等价 make verify-install
-task build:windows        # 交叉编译 Windows amd64 (spark_windows.exe)
-task build:windows:arm64  # 交叉编译 Windows arm64
-task build:all            # 全平台交叉编译
+task build:windows        # 交叉编译 Windows amd64 (bin/spark_windows.exe)
+task build:windows:arm64  # 交叉编译 Windows arm64 (bin/spark_windows_arm64.exe)
+task build:all            # 全平台交叉编译（产物全部进 bin/，clean 删除 bin/）
 ```
 
 **Windows 安装原理**：`~/.local/bin` 下同时存在 `spark.exe` 与去后缀名 `spark`，因为 bash 优先命中后者；install 步骤原子刷新两个文件，并立即打印 sha256 对比避免 stale 影子。

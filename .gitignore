@@ -10,3 +10,4 @@ node_modules/
 site/
 package-lock.json
 spark.exe
+bin/

@@ -27,8 +27,8 @@ task build
 
 执行内容：
 
-1. `go build -ldflags='...version stamp...' -o spark.exe main.go`
-   —— 把 version / commit / build date 编译进二进制
+1. `go build -ldflags='...version stamp...' -o bin/spark.exe main.go`
+   —— 产物统一落在项目的 `bin/` 目录；version / commit / build date 编译进二进制
 2. `scripts/install-binary.ps1`（或 `.sh`）安装到 `~/.local/bin/`
    Windows 下会同时写 `spark.exe` 与无后缀的 `spark`（bash 优先命中后者，两者必须一致）
 3. `scripts/verify-install.ps1` 做 sha256 一致性校验
@@ -45,11 +45,11 @@ spark --version  # -> spark version v0.3.2
 Go 交叉编译只需换环境变量，不需要额外工具链：
 
 ```bash
-task build:windows        # spark_windows.exe       (amd64)
-task build:windows:arm64  # spark_windows_arm64.exe (arm64)
-task build:linux          # spark_linux
-task build:darwin         # spark_darwin
-task build:all            # 全平台
+task build:windows        # bin/spark_windows.exe       (amd64)
+task build:windows:arm64  # bin/spark_windows_arm64.exe (arm64)
+task build:linux          # bin/spark_linux
+task build:darwin         # bin/spark_darwin
+task build:all            # 全平台，产物都在 bin/（gitignore 掉，不入库）
 ```
 
 ### 测试与静态检查
