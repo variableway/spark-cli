@@ -219,6 +219,7 @@ type SubmoduleInfo struct {
 // the fallback used when `git submodule add` cannot run because the target
 // directory already exists.
 func AddExistingRepoAsSubmodule(repoPath, name, url string) error {
+	name = filepath.ToSlash(name)
 	if err := ensureGitmodulesEntry(repoPath, name, url); err != nil {
 		return fmt.Errorf("failed to update .gitmodules: %w", err)
 	}
@@ -234,6 +235,9 @@ func AddExistingRepoAsSubmodule(repoPath, name, url string) error {
 
 	// Drop any regular-file tracking of name so the path can become a gitlink.
 	// --ignore-unmatch makes this a no-op when nothing is tracked.
+	// name is slash-normalized because git pathspecs and .gitmodules entries
+	// require forward slashes; backslashes are rejected (update-index) or
+	// silently fail to match (rm/ls-files).
 	rm := exec.Command("git", "rm", "--cached", "-r", "--ignore-unmatch", "--", name)
 	rm.Dir = repoPath
 	rm.Run() // best-effort

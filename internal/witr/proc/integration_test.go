@@ -3,6 +3,7 @@
 package proc
 
 import (
+	"math"
 	"net"
 	"os"
 	"testing"
@@ -56,11 +57,12 @@ func TestIntegration_ReadProcessSelf(t *testing.T) {
 }
 
 // TestIntegration_ReadProcessNonexistent verifies error handling for a PID
-// that cannot exist (PID 0 is reserved by the kernel and never represents a
-// userland process).
+// that cannot exist. PID 0 is reserved on Unix but is the readable System
+// Idle Process on Windows, so use the largest possible PID instead — no
+// platform assigns it.
 func TestIntegration_ReadProcessNonexistent(t *testing.T) {
-	if _, err := ReadProcess(0); err == nil {
-		t.Errorf("ReadProcess(0) returned no error; want an error")
+	if _, err := ReadProcess(math.MaxInt32); err == nil {
+		t.Errorf("ReadProcess(%d) returned no error; want an error", math.MaxInt32)
 	}
 }
 

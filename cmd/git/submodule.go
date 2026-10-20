@@ -198,7 +198,8 @@ func addNestedRepos(repoPath, absFolder string) error {
 			continue
 		}
 
-		relPath := filepath.Join(relFolder, name)
+		// git submodule paths must use forward slashes on every platform.
+		relPath := filepath.ToSlash(filepath.Join(relFolder, name))
 
 		if isSubmoduleGitlink(repoPath, relPath) {
 			fmt.Printf("Skipping %s: already as submodule\n", relPath)
@@ -218,7 +219,7 @@ func addNestedRepos(repoPath, absFolder string) error {
 // isSubmoduleGitlink reports whether path is already staged in the index of
 // repoPath as a submodule gitlink (mode 160000).
 func isSubmoduleGitlink(repoPath, path string) bool {
-	cmd := exec.Command("git", "ls-files", "--stage", "--", path)
+	cmd := exec.Command("git", "ls-files", "--stage", "--", filepath.ToSlash(path))
 	cmd.Dir = repoPath
 	out, err := cmd.Output()
 	if err != nil {

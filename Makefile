@@ -60,6 +60,11 @@ test:
 test-bdd:
 	$(GINKGO) -v ./internal/...
 
+test-report:
+	@mkdir -p reports
+	-$(GINKGO) -v --keep-going --output-dir=reports --json-report=ginkgo-report.json ./...
+	$(GO) run ./tools/testreport -in reports/ginkgo-report.json -out reports/test-report.html
+
 lint:
 	$(GO) vet ./...
 
@@ -106,5 +111,6 @@ help:
 	@echo "  build-darwin  - Cross-compile for macOS (amd64)"
 	@echo "  test          - Run all tests"
 	@echo "  test-bdd      - Run tests with BDD output"
+	@echo "  test-report   - Run BDD tests and generate HTML report at reports/test-report.html"
 	@echo "  lint          - Run go vet"
 	@echo "  clean         - Remove binary and build artifacts"
