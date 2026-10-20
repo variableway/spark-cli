@@ -13,8 +13,11 @@ func TestGetCmdlineSelf(t *testing.T) {
 	if got == "" || got == "(unknown)" {
 		t.Errorf("GetCmdline(self) = %q, want a non-empty exe basename", got)
 	}
-	if !strings.HasSuffix(strings.ToLower(got), ".exe") {
-		t.Errorf("GetCmdline(self) = %q, expected a .exe suffix", got)
+	// Under `go test` the binary is <pkg>.test.exe, but the ginkgo CLI builds
+	// it as <pkg>.test (no .exe suffix on Windows) — accept both.
+	lower := strings.ToLower(got)
+	if !strings.HasSuffix(lower, ".exe") && !strings.HasSuffix(lower, ".test") {
+		t.Errorf("GetCmdline(self) = %q, expected a .exe or .test suffix", got)
 	}
 }
 
