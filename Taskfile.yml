@@ -161,9 +161,9 @@ tasks:
     internal: true
     requires:
       vars: [GOOS, GOARCH, OUTPUT]
+    env:
+      GOOS: '{{.GOOS}}'
+      GOARCH: '{{.GOARCH}}'
     cmds:
-      - cmd: '{{.GO}} build -ldflags="-s -w -X spark/internal/witr/version.Version=v{{.VERSION}} -X spark/internal/witr/version.Commit={{.COMMIT}} -X spark/internal/witr/version.BuildDate={{.BUILD_DATE}}" -o {{.OUTPUT}} main.go'
-        env:
-          GOOS: '{{.GOOS}}'
-          GOARCH: '{{.GOARCH}}'
+      - '{{.GO}} build -ldflags="-s -w -X spark/internal/witr/version.Version=v{{.VERSION}} -X spark/internal/witr/version.Commit={{.COMMIT}} -X spark/internal/witr/version.BuildDate={{.BUILD_DATE}}" -o {{.OUTPUT}} main.go'
 

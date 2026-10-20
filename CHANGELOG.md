@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `spark git submodule add` — Nested-repo paths are slash-separated before being handed to git, fixing `Invalid path 'research\name'` on Windows
 - `internal/witr/proc` — `TestIntegration_ReadProcessNonexistent` skips on Windows, where PID 0 (System Idle Process) is a readable process
+- `Taskfile.yml` — Cross-compile `GOOS`/`GOARCH` moved to task-level `env` (per-command `env` was silently ignored, so `build:all` produced Windows PE files for every target)
 
 ### Changed
 
