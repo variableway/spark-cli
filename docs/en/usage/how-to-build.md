@@ -29,8 +29,9 @@ task build
 
 What it does:
 
-1. `go build -ldflags='...version stamp...' -o spark.exe main.go`
-   — stamps version / commit / build date into the binary
+1. `go build -ldflags='...version stamp...' -o bin/spark.exe main.go`
+   — output always lands in the project's `bin/` directory; version / commit /
+   build date are stamped into the binary
 2. `scripts/install-binary.ps1` (or `.sh`) installs to `~/.local/bin/`
    On Windows both `spark.exe` and the extension-less `spark` are written
    (bash matches the latter first, so they must stay in sync)
@@ -48,11 +49,11 @@ spark --version  # -> spark version v0.3.2
 Go cross-compilation only needs different environment variables:
 
 ```bash
-task build:windows        # spark_windows.exe       (amd64)
-task build:windows:arm64  # spark_windows_arm64.exe (arm64)
-task build:linux          # spark_linux
-task build:darwin         # spark_darwin
-task build:all            # all platforms
+task build:windows        # bin/spark_windows.exe       (amd64)
+task build:windows:arm64  # bin/spark_windows_arm64.exe (arm64)
+task build:linux          # bin/spark_linux
+task build:darwin         # bin/spark_darwin
+task build:all            # all platforms; everything lands in bin/ (gitignored)
 ```
 
 ### Test & lint
