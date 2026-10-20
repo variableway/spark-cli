@@ -12,18 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README — Quick Start (`spark magic flush-dns`) and a Test Report screenshot (`docs/assets/test-report.png`)
 - `docs/{zh,en}/usage/how-to-build.md` — Build guide: Go binary, Node docs site, Bun `build --compile` single binaries, and the Windows pnpm global-path setup (store / global-dir / bin on D:)
 - `docs/{zh,en}/quick-start/golang-cli-101.md` — Beginner lesson one (Go CLI basics, third-party packages, dependency management, Makefile vs Taskfile) with a ready-to-use course prompt and SKILL.md template
+- `docs/{zh,en}/quick-start/git-worktree.md` — Git worktree development guide
+- HTML test report — `make test-report` / `task test-report` run all suites via Ginkgo and write a self-contained interactive HTML report (suite/spec states, durations, failure details, filtering) to `reports/test-report.html`; backed by `internal/testreport` (renderer + BDD tests) and `tools/testreport` (JSON→HTML converter)
 - `pnpm-lock.yaml` — Lockfile for reproducible docs-site installs
 
 ### Fixed
 
-- `spark git submodule add` — Nested-repo paths are slash-separated before being handed to git, fixing `Invalid path 'research\name'` on Windows
-- `internal/witr/proc` — `TestIntegration_ReadProcessNonexistent` skips on Windows, where PID 0 (System Idle Process) is a readable process
+- Stable cross-platform build — `go.sum` removed from `.gitignore` and committed so `go build` no longer fails with "missing go.sum entry" on fresh clones (fixes #21)
+- `Taskfile.yml` — `build` task no longer skips rebuild/reinstall via sources/generates fingerprinting; `task build` always rebuilds and reinstalls, matching Makefile behavior
+- `spark git submodule add` (folder mode) — nested repos on Windows no longer fail with "Invalid path": all git-facing submodule paths are normalized to forward slashes (`update-index --cacheinfo` rejects backslashes; `rm`/`ls-files` pathspecs silently fail to match them)
+- Windows test stability — `TestIntegration_ReadProcessNonexistent` now uses `math.MaxInt32` instead of PID 0 (PID 0 is the readable System Idle Process on Windows); `TestGetCmdlineSelf` also accepts the `.test` binary suffix used by the ginkgo CLI
 - `Taskfile.yml` — Cross-compile `GOOS`/`GOARCH` moved to task-level `env` (per-command `env` was silently ignored, so `build:all` produced Windows PE files for every target)
 
 ### Changed
 
-- AGENTS.md — Structure tree gains `cmd/version.go`; build section covers Taskfile cross-compile targets and the docs-site build; new automation record
-- Docs navigation (`docs/{zh,en}/navigation.json`) — Quick Start group and How-to-Build entries
+- AGENTS.md — Structure tree gains `cmd/version.go`; build section covers Taskfile cross-compile targets and the docs-site build; new automation records
+- Docs navigation (`docs/{zh,en}/navigation.json`) — Quick Start group, How-to-Build and git-worktree entries
 
 ## [0.3.2] - 2026-09-17
 

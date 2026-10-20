@@ -124,6 +124,17 @@
     ]
   },
   {
+    "title": "Development",
+    "icon": "code",
+    "collapsible": true,
+    "children": [
+      {
+        "title": "Git Worktree Development",
+        "path": "/quick-start/git-worktree"
+      }
+    ]
+  },
+  {
     "title": "Agents",
     "path": "/Agents",
     "icon": "robot"

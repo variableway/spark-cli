@@ -32,11 +32,6 @@ tasks:
       - cmd: 'bash scripts/verify-install.sh {{.BINARY_NAME}}{{exeExt}} $HOME/.local/bin'
         platforms: [linux, darwin]
       - echo 'Installed {{.BINARY_NAME}} to ~/.local/bin'
-    sources:
-      - '**/*.go'
-      - go.mod
-    generates:
-      - '{{.BINARY_NAME}}{{exeExt}}'
 
   build:linux:
     desc: Cross-compile for Linux (amd64)
@@ -111,6 +106,17 @@ tasks:
     desc: Run BDD tests with Ginkgo
     cmds:
       - '{{.GO}} run github.com/onsi/ginkgo/v2/ginkgo -v ./internal/...'
+
+  test-report:
+    desc: Run BDD tests and generate an HTML report at reports/test-report.html
+    cmds:
+      - cmd: powershell -NoProfile -Command "New-Item -ItemType Directory -Force reports | Out-Null"
+        platforms: [windows]
+      - cmd: 'mkdir -p reports'
+        platforms: [linux, darwin]
+      - cmd: '{{.GO}} run github.com/onsi/ginkgo/v2/ginkgo -v --keep-going --output-dir=reports --json-report=ginkgo-report.json ./...'
+        ignore_error: true
+      - '{{.GO}} run ./tools/testreport -in reports/ginkgo-report.json -out reports/test-report.html'
 
   lint:
     desc: Run go vet

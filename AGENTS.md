@@ -85,7 +85,10 @@ spark-cli/
 │   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
 │   ├── script/              # 脚本发现（配置 + scripts/ 目录）与执行
 │   ├── templates/           # 嵌入的 dotfiles（nvim + ghostty）
+│   ├── testreport/          # Ginkgo JSON 报告 → 自包含 HTML 渲染器（含 BDD 测试）
 │   └── witr/                # Why-Is-This-Running 进程诊断引擎
+├── tools/
+│   └── testreport/          # test-report CLI：读取 ginkgo --json-report 输出，生成 HTML
 ├── pkg/
 │   └── witr/model/          # witr 的共享数据模型
 ├── docs/                    # docmd 文档站点（中英双语）
@@ -208,16 +211,28 @@ spark
 - `spark docs`（`cmd/docs/`）提供 `init` / `site`，用于 docmd 站点脚手架。
 - `spark version`（`cmd/version.go`）打印 version / commit / build date。
 
-### 7. Windows 构建、pnpm 全局配置与文档补全 (2026-10-20)
+### 7. Windows 测试与构建根治 (2026-10-20)
+- **构建稳定**：`go.sum` 从 `.gitignore` 移除并提交（此前 fresh clone 必然构建失败）；
+  `task build` 移除 sources/generates 指纹（此前二次运行会跳过安装）。
+- **测试根治**（均为 Windows 平台假设错误，非删除用例）：
+  - `TestAddNestedRepos`：`git update-index --cacheinfo` 拒绝反斜杠路径——
+    `AddExistingRepoAsSubmodule` 与 `isSubmoduleGitlink` 现统一 `filepath.ToSlash`，
+    `.gitmodules` 始终写正斜杠路径。
+  - `TestIntegration_ReadProcessNonexistent`：PID 0 在 Windows 是可读的 System Idle
+    Process——改用 `math.MaxInt32`（任何平台都不存在）。
+  - `TestGetCmdlineSelf`：ginkgo CLI 编译的测试二进制无 `.exe` 后缀——同时接受 `.test`。
+- **HTML 测试报告**：`make test-report` / `task test-report` 全量跑 Ginkgo 并生成
+  `reports/test-report.html`（套件/用例状态、时长、失败详情、状态过滤 + 搜索）。
+  Ginkgo 在 Windows 上必须配 `--output-dir`（其内部 `path.Dir`  bug），由 target 预建目录。
+
+### 8. pnpm 全局配置、文档补全与全局 innate-fe-cli (2026-10-20)
 - **pnpm 全局地址指到 D 盘**：`store-dir=D:\.pnpm-store`、`global-dir=D:\pnpm\global`、
-  `global-bin-dir=D:\pnpm\bin`，`PNPM_HOME=D:\pnpm` + 用户 PATH 首位 `D:\pnpm\bin`
+  `global-bin-dir=D:\pnpmin`，`PNPM_HOME=D:\pnpm` + 用户 PATH 首位 `D:\pnpmin`
   （用 `[Environment]::SetEnvironmentVariable` 写入，勿用 `setx`，1024 字符会截断 PATH）。
   pnpm 升级至 12.14.0。
-- **Windows 构建链路**：`task build` 产出 `spark.exe` v0.3.2 并安装 `~/.local/bin`
-  （`spark.exe` + 裸名 `spark` 双份，sha256 校验）；`pnpm install && pnpm build` 产出文档站。
-- **测试修复**：`cmd/git` 子模块路径在 Windows 传 `research\name` 给 git 报
-  Invalid path，改用 `filepath.ToSlash`；`internal/witr/proc` 的 PID 0 测试假设在
-  Windows 不成立（System Idle Process 可读），改为 `t.Skip`。`go test ./...` 全绿。
+- **Windows 构建链路**：`task build` 产出 `spark.exe` 并安装 `~/.local/bin`（`spark.exe` +
+  裸名 `spark` 双份，sha256 校验）；`pnpm install && pnpm build` 产出文档站；修复
+  `Taskfile.yml` 交叉编译 env（per-command `env` 被忽略导致 `build:all` 全是 PE）。
 - **文档**：README 增补 Quick Start（`spark magic flush-dns`）与 Test Report 截图
   （`docs/assets/test-report.png`）；新增 `docs/{zh,en}/usage/how-to-build.md`
   （Go / Node / Bun 构建 + pnpm 环境）与 `docs/{zh,en}/quick-start/golang-cli-101.md`
@@ -715,6 +730,9 @@ spark witr nginx --json
 
 ### 构建命令
 
+> 注意：`go.sum` 必须提交到仓库（不得加入 `.gitignore`），否则全新 clone 后 `go build` 会因
+> "missing go.sum entry" 失败，导致 Windows/macOS/Linux 构建都不稳定。
+
 ```bash
 make build          # 编译 + 打 version/commit/date ldflags + 安装到 ~/.local/bin/spark
 make build-linux    # 交叉编译 Linux amd64 (spark_linux)
@@ -768,8 +786,15 @@ pnpm 全局地址（省 C 盘）：`store-dir=D:\.pnpm-store`、`global-dir=D:\p
 ```bash
 make test           # go test ./... -v
 make test-bdd       # ginkgo -v ./internal/...
+make test-report    # ginkgo 全量 + 生成 HTML 报告 reports/test-report.html
 make lint           # go vet ./...
 ```
+
+`test-report` 原理：Ginkgo CLI 以 `--output-dir=reports --json-report=ginkgo-report.json`
+跑 `./...`（注意必须先用 `--output-dir` 预建目录——Ginkgo 内部用 `path.Dir` 而非
+`filepath.Dir` 创建目录，在 Windows 上直接写 `reports/xxx.json` 会因目录不存在而失败），
+再由 `tools/testreport` 把 JSON 渲染为自包含 HTML（汇总卡片、套件/用例表格、
+失败详情、按状态过滤 + 文本搜索）。渲染器在 `internal/testreport`（含 BDD 测试）。
 
 运行单个测试：
 

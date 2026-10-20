@@ -1,10 +1,11 @@
 *.exe
 monolize
-go.sum
 spark
 spark_*
 __pycache__/
 **/__pycache__/
+.task/
+reports/
 node_modules/
 site/
 package-lock.json
