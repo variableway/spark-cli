@@ -1,7 +1,7 @@
 # AGENTS.md
 
 本文档记录 AI 助手在本项目中执行的关键任务、系统集成工作以及完整的功能说明。
-仓库根目录的 [`AGENTS.md`](../../AGENTS.md) 与 [`CLAUDE.md`](../../CLAUDE.md) 是权威来源，本页为站点镜像。
+仓库根目录的 [`AGENTS.md`](../../AGENTS.md) 是权威来源，本页为站点镜像。
 
 ## 项目概述
 
@@ -283,4 +283,4 @@ go test ./internal/git/... -v -run TestUpdateRepository
 1. **代码风格**：遵循 Go 标准规范；不添加注释（除非明确要求）；沿用既有库与模式（Cobra + Viper + PTerm + Ginkgo/Gomega）
 2. **测试要求**：新功能必须添加测试；`internal/` 用 Ginkgo/Gomega BDD 风格，`cmd/` 下的纯函数用标准 `testing`
 3. **构建一致性**：优先更新 `Makefile`；确保 `.vscode` 配置通用；提交前运行 `make lint` 与 `make test`
-4. **文档更新**：同步 `docs/zh/**` 与 `docs/en/**`、`docs/{zh,en}/navigation.json`、`docs/{zh,en}/Agents.md`、仓库根 `AGENTS.md` 与 `CLAUDE.md`
+4. **文档更新**：同步 `docs/zh/**` 与 `docs/en/**`、`docs/{zh,en}/navigation.json`、`docs/{zh,en}/Agents.md` 与仓库根 `AGENTS.md`

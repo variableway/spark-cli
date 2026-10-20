@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This document records the key tasks that AI assistants have executed in this project, the system integration work, and the complete feature reference.
-The [`AGENTS.md`](../../AGENTS.md) and [`CLAUDE.md`](../../CLAUDE.md) at the repository root are the authoritative sources; this page is the site mirror.
+The [`AGENTS.md`](../../AGENTS.md) at the repository root is the authoritative source; this page is the site mirror.
 
 ## Project Overview
 
@@ -284,4 +284,4 @@ go test ./internal/git/... -v -run TestUpdateRepository
 1. **Code style**: follow standard Go conventions; do not add comments (unless explicitly requested); reuse existing libraries and patterns (Cobra + Viper + PTerm + Ginkgo/Gomega)
 2. **Testing requirements**: new features must include tests; use Ginkgo/Gomega BDD style for `internal/`, and standard `testing` for pure functions under `cmd/`
 3. **Build consistency**: prefer updating the `Makefile`; keep `.vscode` configuration general-purpose; run `make lint` and `make test` before committing
-4. **Documentation updates**: keep `docs/zh/**` and `docs/en/**`, `docs/{zh,en}/navigation.json`, `docs/{zh,en}/Agents.md`, and the repository-root `AGENTS.md` and `CLAUDE.md` in sync
+4. **Documentation updates**: keep `docs/zh/**` and `docs/en/**`, `docs/{zh,en}/navigation.json`, `docs/{zh,en}/Agents.md`, and the repository-root `AGENTS.md` in sync

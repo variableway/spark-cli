@@ -202,4 +202,3 @@ Online docs: https://variableway.github.io/spark-cli/
 | [usage/witr.md](usage/witr.md) | 进程诊断 |
 | [Agents.md](Agents.md) | 命令完整参考（站点镜像） |
 | [../../AGENTS.md](../../AGENTS.md) | 权威来源：AI 助手指令 |
-| [../../CLAUDE.md](../../CLAUDE.md) | Claude Code 开发指南 |

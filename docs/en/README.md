@@ -197,4 +197,3 @@ Online docs: https://variableway.github.io/spark-cli/
 | [usage/witr.md](usage/witr.md) | Process diagnostics |
 | [Agents.md](Agents.md) | Full command reference (site mirror) |
 | [../../AGENTS.md](../../AGENTS.md) | Authoritative source: AI assistant instructions |
-| [../../CLAUDE.md](../../CLAUDE.md) | Claude Code development guide |

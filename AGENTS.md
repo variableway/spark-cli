@@ -887,7 +887,7 @@ spark:
    - 提交前运行 `make lint` 和 `make test`
 
 4. **文档更新**
-   - 新增/修改命令时同步更新 `docs/zh/usage/` 与 `docs/en/usage/` 对应文档、本 `AGENTS.md` 与 `CLAUDE.md`
+   - 新增/修改命令时同步更新 `docs/zh/usage/` 与 `docs/en/usage/` 对应文档与本 `AGENTS.md`
    - `docs/zh/Agents.md`、`docs/en/Agents.md` 是站点内的镜像，同样需要跟进
    - 保持 `AGENTS.md` 命令层级与实际 `cmd/` / `internal/` 实现一致
    - 文档主要为中文 UI；命令行/代码标识符保持英文

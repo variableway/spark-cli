@@ -215,5 +215,4 @@ Online docs: https://variableway.github.io/spark-cli/
 | [docs/zh/usage/how-to-build.md](docs/zh/usage/how-to-build.md) | How to build (Go binary + Node docs site) |
 | [docs/zh/analysis/](docs/zh/analysis/) | Architecture & RFC documents |
 | [AGENTS.md](AGENTS.md) | AI integration guide |
-| [CLAUDE.md](CLAUDE.md) | Claude Code development guide |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |
