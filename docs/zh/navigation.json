@@ -105,6 +105,17 @@
     ]
   },
   {
+    "title": "开发指南",
+    "icon": "code",
+    "collapsible": true,
+    "children": [
+      {
+        "title": "Git Worktree 开发",
+        "path": "/quick-start/git-worktree"
+      }
+    ]
+  },
+  {
     "title": "Agents",
     "path": "/Agents",
     "icon": "robot"
