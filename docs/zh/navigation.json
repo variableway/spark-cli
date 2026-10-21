@@ -16,6 +16,14 @@
       {
         "title": "Golang CLI 入门 · 第一课",
         "path": "/quick-start/golang-cli-101"
+      },
+      {
+        "title": "从零创建 Go CLI 项目",
+        "path": "/quick-start/golang-project-from-scratch"
+      },
+      {
+        "title": "从零创建文档站",
+        "path": "/quick-start/docs-site-from-scratch"
       }
     ]
   },

@@ -16,6 +16,14 @@
       {
         "title": "Golang CLI Essentials · Lesson 1",
         "path": "/quick-start/golang-cli-101"
+      },
+      {
+        "title": "Go CLI Project from Scratch",
+        "path": "/quick-start/golang-project-from-scratch"
+      },
+      {
+        "title": "Docs Site from Scratch",
+        "path": "/quick-start/docs-site-from-scratch"
       }
     ]
   },
