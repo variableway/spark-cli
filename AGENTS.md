@@ -240,6 +240,20 @@ spark
 - **全局 innate-fe-cli**：`bun build --compile` 打出单二进制后以 NTFS 硬链接装入
   `~/.local/bin`（`innate-fe` / `innate-fe-cli` 各含 `.exe`，4 名共享 1 份磁盘数据）。
 
+### 9. 从零构建教程与 SKILL 文档（2026-10-21，issue #24）
+- **新增手把手教程**（与 golang-cli-101 的概念课互补，代码可照抄执行）：
+  - `docs/{zh,en}/quick-start/golang-project-from-scratch.md` — Go CLI 项目从零创建：
+    `go mod init` 生成 go.mod 的过程逐行解释、CLI 三件套（Cobra/Viper/PTerm）依赖清单与安装、
+    cmd/internal/pkg 标准分层职责、第一个 Cobra 命令、Taskfile 逐段解读 + 最小模板、
+    附 SKILL `golang-project-from-scratch`。
+  - `docs/{zh,en}/quick-start/docs-site-from-scratch.md` — docmd 文档站从零创建：
+    `npm init` 与 package.json 字段逐个解释（含 Go↔Node 对照表）、docmd 安装、
+    docmd.config.js 配置讲解、navigation.json 与双语 i18n、GitHub Actions 发布
+    GitHub Pages（`.github/workflows/docs.yml` 全文 + Settings → Pages → Source: GitHub Actions）、
+    附 SKILL `docs-site-from-scratch`。
+- **导航**：`docs/{zh,en}/navigation.json` 快速开始组新增两页；SKILL 以附录代码块形式内嵌
+  （沿用 golang-cli-101 附录 B 的安装约定，存入 `.claude/skills/<name>/SKILL.md` 生效）。
+
 ## CLI 命令完整参考
 
 ### 全局选项
