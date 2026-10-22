@@ -559,6 +559,8 @@ spark git scan . --db ~/.innate/feeds.db
 
 ```bash
 spark repo scan [folder-name]                       # 扫描目录并写入 registry_<folder>.yaml
+spark repo scan [folder-name] --json                # 同时写出格式化 registry_<folder>.json
+spark repo scan [folder-name] --flatten             # 先把超过两层的目录拍平为 category/repo 再扫描
 spark repo clone -f registry_<folder>.yaml          # 克隆 registry 中全部仓库
 spark repo clone -r <name> -f registry_<folder>.yaml # 仅克隆指定仓库
 spark repo list -f registry_<folder>.yaml           # 列出 registry 中的仓库
@@ -579,7 +581,14 @@ projects:
 
 #### `spark repo scan [folder-name]`
 
-递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，删除目录已不存在的旧条目，追加新发现仓库）。
+递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。目录约定为两层：第一层是 category，第二层是正式仓库。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，删除目录已不存在的旧条目，追加新发现仓库）。
+
+| 选项 | 说明 |
+|------|------|
+| `--json` | 在 YAML 之外额外写出格式化（2 空格缩进）的 `registry_<folder>.json`，内容一致 |
+| `--flatten` | 扫描前把超过两层（`category/repo`）的仓库上移到两层布局（破坏性操作，显式开启） |
+
+`--flatten` 由 `internal/registry.Flatten` 实现：深层仓库移动到 `<category>/<仓库名>`，目标已存在或本次运行中被占用时跳过并打印 `Skipped ...` 告警（不覆盖任何文件），移动后清理空的中间目录；按深度从深到浅处理，避免父目录先移动导致子路径失效。
 
 #### `spark repo clone`
 

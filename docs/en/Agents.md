@@ -144,6 +144,8 @@ spark repo list -f registry_<folder>.yaml            # List the repos in the reg
 
 | Option | Command | Description |
 |------|------|------|
+| `--json` | `scan` | Additionally write a formatted (2-space indent) `registry_<folder>.json` alongside the YAML |
+| `--flatten` | `scan` | Move repositories deeper than two levels (`category/repo`) into the two-level layout before scanning; conflicts are skipped, never overwritten |
 | `-r, --repo` | `clone` | Clone only the named repo (omit to clone all) |
 | `-f, --file` | `clone` / `list` | Registry file (required) |
 
