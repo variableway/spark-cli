@@ -143,6 +143,8 @@ spark repo list -f registry_<folder>.yaml            # 列出 registry 中的仓
 
 | 选项 | 命令 | 说明 |
 |------|------|------|
+| `--json` | `scan` | 在 YAML 之外额外写出格式化（2 空格缩进）的 `registry_<folder>.json` |
+| `--flatten` | `scan` | 扫描前把超过两层（`category/repo`）的仓库上移到两层布局，冲突跳过不覆盖 |
 | `-r, --repo` | `clone` | 仅克隆指定名称的仓库（省略则全部） |
 | `-f, --file` | `clone` / `list` | registry 文件（必填） |
 

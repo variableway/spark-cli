@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,14 +11,14 @@ import (
 )
 
 type Project struct {
-	Name string `yaml:"name"`
-	Repo string `yaml:"repo"`
-	Path string `yaml:"path,omitempty"`
-	Desc string `yaml:"desc,omitempty"`
+	Name string `yaml:"name" json:"name"`
+	Repo string `yaml:"repo" json:"repo"`
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+	Desc string `yaml:"desc,omitempty" json:"desc,omitempty"`
 }
 
 type Registry struct {
-	Projects []Project `yaml:"projects"`
+	Projects []Project `yaml:"projects" json:"projects"`
 }
 
 func Read(path string) (*Registry, error) {
@@ -44,6 +45,14 @@ func Write(path string, reg *Registry) error {
 
 	header := "# Project registry\n# Synced by spark repo scan\n\n"
 	return os.WriteFile(path, append([]byte(header), data...), 0644)
+}
+
+func WriteJSON(path string, reg *Registry) error {
+	data, err := json.MarshalIndent(reg, "", "  ")
+	if err != nil {
+		return fmt.Errorf("encode registry: %w", err)
+	}
+	return os.WriteFile(path, append(data, '\n'), 0644)
 }
 
 func FindByName(reg *Registry, name string) (*Project, error) {

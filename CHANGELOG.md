@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `spark repo scan --json` — additionally writes a formatted (2-space indent) `registry_<folder>.json` with the same content as the YAML registry
+- `spark repo scan --flatten` — moves repositories nested deeper than two levels (`category/repo` layout) up into the two-level layout before scanning; conflicts are skipped with a warning and never overwritten, empty intermediate directories are removed (fixes #26)
+
 ## [0.3.3] - 2026-10-20
 
 ### Added
