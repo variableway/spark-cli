@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `spark skill list [--json]` — Discover agent skills (`SKILL.md` directories) across project (`.mimocode/`, `.agents/`), global (`~/.claude/`, `~/.agents/`, `~/.mimocode/`), and builtin skill-pack locations, deduplicated by name with version-aware builtin preference (`internal/skill`)
+- `spark skill sync <dir> [--clear]` — Copy all discovered skills into a target directory, optionally clearing it first
+- `spark hub scan [path] [-o <file>]` — Scan git repositories with an `origin` remote, enrich via the GitHub API (description, language, visibility), and emit innate-apps registry format (`registry/apps.json`) (`internal/collection`)
+- `spark hub scan --merge <registry>` — Merge with an existing registry file while preserving curated fields (`title`/`category`/`status`/`url`/`description`) and unmatched entries; `--skip-api`, `--deep`, `--category` flags
+- `github.GetRepo(owner, repo)` — Fetch single-repository metadata (topics, homepage, created/pushed timestamps, owner) with `GITHUB_TOKEN` support
+- BDD tests for `internal/skill` (discovery/dedup/sync) and `internal/collection` (parse/scan/merge/read-write)
+- Docs — `docs/{zh,en}/usage/{skill,hub}.md`, README command tables, navigation entries
+
+### Fixed
+
+- `internal/witr/proc` — `getCwdAndBinaryPath` (macOS) failed to parse `lsof` output because `strings.Lines` yields lines with trailing newlines, so the `cwd`/`txt` field labels never matched. Trim whitespace from the field label; the darwin test `TestGetCwdAndBinaryPath` now passes
+
 ## [0.3.3] - 2026-10-20
 
 ### Added

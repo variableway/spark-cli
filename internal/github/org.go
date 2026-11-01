@@ -4,20 +4,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 )
 
 type Repository struct {
-	Name        string `json:"name"`
-	FullName    string `json:"full_name"`
-	HTMLURL     string `json:"html_url"`
-	SSHURL      string `json:"ssh_url"`
-	CloneURL    string `json:"clone_url"`
-	Private     bool   `json:"private"`
-	Fork        bool   `json:"fork"`
-	Description string `json:"description"`
-	Stargazers  int    `json:"stargazers_count"`
-	Language    string `json:"language"`
+	Name        string   `json:"name"`
+	FullName    string   `json:"full_name"`
+	HTMLURL     string   `json:"html_url"`
+	SSHURL      string   `json:"ssh_url"`
+	CloneURL    string   `json:"clone_url"`
+	Private     bool     `json:"private"`
+	Fork        bool     `json:"fork"`
+	Description string   `json:"description"`
+	Stargazers  int      `json:"stargazers_count"`
+	Language    string   `json:"language"`
+	Topics      []string `json:"topics"`
+	Homepage    string   `json:"homepage"`
+	CreatedAt   string   `json:"created_at"`
+	PushedAt    string   `json:"pushed_at"`
+	Owner       struct {
+		Login string `json:"login"`
+	} `json:"owner"`
 }
 
 type AccountType string
@@ -80,6 +88,38 @@ func GetUserRepos(username string) ([]Repository, error) {
 	}
 
 	return repos, nil
+}
+
+func GetRepo(owner, repo string) (*Repository, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", owner, repo)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("fetch repository: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("repository '%s/%s' not found", owner, repo)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("fetch repository: HTTP %d", resp.StatusCode)
+	}
+
+	var r Repository
+	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
+		return nil, fmt.Errorf("parse response: %w", err)
+	}
+	return &r, nil
 }
 
 func DetectAccountType(name string) (AccountType, error) {
