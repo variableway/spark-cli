@@ -22,6 +22,8 @@
 12. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
 13. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
 14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
+15. **Skill 管理** — `spark skill` 发现并同步 AI agent skills（`SKILL.md` 目录），支持 `list`/`sync`
+16. **项目 Hub** — `spark hub scan` 扫描本地 Git 仓库并生成 innate-apps registry（`registry/apps.json`）注册信息
 
 ## 技术栈
 
@@ -72,6 +74,13 @@ spark-cli/
 │   │   ├── script.go        # ScriptCmd 父命令
 │   │   ├── list.go          # spark script list
 │   │   └── run.go           # spark script run <name> [args...]
+│   ├── skill/               # AI Skill 管理
+│   │   ├── skill.go         # SkillCmd 父命令
+│   │   ├── list.go          # spark skill list [--json]
+│   │   └── sync.go          # spark skill sync <dir> [--clear]
+│   ├── hub/                 # 项目 Hub（collections 注册）
+│   │   ├── hub.go           # HubCmd 父命令
+│   │   └── scan.go          # spark hub scan [path] [-o, --merge, --skip-api, --deep]
 │   └── docs/                # 文档管理
 │       ├── docs.go          # DocsCmd 父命令
 │       ├── init.go          # spark docs init（--root）
@@ -83,7 +92,9 @@ spark-cli/
 │   ├── github/              # GitHub API（org / markdown issue）
 │   ├── gitlab/              # GitLab API（batch-clone：URL 解析、token 来源、嵌套群组）
 │   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
+│   ├── collection/          # hub 命令的 registry/apps.json 模型、扫描与 merge
 │   ├── script/              # 脚本发现（配置 + scripts/ 目录）与执行
+│   ├── skill/               # skill 发现（SKILL.md 目录扫描）与同步
 │   ├── templates/           # 嵌入的 dotfiles（nvim + ghostty）
 │   ├── testreport/          # Ginkgo JSON 报告 → 自包含 HTML 渲染器（含 BDD 测试）
 │   └── witr/                # Why-Is-This-Running 进程诊断引擎
@@ -143,6 +154,11 @@ spark
 ├── script
 │   ├── list
 │   └── run
+├── skill
+│   ├── list                 (--json)
+│   └── sync                 (<target-dir>, --clear)
+├── hub
+│   └── scan                 ([path], -o/--output, --merge, --skip-api, --deep, --category)
 ├── magic
 │   ├── clean                (-m, --mode)
 │   ├── copy-config          ([<user@host:path>])
@@ -620,6 +636,53 @@ spark script run <script-name> [args...]
 仓库内置脚本示例：
 - `copy-template.sh`
 - `list-dirs.sh`
+
+---
+
+### `spark skill` — AI Skill 管理
+
+查找并同步 AI agent skills（`SKILL.md` 目录）。
+
+```bash
+spark skill list                    # 列出所有发现的 skill
+spark skill list --json             # JSON 输出
+spark skill sync <target-dir>       # 复制所有 skill 到目标目录
+spark skill sync <target-dir> --clear  # 清空目标目录后复制
+```
+
+发现位置（按 skill 名称去重，project > global > builtin）：
+
+- `<cwd>/.mimocode/skills/`、`.mimocode/skill/`、`.agents/skills/`
+- `~/.claude/skills/`、`~/.agents/skills/`、`~/.mimocode/skills/`
+- `~/.local/share/mimocode/builtin_skills/<version>/skills/`（多版本取最新）
+
+SKILL.md 的 YAML frontmatter 中 `name`/`description` 会被解析，缺省回退目录名。
+
+---
+
+### `spark hub` — 项目 Hub（Collections 注册）
+
+扫描本地 Git 仓库并生成 innate-apps registry 格式（`registry/apps.json`）的注册信息。
+
+```bash
+spark hub scan <path>                              # 扫描目录，输出 JSON
+spark hub scan <path> -o registry/apps.json        # 输出到文件
+spark hub scan <path> --merge registry/apps.json   # 合并已有注册文件
+spark hub scan <path> --skip-api                   # 跳过 GitHub API
+spark hub scan <path> --deep                       # 包含嵌套仓库
+```
+
+| 选项 | 说明 |
+|------|------|
+| `-o, --output` | 输出文件路径（默认 stdout） |
+| `--merge` | 与已有注册文件合并，保留手工字段（`title`/`category`/`status`/`url`/`description`） |
+| `--skip-api` | 跳过 GitHub API，仅用本地 git 信息 |
+| `--deep` | 包含嵌套仓库（默认仅顶层目录） |
+| `--category` | 为新发现条目设置分类（`base`/`app`/`reference`） |
+
+合并行为：保留手工字段、刷新自动字段（`repo`/`local_path`/`visibility`/`language`）、
+保留扫描中未出现的已有条目（如 `../base/` 基础框架）、追加新发现仓库。
+设置 `GITHUB_TOKEN` 可提升 API 速率限制。
 
 ---
 

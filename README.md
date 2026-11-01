@@ -170,6 +170,29 @@ Scripts sourced from `~/.spark.yaml` (`spark.scripts`) and `scripts/` directory.
 
 ---
 
+### spark skill — AI Skill Management
+
+| Command | Description |
+|---------|-------------|
+| `spark skill list [--json]` | Discover and list agent skills (`SKILL.md` dirs) |
+| `spark skill sync <dir> [--clear]` | Copy all discovered skills to a target directory |
+
+Skills discovered from `.mimocode/skills/`, `.agents/skills/`, `~/.claude/skills/`, `~/.mimocode/skills/`, and builtin skill packs.
+
+---
+
+### spark hub — Project Hub (Collections Registration)
+
+| Command | Description |
+|---------|-------------|
+| `spark hub scan [path] [-o <file>]` | Scan git repos, emit innate-apps registry JSON |
+| `spark hub scan --merge <registry>` | Merge with existing registry, keep curated fields |
+| `spark hub scan --skip-api [--deep] [--category <c>]` | Offline / nested / category options |
+
+Output matches `registry/apps.json` (see `registry/schema.json`).
+
+---
+
 ### spark docs — Documentation
 
 | Command | Description |

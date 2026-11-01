@@ -53,6 +53,14 @@
         "path": "/usage/script"
       },
       {
+        "title": "Skill 管理",
+        "path": "/usage/skill"
+      },
+      {
+        "title": "项目 Hub",
+        "path": "/usage/hub"
+      },
+      {
         "title": "文档管理",
         "path": "/usage/docs-cmd"
       },

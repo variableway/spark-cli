@@ -9,6 +9,8 @@ Spark is a CLI tool for daily dev automation and AI skill integration.
 | `spark git` | Git repository management (clone, update, submodules, Gitcode, batch-clone, issues, push, scan) |
 | `spark repo` | Repository management (registry-file driven scan / clone / list) |
 | `spark script` | Custom script management |
+| `spark skill` | AI skill management (discover, list, sync `SKILL.md` directories) |
+| `spark hub` | Project hub (scan git repos, emit innate-apps registry info) |
 | `spark magic` | System utilities (DNS flush, directory cleaning, dotfile deploy, mirror switching) |
 | `spark docs` | Documentation management (init structure, site config) |
 | `spark witr` | Process diagnostics (Why Is This Running) |

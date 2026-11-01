@@ -9,6 +9,8 @@ Spark 是一个用于日常开发自动化和 AI Skill 集成的 CLI 工具。
 | `spark git` | Git 仓库管理（克隆、更新、子模块、Gitcode、批量克隆、Issue、推送、扫描） |
 | `spark repo` | 仓库管理（registry 文件驱动的 scan / clone / list） |
 | `spark script` | 自定义脚本管理 |
+| `spark skill` | AI Skill 管理（发现、列出、同步 SKILL.md 目录） |
+| `spark hub` | 项目 Hub（扫描 Git 仓库生成 innate-apps registry 注册信息） |
 | `spark magic` | 系统工具（DNS 刷新、目录清理、dotfiles 部署、镜像源切换） |
 | `spark docs` | 文档管理（初始化结构、站点配置） |
 | `spark witr` | 进程诊断（Why Is This Running） |
