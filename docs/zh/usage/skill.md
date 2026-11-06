@@ -59,3 +59,30 @@ spark skill sync ~/.claude/skills       # 同步到 Claude skills 目录
 | `--clear` | 复制前清空目标目录 |
 
 典型用法：汇总分散在各处的 skill 到一个目录（例如 `fire-skills` 仓库），或把 builtin skill 复制到项目本地以供自定义修改。
+
+---
+
+## 本仓库自带的 spark-cli Skill
+
+`skills/spark-cli/SKILL.md` 是本仓库自带的一份 skill，内容就是**这份使用说明的
+Agent 版**：命令地图、常用工作流、以及「如何获取 GitHub 仓库项目列表」的三条路径。
+安装到你的 agent 技能目录即可让助手直接会用 spark：
+
+```bash
+# 从本仓库安装到 Claude 的 skills 目录
+spark skill sync ~/.claude/skills --clear
+
+# 或者只安装这一个
+mkdir -p ~/.claude/skills/spark-cli
+cp skills/spark-cli/SKILL.md ~/.claude/skills/spark-cli/
+```
+
+安装后 `spark skill list` 就能看到它：
+
+```text
+NAME                   SOURCE           PATH
+spark-cli              claude           /Users/me/.claude/skills/spark-cli
+```
+
+> 技能目录约定：每个 skill 是一个**目录**，目录里放 `SKILL.md`；
+> frontmatter 里的 `name` 与 `description` 决定它何时被助手触发。

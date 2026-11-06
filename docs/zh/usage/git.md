@@ -7,8 +7,8 @@
 ```bash
 spark git update                              # 更新所有仓库
 spark git clone <url-or-slug> [dir] [-- <git-args>] # 克隆 GitHub 仓库（默认 SSH）
-spark git submodule add [-p <path>]                # 添加现有仓库为子模块
-spark git submodule add <repo-url> [-n <name>]     # 添加远程仓库为子模块
+spark git submodule add <path>                    # 扫描目录，把已有仓库添加为子模块
+spark git submodule add <repo-url> [-n <name>]     # 添加远程仓库为子模块（-n 自定义名称）
 spark git submodule init [-j <n>] [-r]             # 初始化（克隆）所有子模块
 spark git submodule status                         # 查看子模块状态
 spark git submodule ensure-ssh                     # HTTPS → SSH URL 转换
@@ -18,7 +18,7 @@ spark git init [--owner <owner>] [--skip-gh]   # 初始化仓库并创建 GitHub
 spark git config [--username --email]         # 配置 Git 用户
 spark git url [repo-path]                     # 查看远程 URL
 spark git batch-clone <account-or-url> [-o <dir>] # 克隆 GitHub/GitLab 账号下所有仓库
-spark git update-org-status <org> [--dry-run] # 更新组织 README
+spark git update-org-status <account> [--dry-run] # 更新账号 profile README 的项目清单
 spark git issues [-r <owner/repo>] (-d <dir> | -f <file>) # 从文档/任务创建 Issue
 spark git push-all                            # 提交并推送所有仓库的更改
 spark git scan [folder-path] [--db <path>]    # 扫描仓库并保存到 SQLite
@@ -81,9 +81,8 @@ spark git update --ssh                        # 强制通过 SSH 更新
 
 扫描指定目录中的 Git 仓库，将它们添加为子模块，无需重新克隆。
 
-| 标志 | 简写 | 默认值 | 说明 |
-|------|------|--------|------|
-| `-p, --path` | | `.` | 包含 Git 仓库的目录路径 |
+要扫描的目录是**位置参数**，本命令没有自己的标志；全局 `-p/--path` 不生效，
+父仓库路径固定为当前目录。
 
 ```bash
 spark git submodule add ./repos                       # 将本地文件夹中所有 GitHub 仓库添加为 submodule
@@ -295,12 +294,12 @@ git:
 
 ```bash
 # GitHub
-spark git batch-clone variableway               # 克隆组织所有仓库
-spark git batch-clone jackwener                 # 克隆用户所有仓库
-spark git batch-clone https://github.com/variableway
-spark git batch-clone variableway --ssh         # 使用 SSH
-spark git batch-clone variableway --include spark --exclude test
-spark git batch-clone variableway -o ./repos  # 指定输出目录
+spark git batch-clone qdriven                    # 克隆账号下所有仓库
+spark git batch-clone jackwener                  # 克隆用户所有仓库
+spark git batch-clone https://github.com/qdriven
+spark git batch-clone qdriven --ssh             # 使用 SSH
+spark git batch-clone qdriven --include spark --exclude test
+spark git batch-clone qdriven -o ./repos        # 指定输出目录
 
 # GitLab（自托管或 gitlab.com，支持任意层级子群组）
 spark git batch-clone https://gitlab.example.com/myorg/mygroup
@@ -359,22 +358,130 @@ gitlab:
 
 ## spark git update-org-status
 
-获取组织仓库列表并更新 README.md。
+获取 GitHub 账号下的仓库列表，并更新 README.md 里的项目清单段落。
+
+参数既可以写**账号名**（`qdriven`），也可以写**账号 URL**（`https://github.com/qdriven`）——
+命令会从 URL 里解析出账号名。
 
 | 标志 | 简写 | 默认值 | 说明 |
 |------|------|--------|------|
 | `--output` | `-o` | `.github/README.md` | 输出文件路径 |
 | `--dry-run` | | `false` | 预览不写入 |
-| `--update-dot-github` | | `false` | 直接更新组织的 .github 仓库 |
+| `--update-dot-github` | | `false` | 直接更新该账号的 profile 仓库 |
 | `--section` | | `Project List` | 更新的 section 名称 |
 | `--skip-push` | | `false` | 跳过 git push |
 
 ```bash
-spark git update-org-status variableway                    # 更新本地 README
-spark git update-org-status variableway --dry-run          # 预览
-spark git update-org-status variableway --update-dot-github # 直接推送
-spark git update-org-status variableway --section "My Projects"
+spark git update-org-status qdriven                    # 更新本地 README
+spark git update-org-status qdriven --dry-run          # 预览
+spark git update-org-status qdriven --update-dot-github # 直接推送到 profile 仓库
+spark git update-org-status qdriven --section "Featured Projects"
+spark git update-org-status https://github.com/qdriven # 也可以给 URL
 ```
+
+### 账号类型自动识别
+
+命令先调用 GitHub API 判断账号是**组织**还是**用户**，再决定 profile 仓库在哪：
+
+| 账号类型 | profile 仓库 | README 位置 |
+|----------|--------------|-------------|
+| 组织 `Organization` | `<org>/.github` | `README.md` 与 `profile/README.md` |
+| 用户 `User` | `<user>/<user>` | 仓库根目录的 `README.md` |
+
+所以个人用户（如 `qdriven`）的项目清单要更新到 `qdriven/qdriven`，用同一条命令即可：
+
+```bash
+spark git update-org-status qdriven --update-dot-github
+```
+
+> 该命令会 clone profile 仓库、改写 README 并 `git push`。先用 `--dry-run`
+> 看清楚要写入的内容再执行。
+
+### 生成的段落
+
+```markdown
+## Project List
+
+*Last updated: 2026-11-06 21:28:50*
+
+| Name | Description | Stars | Language |
+|------|-------------|-------|----------|
+| [spark-cli](https://github.com/variableway/spark-cli) | Daily Cli command ideas fired by spark | ⭐ 12 | Go |
+
+**Statistics**: 97 repositories, 37 total stars, 0.4 average
+```
+
+规则：
+
+- 仓库按 **star 数倒序**排列
+- **fork 仓库不写入表格**，也不计入统计
+- `description` 与 `language` 为空时显示 `-`
+- 段落名由 `--section` 决定（默认 `Project List`）
+- 段落不存在时插到最后一个 `##` 段落之前；存在则整段替换
+
+### 其他行为
+
+- 仓库列表**分页拉取**（每页 100 条），不受单页上限影响
+- 设置 `GITHUB_TOKEN` 可提高 API 速率限制（匿名 60 次/小时）
+- 默认写入 `.github/README.md`；若该路径位于 `.github/` 目录下，会**同时**更新
+  `.github/profile/README.md`
+- `--output README.md` 可写到仓库根目录（个人 profile 仓库的常见位置）
+- `--skip-push` 只改文件不提交；`--dry-run` 只打印不写文件
+- 本地模式默认会 `git add` → `git commit` → `git push`，提交信息为
+  `docs: update <account> project list [skip ci]`
+
+---
+
+## 如何获取 GitHub 仓库项目列表
+
+同一条需求有三条路径，按你要的产物选：
+
+### 路径 A：`spark git update-org-status` —— 直接写进 README
+
+产物是 Markdown 段落（表格 + 统计），见上面的说明。适合「把项目清单贴在
+README / profile 仓库上」。
+
+```bash
+spark git update-org-status qdriven --section "Featured Projects"
+```
+
+### 路径 B：`gh` CLI —— 自己渲染
+
+要精确控制格式、字段或过滤条件时，用 `gh` 取原始列表：
+
+```bash
+# 组织下的仓库
+gh repo list qdriven --limit 200 --json name,description,stargazersCount,isFork,url
+
+# 底层 API：组织用 /orgs/，用户用 /users/
+gh api orgs/someorg/repos --jq '.[] | {name, stargazers_count}'
+gh api users/qdriven/repos --jq '.[] | {name, stargazers_count}'
+
+# 分页取全量
+gh api --paginate users/qdriven/repos --jq '.[].name'
+```
+
+### 路径 C：`spark hub scan` —— 生成项目注册表
+
+要带**分类 / 状态 / 可见性 / 主语言**的项目注册表（JSON），用 `spark hub scan`
+扫本地仓库：
+
+```bash
+spark hub scan . -o registry/apps.json --merge registry/apps.json
+```
+
+详见 [项目 Hub 使用说明](./hub.md)。
+
+### 怎么选
+
+| 你要的产物 | 用 |
+|------------|-----|
+| README 里的项目清单段落 | 路径 A |
+| 原始仓库列表，自己渲染 | 路径 B |
+| 带分类与状态的注册表 JSON | 路径 C |
+
+> **注册表与 README 的关系**：`registry/apps.json` 是**数据源**，README 与
+> profile 仓库里的项目段落是它的**渲染产物**。改了数据源要同步刷新渲染产物。
 
 ---
 

@@ -13,7 +13,7 @@
 3. **Submodule 管理** — `submodule add`（URL 或本地目录）、`submodule init`、`submodule status`、`submodule ensure-ssh`、`git sync`
 4. **Git 用户配置** — `spark git config` 配置仓库的 Git 用户信息
 5. **Gitcode 远程管理** — `spark git gitcode` 添加 Gitcode 远程地址
-6. **组织状态** — `spark git update-org-status` 将组织仓库列表写入 README
+6. **账号状态** — `spark git update-org-status` 将账号（组织/用户）仓库列表写入 README
 7. **仓库扫描** — `spark git scan` 扫描目录中的仓库并保存到 SQLite
 8. **仓库推送** — `spark git push-all` 批量提交推送所有更改
 9. **Issue 创建** — `spark git issues` 从 Markdown/任务文件创建 GitHub Issue
@@ -54,7 +54,7 @@ spark-cli/
 │   │   ├── url.go           # spark git url
 │   │   ├── batch_clone.go   # spark git batch-clone（GitHub + GitLab）
 │   │   ├── issues.go        # spark git issues（-r, -f, -d, -l, --dry-run）
-│   │   ├── update_org_status.go  # spark git update-org-status
+│   │   ├── update_org_status.go  # spark git update-org-status（账号类型自动识别）
 │   │   ├── push_all.go      # spark git push-all
 │   │   └── scan.go          # spark git scan（-d/--db, --skip-api）
 │   ├── repo/                # 仓库 registry 管理命令
@@ -113,6 +113,8 @@ spark-cli/
 │   │   └── navigation.json  # 侧边栏导航
 │   ├── en/                  # 英文镜像（渲染于 /en/），层级与 zh/ 完全平行
 │   └── ...
+├── skills/                  # 可安装的 Agent Skill（spark-cli 使用说明）
+│   └── spark-cli/SKILL.md
 ├── scripts/                 # 默认脚本目录（spark script 使用）+ 安装/校验脚本
 ├── .vscode/                 # VS Code 配置（tasks/launch/settings）
 ├── Makefile                 # 构建脚本（build/build-linux/build-darwin/test/lint/clean）
@@ -143,7 +145,7 @@ spark
 │   ├── batch-clone          (<account-name-or-url>, --ssh, --include, --exclude,
 │   │                         --include-forks, -o, --token)
 │   ├── issues               (-r, -f, -d, -l, --dry-run)
-│   ├── update-org-status    (<org-name-or-url>, --dry-run, -o, --update-dot-github,
+│   ├── update-org-status    (<account-name-or-url>, --dry-run, -o, --update-dot-github,
 │   │                         --section, --skip-push)
 │   ├── push-all             (-p)
 │   └── scan                 ([folder-path], -d, --db, --skip-api)
@@ -243,7 +245,7 @@ spark
 
 ### 8. pnpm 全局配置、文档补全与全局 innate-fe-cli (2026-10-20)
 - **pnpm 全局地址指到 D 盘**：`store-dir=D:\.pnpm-store`、`global-dir=D:\pnpm\global`、
-  `global-bin-dir=D:\pnpmin`，`PNPM_HOME=D:\pnpm` + 用户 PATH 首位 `D:\pnpmin`
+  `global-bin-dir=D:\pnpm\bin`，`PNPM_HOME=D:\pnpm` + 用户 PATH 首位 `D:\pnpm\bin`
   （用 `[Environment]::SetEnvironmentVariable` 写入，勿用 `setx`，1024 字符会截断 PATH）。
   pnpm 升级至 12.14.0。
 - **Windows 构建链路**：`task build` 产出 `spark.exe` 并安装 `~/.local/bin`（`spark.exe` +
@@ -307,7 +309,7 @@ spark git config [path]          # 配置 Git 用户信息
 spark git url [path]             # 打印当前仓库的远程 URL
 spark git batch-clone <account>  # 批量克隆 GitHub/GitLab 账号下仓库
 spark git issues                 # 从 Markdown/任务文件创建 GitHub Issue
-spark git update-org-status <org># 生成组织仓库列表并写入 README
+spark git update-org-status <account> # 生成账号仓库列表并写入 README
 spark git push-all [-p ...]      # 扫描并 commit/push 所有仓库
 spark git scan [folder-path]     # 扫描仓库并写入 SQLite
 ```
@@ -523,28 +525,34 @@ spark git issues -d ./docs -l bug,enhancement
 > `-d` 与 `-f` 互斥，必须二选一。
 
 #### `spark git update-org-status`
-获取 GitHub 组织所有仓库，按 star 数排序，写入一个 section 到 README。
+获取 GitHub 账号（组织或用户）下所有仓库，按 star 数排序，写入一个 section 到 README。
 
 ```bash
-spark git update-org-status variableway                    # 写入 .github/README.md
-spark git update-org-status variableway --update-dot-github
-spark git update-org-status variableway --dry-run
-spark git update-org-status variableway -o ./docs/README.md
-spark git update-org-status variableway --section "Projects"
-spark git update-org-status variableway --skip-push
+spark git update-org-status qdriven                       # 写入 .github/README.md
+spark git update-org-status qdriven --update-dot-github   # 直接推送到 profile 仓库
+spark git update-org-status qdriven --dry-run
+spark git update-org-status qdriven -o ./docs/README.md
+spark git update-org-status qdriven --section "Projects"
+spark git update-org-status qdriven --skip-push
 ```
 
 | 选项 | 说明 |
 |------|------|
 | `--dry-run` | 打印内容，不写入文件 |
 | `-o, --output` | 本地模式输出路径（默认：`.github/README.md`） |
-| `--update-dot-github` | 直接克隆组织的 `.github` 仓库并修改 |
+| `--update-dot-github` | 直接克隆该账号的 profile 仓库并修改 |
 | `--section` | 要更新/插入的 section 名（默认：`Project List`） |
 | `--skip-push` | 跳过 `git commit` 与 `git push` |
 
 特性：
+- **账号类型自动识别**：组织 → profile 仓库为 `<org>/.github`（`README.md` + `profile/README.md`）；
+  用户 → profile 仓库为 `<user>/<user>`（仓库根目录 `README.md`）。因此个人 profile 仓库
+  （例如 `qdriven/qdriven`）用同一条命令即可刷新
+- 仓库列表**分页拉取**（每页 100 条），不受单页上限影响
+- 设置 `GITHUB_TOKEN` 可提高 API 速率限制（匿名 60 次/小时）
+- fork 仓库不写入表格，也不计入统计
 - 默认写入本地 `.github/README.md`；若在 `.github` 目录下，同时写入 `profile/README.md`
-- 使用 `--update-dot-github` 时会克隆到 `$TMPDIR/github-repo-<org>-<ts>`，写入后再 commit/push
+- 使用 `--update-dot-github` 时会克隆到 `$TMPDIR/github-repo-<account>-<ts>`，写入后再 commit/push
 
 #### `spark git push-all`
 扫描 `repo-path` 下所有仓库，对 GitHub 仓库且有更改的执行 `git add -A` → `git commit` → `git push`，冲突时提示。
@@ -837,8 +845,8 @@ task build:all            # 全平台交叉编译（产物全部进 bin/，clean
 **自检**：
 
 ```bash
-spark version       # -> spark v0.3.2 / commit xxx / build date ...
-spark --version     # -> spark version v0.3.2
+spark version       # -> spark v0.3.3 / commit xxx / build date ...
+spark --version     # -> spark version v0.3.3
 ```
 
 ### 文档站构建（Node 体系）

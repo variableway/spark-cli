@@ -50,7 +50,7 @@ spark magic pip use <source-name>
 |----------|------|----------|-------------|
 | `source-name` | string | Yes | Mirror name |
 
-Available mirrors: `tsinghua`, `aliyun`, `douban`, `ustc`, `tencent`
+Available mirrors: `default`, `tsinghua`, `aliyun`, `douban`, `ustc`, `tencent`
 
 ### spark magic pip current
 
@@ -90,7 +90,7 @@ spark magic go use <proxy-name>
 |----------|------|----------|-------------|
 | `proxy-name` | string | Yes | Proxy name |
 
-Available proxies: `aliyun`, `tsinghua`, `goproxy`, `ustc`, `nju`
+Available proxies: `default`, `aliyun`, `tsinghua`, `goproxy`, `ustc`, `nju`
 
 ### spark magic go current
 
@@ -130,7 +130,7 @@ spark magic node use <registry-name>
 |----------|------|----------|-------------|
 | `registry-name` | string | Yes | Registry name |
 
-Available registries: `taobao`, `aliyun`, `tencent`, `huawei`, `ustc`
+Available registries: `default`, `taobao`, `aliyun`, `tencent`, `huawei`, `ustc`
 
 ### spark magic node current
 
@@ -146,7 +146,7 @@ No flags, no arguments.
 
 ## spark magic clean
 
-Recursively clean `node_modules` and `.venv` directories under a project directory.
+Recursively clean `node_modules` and `.venv` directories plus `package-lock.json` files under a project directory.
 
 ```
 spark magic clean [-m <mode>]
@@ -161,4 +161,29 @@ No arguments.
 **Behavior**:
 - Scans the directory passed via `--path` (default: current directory)
 - Automatically skips `.git` directories
-- Lists every directory that was cleaned
+- `node` mode deletes `node_modules` directories and `package-lock.json` files; `python` mode deletes `.venv` directories
+- Lists every item that was cleaned (directories and files)
+
+---
+
+## spark magic copy-config
+
+Deploy the Neovim and Ghostty config templates that are embedded at build time to a target.
+
+```
+spark magic copy-config [<user@host:path>]
+```
+
+| Flag | Short | Type | Default | Required | Description |
+|------|-------|------|---------|----------|-------------|
+| — | — | — | — | — | No flags |
+
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
+| `target` | string | No | Target directory, or a remote address in the form `<user@host:path>` (at most 1) |
+
+**Behavior**:
+- Template sources live in `internal/templates/dotfiles/` and are embedded into the binary via `//go:embed` at build time
+- Without arguments, templates are written to the local default paths `~/.config/nvim/` and `~/.config/ghostty/`
+- With a target argument, they deploy to that local directory or to an SSH remote target
+- Prefers `rsync` for transfer; local targets fall back to `cp` when `rsync` is missing, while remote targets require `rsync`

@@ -28,6 +28,7 @@ Available mirrors:
 
 | Name | Provider |
 |------|----------|
+| `default` | Official PyPI |
 | `tsinghua` | Tsinghua University |
 | `aliyun` | Alibaba Cloud |
 | `douban` | Douban |
@@ -48,6 +49,7 @@ Available proxies:
 
 | Name | Provider |
 |------|----------|
+| `default` | Go Official |
 | `aliyun` | Alibaba Cloud |
 | `tsinghua` | Tsinghua University |
 | `goproxy` | goproxy.cn |
@@ -68,6 +70,7 @@ Available registries:
 
 | Name | Provider |
 |------|----------|
+| `default` | npm Official |
 | `taobao` | Taobao |
 | `aliyun` | Alibaba Cloud |
 | `tencent` | Tencent Cloud |
@@ -76,11 +79,11 @@ Available registries:
 
 ### Project Directory Cleaning
 
-Recursively clean `node_modules` and `.venv` directories to free disk space.
+Recursively clean `node_modules` and `.venv` directories plus `package-lock.json` files to free disk space.
 
 ```bash
-spark magic clean           # Clean both
-spark magic clean -m node   # Only node_modules
+spark magic clean           # Clean node_modules, package-lock.json and .venv
+spark magic clean -m node   # Only node_modules and package-lock.json
 spark magic clean -m python # Only .venv
 ```
 

@@ -27,21 +27,26 @@ make build
 task build
 ```
 
-What it does:
+What it does (`make build` and `task build` share the same goal, they just
+take different script paths):
 
-1. `go build -ldflags='...version stamp...' -o bin/spark.exe main.go`
-   — output always lands in the project's `bin/` directory; version / commit /
-   build date are stamped into the binary
-2. `scripts/install-binary.ps1` (or `.sh`) installs to `~/.local/bin/`
-   On Windows both `spark.exe` and the extension-less `spark` are written
-   (bash matches the latter first, so they must stay in sync)
-3. `scripts/verify-install.ps1` compares sha256 of source and installed copies
+1. Compile: `go build -ldflags='...version stamp...' -o bin/spark main.go`
+   — output lands in the project's `bin/` directory; version / commit / build
+   date are stamped into the binary (on Windows the artifact is `bin/spark.exe`)
+2. Install into `~/.local/bin/`:
+   - `make build` copies it directly, then runs `make -s verify-install` for the
+     sha256 check
+   - `task build` goes through `scripts/install-binary.ps1` (or `.sh`); on Windows
+     both `spark.exe` and the extension-less `spark` are written (bash matches
+     the latter first, so they must stay in sync), and
+     `scripts/verify-install.ps1` compares the sha256 of source and installed
+     copies
 
 Self-check:
 
 ```bash
-spark version    # -> spark v0.3.2 / commit xxx / build date ...
-spark --version  # -> spark version v0.3.2
+spark version    # -> spark v0.3.3 / commit xxx / build date ...
+spark --version  # -> spark version v0.3.3
 ```
 
 ### Cross-compile

@@ -28,6 +28,7 @@ spark magic pip current       # 查看当前源
 
 | 名称 | 说明 |
 |------|------|
+| `default` | 默认（官方 PyPI） |
 | `tsinghua` | 清华大学 |
 | `aliyun` | 阿里云 |
 | `douban` | 豆瓣 |
@@ -48,6 +49,7 @@ spark magic go current      # 查看当前 proxy
 
 | 名称 | 说明 |
 |------|------|
+| `default` | 官方 Go Proxy |
 | `aliyun` | 阿里云 |
 | `tsinghua` | 清华大学 |
 | `goproxy` | goproxy.cn |
@@ -68,6 +70,7 @@ spark magic node current    # 查看当前 registry
 
 | 名称 | 说明 |
 |------|------|
+| `default` | 官方 npm Registry |
 | `taobao` | 淘宝 |
 | `aliyun` | 阿里云 |
 | `tencent` | 腾讯云 |
@@ -76,11 +79,11 @@ spark magic node current    # 查看当前 registry
 
 ### 项目目录清理
 
-递归清理 `node_modules` 和 `.venv` 目录，释放磁盘空间。
+递归清理 `node_modules`、`.venv` 目录和 `package-lock.json` 文件，释放磁盘空间。
 
 ```bash
-spark magic clean           # 清理两者
-spark magic clean -m node   # 只清理 node_modules
+spark magic clean           # 清理 node_modules、package-lock.json 和 .venv
+spark magic clean -m node   # 只清理 node_modules 和 package-lock.json
 spark magic clean -m python # 只清理 .venv
 ```
 

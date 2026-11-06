@@ -80,4 +80,4 @@ projects:
 
 ## Related
 
-- [Git Management](./git)
+- [Git Management](./git.md)

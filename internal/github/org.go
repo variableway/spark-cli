@@ -40,51 +40,80 @@ type AccountInfo struct {
 	Name string
 }
 
-func GetOrgRepos(orgName string) ([]Repository, error) {
-	url := fmt.Sprintf("https://api.github.com/orgs/%s/repos?per_page=100", orgName)
-	
-	resp, err := http.Get(url)
+// getJSON performs a GET request against the GitHub API, attaching the
+// GITHUB_TOKEN credential when available to raise the rate limit.
+func getJSON(url string, out interface{}) error {
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch repositories: %w", err)
+		return fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	// The GitHub API rejects requests without a User-Agent; some gateways
+	// answer them with 504 instead of 403, so always send one.
+	req.Header.Set("User-Agent", "spark-cli")
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("fetch %s: %w", url, err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("organization '%s' not found", orgName)
-	}
-
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch repositories: HTTP %d", resp.StatusCode)
+		return fmt.Errorf("fetch %s: HTTP %d", url, resp.StatusCode)
 	}
 
-	var repos []Repository
-	if err := json.NewDecoder(resp.Body).Decode(&repos); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
+	return json.NewDecoder(resp.Body).Decode(out)
+}
+
+// listRepos fetches every page of a repository listing endpoint.
+func listRepos(baseURL string) ([]Repository, error) {
+	const perPage = 100
+
+	var all []Repository
+	for page := 1; ; page++ {
+		var batch []Repository
+		url := fmt.Sprintf("%s?per_page=%d&page=%d", baseURL, perPage, page)
+		if err := getJSON(url, &batch); err != nil {
+			if strings.Contains(err.Error(), "HTTP 404") {
+				return nil, err
+			}
+			return nil, fmt.Errorf("failed to fetch repositories: %w", err)
+		}
+		all = append(all, batch...)
+		if len(batch) < perPage {
+			break
+		}
+	}
+
+	return all, nil
+}
+
+func GetOrgRepos(orgName string) ([]Repository, error) {
+	url := fmt.Sprintf("https://api.github.com/orgs/%s/repos", orgName)
+
+	repos, err := listRepos(url)
+	if err != nil {
+		if strings.Contains(err.Error(), "HTTP 404") {
+			return nil, fmt.Errorf("organization '%s' not found", orgName)
+		}
+		return nil, err
 	}
 
 	return repos, nil
 }
 
 func GetUserRepos(username string) ([]Repository, error) {
-	url := fmt.Sprintf("https://api.github.com/users/%s/repos?per_page=100", username)
-	
-	resp, err := http.Get(url)
+	url := fmt.Sprintf("https://api.github.com/users/%s/repos", username)
+
+	repos, err := listRepos(url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch repositories: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("user '%s' not found", username)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch repositories: HTTP %d", resp.StatusCode)
-	}
-
-	var repos []Repository
-	if err := json.NewDecoder(resp.Body).Decode(&repos); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
+		if strings.Contains(err.Error(), "HTTP 404") {
+			return nil, fmt.Errorf("user '%s' not found", username)
+		}
+		return nil, err
 	}
 
 	return repos, nil
@@ -93,57 +122,27 @@ func GetUserRepos(username string) ([]Repository, error) {
 func GetRepo(owner, repo string) (*Repository, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s", owner, repo)
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("build request: %w", err)
-	}
-	req.Header.Set("Accept", "application/vnd.github+json")
-	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("fetch repository: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("repository '%s/%s' not found", owner, repo)
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("fetch repository: HTTP %d", resp.StatusCode)
-	}
-
 	var r Repository
-	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
-		return nil, fmt.Errorf("parse response: %w", err)
+	if err := getJSON(url, &r); err != nil {
+		if strings.Contains(err.Error(), "HTTP 404") {
+			return nil, fmt.Errorf("repository '%s/%s' not found", owner, repo)
+		}
+		return nil, fmt.Errorf("fetch repository: %w", err)
 	}
 	return &r, nil
 }
 
 func DetectAccountType(name string) (AccountType, error) {
 	url := fmt.Sprintf("https://api.github.com/users/%s", name)
-	
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", fmt.Errorf("failed to detect account type: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusNotFound {
-		return "", fmt.Errorf("account '%s' not found", name)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to detect account type: HTTP %d", resp.StatusCode)
-	}
 
 	var userInfo struct {
 		Type string `json:"type"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
-		return "", fmt.Errorf("failed to parse response: %w", err)
+	if err := getJSON(url, &userInfo); err != nil {
+		if strings.Contains(err.Error(), "HTTP 404") {
+			return "", fmt.Errorf("account '%s' not found", name)
+		}
+		return "", fmt.Errorf("failed to detect account type: %w", err)
 	}
 
 	switch userInfo.Type {

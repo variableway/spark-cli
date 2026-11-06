@@ -25,19 +25,22 @@ make build
 task build
 ```
 
-执行内容：
+执行内容（`make build` 与 `task build` 目标一致，脚本路径不同）：
 
-1. `go build -ldflags='...version stamp...' -o bin/spark.exe main.go`
-   —— 产物统一落在项目的 `bin/` 目录；version / commit / build date 编译进二进制
-2. `scripts/install-binary.ps1`（或 `.sh`）安装到 `~/.local/bin/`
-   Windows 下会同时写 `spark.exe` 与无后缀的 `spark`（bash 优先命中后者，两者必须一致）
-3. `scripts/verify-install.ps1` 做 sha256 一致性校验
+1. 编译：`go build -ldflags='...version stamp...' -o bin/spark main.go`
+   —— 产物落在项目的 `bin/` 目录；version / commit / build date 编译进二进制
+   （Windows 下产物名为 `bin/spark.exe`）
+2. 安装到 `~/.local/bin/`：
+   - `make build` 直接 `cp` 过去，再跑 `make -s verify-install` 做 sha256 校验
+   - `task build` 走 `scripts/install-binary.ps1`（或 `.sh`），Windows 下会同时写
+     `spark.exe` 与无后缀的 `spark`（bash 优先命中后者，两者必须一致），
+     再由 `scripts/verify-install.ps1` 做 sha256 一致性校验
 
 自检：
 
 ```bash
-spark version    # -> spark v0.3.2 / commit xxx / build date ...
-spark --version  # -> spark version v0.3.2
+spark version    # -> spark v0.3.3 / commit xxx / build date ...
+spark --version  # -> spark version v0.3.3
 ```
 
 ### 交叉编译

@@ -6,7 +6,7 @@ System-level utilities: DNS flush, directory cleaning, dotfile deploy, mirror sw
 
 ```bash
 spark magic flush-dns                         # Flush the DNS cache
-spark magic clean [-m node|python]            # Clean node_modules and .venv
+spark magic clean [-m node|python]            # Clean node_modules, package-lock.json and .venv
 spark magic copy-config [<user@host:path>]    # Deploy built-in nvim + ghostty templates
 
 # Mirror switching (pip / go / node share the same subcommands)
@@ -34,11 +34,11 @@ Auto-detects the OS and runs the appropriate command:
 
 ## spark magic clean
 
-Recursively clean `node_modules` and `.venv` directories under a project directory.
+Recursively clean `node_modules` and `.venv` directories plus `package-lock.json` files under a project directory.
 
 ```bash
-spark magic clean                             # Clean both
-spark magic clean -m node                     # Only node_modules
+spark magic clean                             # Clean node_modules, package-lock.json and .venv
+spark magic clean -m node                     # Only node_modules and package-lock.json
 spark magic clean -m python                   # Only .venv
 ```
 
@@ -49,7 +49,7 @@ spark magic clean -m python                   # Only .venv
 **Behavior**:
 - Scans the directory passed via `--path` (default: current directory)
 - Automatically skips `.git` directories
-- Lists every directory that was cleaned
+- Lists every item that was cleaned (directories and files)
 
 ---
 

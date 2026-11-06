@@ -26,6 +26,8 @@ Spark CLI is a Go-based command-line tool that positions itself as a CLI backend
 | Repo management | `spark repo` | Registry-file driven scan / clone / list, an alternative to submodules |
 | System utilities | `spark magic` | DNS flush, pip/go/node mirror switching, directory cleanup, dotfiles deploy |
 | Script management | `spark script` | Custom script discovery and execution |
+| Skill management | `spark skill` | Discover, list and sync AI agent skills (`SKILL.md` directories) |
+| Project hub | `spark hub` | Scan local git repositories into the innate-apps registry |
 | Docs management | `spark docs` | Docs structure init, docmd site config |
 | Process diagnostics | `spark witr` | Why-Is-This-Running process inspection |
 
@@ -39,6 +41,8 @@ main.go → cmd.Execute()
 │   ├── repo/               # Registry-based repo management
 │   ├── magic/              # System utilities
 │   ├── script/             # Script management
+│   ├── skill/              # AI skill management
+│   ├── hub/                # Project hub
 │   ├── docs/               # Docs management
 │   ├── version.go          # Version info
 │   └── witr.go             # Process diagnostics bridge
@@ -49,9 +53,19 @@ main.go → cmd.Execute()
     ├── github/             # GitHub API interactions
     ├── gitlab/             # GitLab API interactions (batch clone)
     ├── registry/           # Registry file scan/read/merge
+    ├── collection/         # hub command: registry model, scan & merge
     ├── script/             # Script discovery & execution
+    ├── skill/              # Skill discovery (SKILL.md dirs) & sync
     ├── templates/          # Embedded nvim/ghostty dotfiles
+    ├── testreport/         # Ginkgo JSON report → self-contained HTML
     └── witr/               # Process diagnostics engine
+│
+├── pkg/
+│   └── witr/model/         # Shared witr data model
+├── tools/
+│   └── testreport/         # test-report CLI: Ginkgo JSON → HTML
+├── docs/                   # docmd docs site (zh/en)
+└── scripts/                # Default script directory (used by spark script)
 ```
 
 **Design notes**:
@@ -113,4 +127,4 @@ Lots of `exec.Command` calls into `git`, `gh`, `glab`, `npm`, with no abstractio
 
 ## Summary
 
-Spark CLI is a practical dev tool with clean architecture and reasonable feature coverage. Its core strength is unifying many day-to-day dev operations (Git management, mirror switching) into one CLI, while the profile system and TUI mode deliver a good user experience. The main improvement areas are expanding test coverage, reducing code duplication, and unifying the external-command invocation pattern.
+Spark CLI is a practical dev tool with clean architecture and reasonable feature coverage. Its core strength is unifying many day-to-day dev operations (Git management, mirror switching, project registration) into one CLI, while colored tables and TUI mode deliver a good user experience. The main improvement areas are expanding test coverage, reducing code duplication, and unifying the external-command invocation pattern.
