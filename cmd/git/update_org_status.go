@@ -23,35 +23,40 @@ var (
 )
 
 var updateOrgStatusCmd = &cobra.Command{
-	Use:   "update-org-status <org-name-or-url>",
-	Short: "Update organization repositories status to README.md",
-	Long: `Fetch all repositories from a GitHub organization, sort by stars,
+	Use:   "update-org-status <account-name-or-url>",
+	Short: "Update account repositories status to README.md",
+	Long: `Fetch all repositories from a GitHub organization or user, sort by stars,
 and update README.md file with a project list table.
 
+The account type is detected automatically:
+- Organization -> the profile repository is <org>/.github
+- User         -> the profile repository is <user>/<user>
+
 By default, updates the local .github/README.md file.
-Use --update-dot-github to update the organization's .github repository directly.
+Use --update-dot-github to update the profile repository directly.
 
 This command will:
-1. Fetch all public repositories from the specified organization
+1. Fetch all public repositories from the specified account
 2. Sort repositories by stargazers count (descending)
-3. Update README.md (local or .github repo) with a "Project List" section
+3. Update README.md (local or profile repo) with a "Project List" section
 4. Commit and push changes (unless --skip-push is used)`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		input := args[0]
 
-		orgName, err := github.ParseAccountFromURL(input)
+		accountName, err := github.ParseAccountFromURL(input)
 		if err != nil {
 			return err
 		}
 
-		fmt.Printf("Fetching repositories for organization: %s\n", orgName)
+		fmt.Printf("Fetching repositories for account: %s\n", accountName)
 
-		repos, err := github.GetOrgRepos(orgName)
+		repos, accountType, err := github.GetReposForAccount(accountName)
 		if err != nil {
 			return err
 		}
 
+		fmt.Printf("Account type: %s\n", accountType)
 		fmt.Printf("Found %d repositories\n", len(repos))
 
 		// Sort by stargazers count (descending)
@@ -60,7 +65,7 @@ This command will:
 		})
 
 		// Generate project list section content
-		sectionContent := generateProjectListSection(orgName, repos)
+		sectionContent := generateProjectListSection(accountName, repos)
 
 		if updateOrgStatusDryRun {
 			fmt.Printf("\n--- Dry Run: Content to be inserted ---\n")
@@ -70,10 +75,10 @@ This command will:
 
 		// Determine target path and update strategy
 		if updateOrgStatusUpdateDotGitHub {
-			return updateDotGitHubRepo(orgName, sectionContent)
+			return updateProfileRepo(accountName, accountType, sectionContent)
 		}
 
-		return updateLocalFile(orgName, sectionContent)
+		return updateLocalFile(accountName, sectionContent)
 	},
 }
 
@@ -167,44 +172,74 @@ func updateLocalFile(orgName, sectionContent string) error {
 	return nil
 }
 
-func updateDotGitHubRepo(orgName, sectionContent string) error {
-	// Create temp directory for .github repo
-	tempDir := filepath.Join(os.TempDir(), fmt.Sprintf("github-repo-%s-%d", orgName, time.Now().Unix()))
+// profileRepoSpec describes where a GitHub profile README lives.
+type profileRepoSpec struct {
+	url    string
+	dir    string
+	readme []string
+}
+
+// resolveProfileRepo returns the clone URL and README paths of the profile
+// repository for the given account.
+//
+// Organizations keep their profile README in the dedicated <org>/.github repo
+// (README.md plus profile/README.md); users keep it at the root of their
+// <user>/<user> profile repo.
+func resolveProfileRepo(accountName string, accountType github.AccountType) profileRepoSpec {
+	if accountType == github.AccountTypeUser {
+		return profileRepoSpec{
+			url: fmt.Sprintf("https://github.com/%s/%s.git", accountName, accountName),
+			dir: accountName,
+			readme: []string{
+				filepath.Join(accountName, "README.md"),
+			},
+		}
+	}
+
+	return profileRepoSpec{
+		url: fmt.Sprintf("https://github.com/%s/.github.git", accountName),
+		dir: ".github",
+		readme: []string{
+			filepath.Join(".github", "README.md"),
+			filepath.Join(".github", "profile", "README.md"),
+		},
+	}
+}
+
+func updateProfileRepo(accountName string, accountType github.AccountType, sectionContent string) error {
+	// Create temp directory for the profile repo
+	tempDir := filepath.Join(os.TempDir(), fmt.Sprintf("github-repo-%s-%d", accountName, time.Now().Unix()))
 	defer os.RemoveAll(tempDir)
 
-	repoURL := fmt.Sprintf("https://github.com/%s/.github.git", orgName)
-	repoDir := filepath.Join(tempDir, ".github")
+	spec := resolveProfileRepo(accountName, accountType)
+	repoDir := filepath.Join(tempDir, spec.dir)
 
-	fmt.Printf("Cloning .github repository to: %s\n", repoDir)
+	fmt.Printf("Cloning %s to: %s\n", spec.url, repoDir)
 
 	// Clone the repository
-	cloneCmd := exec.Command("git", "clone", repoURL, repoDir)
+	cloneCmd := exec.Command("git", "clone", spec.url, repoDir)
 	cloneCmd.Stdout = os.Stdout
 	cloneCmd.Stderr = os.Stderr
 	if err := cloneCmd.Run(); err != nil {
-		return fmt.Errorf("failed to clone .github repository: %w\nNote: Make sure the .github repository exists and is accessible", err)
+		return fmt.Errorf("failed to clone %s: %w\nNote: Make sure the profile repository exists and is accessible", spec.url, err)
 	}
 
-	// Update both README.md and profile/README.md
-	paths := []string{
-		filepath.Join(repoDir, "README.md"),
-		filepath.Join(repoDir, "profile", "README.md"),
-	}
-
-	for _, readmePath := range paths {
-		if err := writeReadmeFile(readmePath, orgName, sectionContent); err != nil {
+	// Update the README file(s)
+	for _, readmePath := range spec.readme {
+		full := filepath.Join(tempDir, readmePath)
+		if err := writeReadmeFile(full, accountName, sectionContent); err != nil {
 			return err
 		}
 	}
 
-	// Git operations in .github repo
+	// Git operations in the profile repo
 	if updateOrgStatusSkipPush {
 		fmt.Println("Skipping git push (--skip-push used)")
 		return nil
 	}
 
 	// Git add
-	fmt.Printf("Running: git add README.md\n")
+	fmt.Printf("Running: git add .\n")
 	addCmd := exec.Command("git", "-C", repoDir, "add", ".")
 	addCmd.Stdout = os.Stdout
 	addCmd.Stderr = os.Stderr
@@ -220,7 +255,7 @@ func updateDotGitHubRepo(orgName, sectionContent string) error {
 	}
 
 	// Git commit
-	commitMsg := fmt.Sprintf("docs: update %s project list [skip ci]", orgName)
+	commitMsg := fmt.Sprintf("docs: update %s project list [skip ci]", accountName)
 	fmt.Printf("Running: git commit -m \"%s\"\n", commitMsg)
 	commitCmd := exec.Command("git", "-C", repoDir, "commit", "-m", commitMsg)
 	commitCmd.Stdout = os.Stdout
@@ -238,7 +273,7 @@ func updateDotGitHubRepo(orgName, sectionContent string) error {
 		return fmt.Errorf("git push failed: %w", err)
 	}
 
-	fmt.Println("Successfully committed and pushed changes to .github repository.")
+	fmt.Printf("Successfully committed and pushed changes to %s.\n", spec.url)
 	return nil
 }
 
@@ -416,7 +451,7 @@ func init() {
 
 	updateOrgStatusCmd.Flags().StringVarP(&updateOrgStatusOutput, "output", "o", ".github/README.md", "Output path for the README file (local mode)")
 	updateOrgStatusCmd.Flags().BoolVar(&updateOrgStatusDryRun, "dry-run", false, "Print content without writing to file")
-	updateOrgStatusCmd.Flags().BoolVar(&updateOrgStatusUpdateDotGitHub, "update-dot-github", false, "Update the organization's .github repository directly")
+	updateOrgStatusCmd.Flags().BoolVar(&updateOrgStatusUpdateDotGitHub, "update-dot-github", false, "Update the account's profile repository directly")
 	updateOrgStatusCmd.Flags().StringVar(&updateOrgStatusSection, "section", "Project List", "Section name to update in README")
 	updateOrgStatusCmd.Flags().BoolVar(&updateOrgStatusSkipPush, "skip-push", false, "Skip git commit and push")
 }

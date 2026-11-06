@@ -14,7 +14,7 @@ No arguments, no flags.
 
 ## spark git update
 
-Update every Git repository to the latest version. Scans every repo under the `repo-path` entries in the config and runs `git fetch --all && git pull`.
+Update every Git repository to the latest version. Scans every repo under the `repo-path` entries in the config and, for each repo, runs `git fetch --all` followed by `git pull origin <current-branch>`.
 
 ```
 spark git update [-p <path>] [--ssh]
@@ -26,6 +26,28 @@ spark git update [-p <path>] [--ssh]
 | `--ssh` | bool | `false` | No | Force SSH for the update (temporarily rewrites HTTPS GitHub URLs to SSH; does not modify repo config) |
 
 No arguments.
+
+---
+
+## spark git clone
+
+Clone a single GitHub repository with the GitHub CLI (`gh repo clone`); SSH is the default.
+
+```
+spark git clone <url-or-slug> [directory] [-- <git-args>]
+```
+
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
+| `url-or-slug` | string | Yes | Repository URL or `owner/repo` shorthand |
+| `directory` | string | No | Local clone directory name |
+
+No flags.
+
+**Behavior**:
+- Accepted input formats: `https://github.com/owner/repo.git`, `git@github.com:owner/repo.git`, `github.com/owner/repo`, `owner/repo`
+- The input is parsed into `owner/repo` and then `gh repo clone owner/repo [directory] [-- <git-args>...]` runs; `gh` uses the SSH URL by default
+- Arguments after `--` are forwarded to `git clone` unchanged
 
 ---
 
@@ -77,10 +99,15 @@ No arguments.
 Show every submodule's init state, commit, and branch.
 
 ```
-spark git submodule status
+spark git submodule status [-r] [-j <n>]
 ```
 
-No flags, no arguments.
+| Flag | Type | Default | Required | Description |
+|------|------|---------|----------|-------------|
+| `-r, --recursive` | bool | `false` | No | Show nested submodules |
+| `-j, --parallel` | int | `1` | No | The command help text reads `Not used for status` (the value is unused for status) |
+
+No arguments.
 
 **Output**: a table with the columns `PATH`, `INIT` (✅/❌), `COMMIT`, `BRANCH`.
 
@@ -102,22 +129,24 @@ No flags, no arguments.
 
 ## spark git submodule add
 
-Add a Git repository as a submodule. Two modes are supported:
+Add a Git repository as a submodule. Exactly **one positional argument** is required; the mode is selected from its shape:
 
-1. Local mode: add Git repositories under a directory as submodules, no re-clone.
-2. Remote mode: clone a remote Git repository and add it as a submodule.
+1. Folder mode: the argument is a directory — scan the Git repositories already under it and add them as submodules, no re-clone.
+2. URL mode: the argument is a Git URL — clone the remote repository and add it as a submodule.
 
-### Local mode
+The current directory must be a Git repository, otherwise the command asks you to run `spark git init` first.
+
+### Folder mode
 
 ```
-spark git submodule add [-p <path>]
+spark git submodule add <path>
 ```
 
-| Flag | Type | Default | Required | Description |
-|------|------|---------|----------|-------------|
-| `-p, --path` | string | `.` | No | Directory containing Git repositories |
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
+| `path` | string | Yes | Directory to scan; if that directory is itself a Git repository, only that single repository is added |
 
-No arguments.
+No flags. The root command's `-p, --path` has no effect here — the parent repo path is hardcoded to the current directory.
 
 **Smart detection behavior**:
 
@@ -125,13 +154,13 @@ No arguments.
 |----------|--------|
 | Target is already a submodule (160000) | `Skipping <name>: already as submodule` |
 | Target shares the parent repo URL (worktree) | `Skipping <name>: already as submodule` |
-| Directory exists but is not a submodule | `Skipping <name>: directory already exists (use 'git submodule add' manually)` |
-| Normal add | `Adding submodule: <name> (<url>)` |
+| Directory exists but is not a submodule | `Adding existing repo as submodule: <name> (<url>)` |
+| Normal add (URL mode) | `Adding submodule: <name> (<url>)` |
 
-### Remote mode
+### URL mode
 
 ```
-spark git submodule add <repo-url> [-n <name>] [-p <path>]
+spark git submodule add <repo-url> [-n <name>]
 ```
 
 | Argument | Type | Required | Description |
@@ -252,23 +281,53 @@ spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exc
 
 ## spark git update-org-status
 
-Update the repository status list in the organization's README.
+Update the repository status list in the account's README. The account can be an organization or a user; the type is detected automatically via the GitHub API.
 
 ```
-spark git update-org-status <org-name-or-url> [--dry-run] [--update-dot-github] [--section <name>] [-o <path>] [--skip-push]
+spark git update-org-status <account-name-or-url> [--dry-run] [--update-dot-github] [--section <name>] [-o <path>] [--skip-push]
 ```
 
 | Flag | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
 | `-o, --output` | string | `.github/README.md` | No | Output file path |
 | `--dry-run` | bool | `false` | No | Print only, do not write |
-| `--update-dot-github` | bool | `false` | No | Update the org's `.github` repo directly |
+| `--update-dot-github` | bool | `false` | No | Update the account's profile repo directly |
 | `--section` | string | `Project List` | No | Section name to update in the README |
 | `--skip-push` | bool | `false` | No | Skip `git commit` and `git push` |
 
 | Argument | Type | Required | Description |
 |----------|------|----------|-------------|
-| `org-name-or-url` | string | Yes | Organization name or URL |
+| `account-name-or-url` | string | Yes | Account name or URL (organization name or username, e.g. `qdriven`) |
+
+**Behavior**:
+- The account type is detected through the GitHub API: organization → profile repo `<org>/.github` (writes `README.md` and `profile/README.md`); user → profile repo `<user>/<user>` (writes `README.md` at the repo root)
+- The repository list is fetched with pagination (100 per page), so it is not capped at a single page
+- `GITHUB_TOKEN` raises the API rate limit (60 requests/hour when anonymous)
+- Forked repositories are not listed in the table and are excluded from the statistics
+- `--update-dot-github` clones the account's profile repository into `$TMPDIR/github-repo-<account>-<ts>`, rewrites the README, then commits and pushes
+
+---
+
+## spark git issues
+
+Create GitHub issues from Markdown documents or task files. Two modes are supported:
+
+- Directory mode (`-d`): one issue per `.md` file in the directory
+- Task mode (`-f`): one issue per `# Task <id>` / `## Task <id>` section of a single file
+
+```
+spark git issues [-r <owner/repo>] (-d <dir> | -f <file>) [-l <labels>] [--dry-run]
+```
+
+| Flag | Type | Default | Required | Description |
+|------|------|---------|----------|-------------|
+| `-r, --repo` | string | current repo's `origin` | No | Target repository (`owner/repo`); auto-detected from the current repo's `origin` when omitted |
+| `-d, --dir` | string | | No | Directory mode: directory containing the Markdown documents |
+| `-f, --file` | string | | No | Task mode: Markdown file containing the task sections |
+| `-l, --labels` | stringSlice | `[]` | No | Labels applied to every issue (comma-separated) |
+| `--dry-run` | bool | `false` | No | Preview without creating issues |
+
+No arguments. `-d` and `-f` are mutually exclusive — exactly one of them is required.
 
 ---
 
@@ -302,9 +361,12 @@ Recursively scan a directory for Git repositories, optionally enrich from the Gi
 spark git scan [folder-path] [-d <db-path>] [--skip-api]
 ```
 
+| Argument | Type | Default | Required | Description |
+|----------|------|---------|----------|-------------|
+| `folder-path` | string | `.` | No | Directory to scan |
+
 | Flag | Type | Default | Required | Description |
 |------|------|---------|----------|-------------|
-| `folder-path` | string | `.` | No | Directory to scan |
 | `-d, --db` | string | `~/.innate/feeds.db` | No | SQLite database path |
 | `--skip-api` | bool | `false` | No | Skip API calls; local scan only |
 

@@ -44,9 +44,22 @@ github-owner: your-username  # default for spark git init --owner
 
 ## Detailed Usage
 
-- [Git Repository Management](./git)
-- [Repository Management](./repo)
-- [System Utilities](./magic)
-- [Script Management](./script)
-- [Docs Management](./docs-cmd)
-- [Process Diagnostics](./witr)
+- [Git Repository Management](./git.md)
+- [Repository Management](./repo.md)
+- [Skill Management](./skill.md)
+- [Project Hub](./hub.md)
+- [System Utilities](./magic.md)
+- [Script Management](./script.md)
+- [Docs Management](./docs-cmd.md)
+- [Process Diagnostics](./witr.md)
+
+## Getting Started
+
+| Goal | Start here |
+|------|------------|
+| Try one command first | `spark magic flush-dns` (zero config), `spark version` |
+| Teach an AI assistant to use spark | [spark-cli Skill](https://github.com/variableway/spark-cli/blob/main/skills/spark-cli/SKILL.md) |
+| Learn to write a Go CLI | [Golang CLI Essentials · Lesson 1](../quick-start/golang-cli-101.md) |
+| Learn to write a Node/TS tool | [Node + TypeScript Essentials · Lesson 1](../quick-start/nodejs-typescript-101.md) |
+| Build a docs site | [Docs Site from Scratch](../quick-start/docs-site-from-scratch.md) |
+| Full command reference | [Command specs](../spec/git.md) and the [AGENTS.md mirror](../Agents.md) |

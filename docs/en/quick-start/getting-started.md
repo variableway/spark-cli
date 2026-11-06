@@ -31,7 +31,7 @@ github-owner: your-username
 spark git update -p ~/workspace               # Update all repositories
 spark git update -p ~/workspace --ssh         # Force SSH when HTTPS is unstable
 spark git init --owner variableway            # Initialize a repo and create its GitHub remote
-spark git submodule add -p /path/to/repos     # Add existing repos as submodules
+spark git submodule add ./path/to/folder      # Scan a folder and add its repos as submodules
 spark git batch-clone variableway -o ./repos  # Clone all repos for an org
 spark git push-all -p ~/workspace             # Commit and push every repo
 spark git scan ~/workspace                    # Scan repos and persist to SQLite

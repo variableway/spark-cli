@@ -41,9 +41,14 @@ spark script run deploy -- --env production
 spark:
   scripts:
     - name: hello
-      description: Say hello
-      command: echo "Hello, World!"
+      content: |
+        #!/bin/bash
+        echo "Hello, World!"
 ```
+
+配置里的脚本只有三个键：`name`（脚本名）、`content`（脚本内容）、`path`（可选，
+脚本文件路径）。写 `command:` 之类的键**不会生效**——`content` 为空时
+`spark script run` 会报 `script 'hello' has no content`。
 
 ## 相关文档
 

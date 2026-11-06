@@ -7,8 +7,8 @@ Manage multiple Git repositories, initialize projects, sync submodules.
 ```bash
 spark git update                              # Update all repositories
 spark git clone <url-or-slug> [dir] [-- <git-args>] # Clone a GitHub repo (SSH by default)
-spark git submodule add [-p <path>]                # Add existing repos as submodules
-spark git submodule add <repo-url> [-n <name>]     # Add a remote repo as a submodule
+spark git submodule add <path>                    # Scan a folder, add existing repos as submodules
+spark git submodule add <repo-url> [-n <name>]     # Add a remote repo as a submodule (-n sets the name)
 spark git submodule init [-j <n>] [-r]             # Initialize (clone) all submodules
 spark git submodule status                         # Show submodule status
 spark git submodule ensure-ssh                     # Convert HTTPS URLs to SSH
@@ -18,7 +18,7 @@ spark git init [--owner <owner>] [--skip-gh]   # Initialize a repo and create it
 spark git config [--username --email]         # Configure git user
 spark git url [repo-path]                     # Show the remote URL
 spark git batch-clone <account-or-url> [-o <dir>] # Clone every repo from a GitHub/GitLab account
-spark git update-org-status <org> [--dry-run] # Update the org README
+spark git update-org-status <account> [--dry-run] # Update the account's profile README project list
 spark git issues [-r <owner/repo>] (-d <dir> | -f <file>) # Create issues from docs/tasks
 spark git push-all                            # Commit and push every repo
 spark git scan [folder-path] [--db <path>]    # Scan repos and persist to SQLite
@@ -81,9 +81,9 @@ Add a local Git repository as a submodule, or clone a remote repository as a sub
 
 Scan a directory for Git repositories and add them as submodules without re-cloning.
 
-| Flag | Short | Default | Description |
-|------|-------|---------|-------------|
-| `-p, --path` | | `.` | Directory containing Git repositories |
+The directory to scan is the **positional argument**; this command has no flags
+of its own. The global `-p/--path` flag does not apply here — the parent
+repository is always the current directory.
 
 ```bash
 spark git submodule add ./repos                       # Add every GitHub repo under the local folder as a submodule
@@ -295,12 +295,12 @@ Auto-detect GitHub or GitLab from the input and clone every repository for the g
 
 ```bash
 # GitHub
-spark git batch-clone variableway               # Clone every repo for an org
-spark git batch-clone jackwener                 # Clone every repo for a user
-spark git batch-clone https://github.com/variableway
-spark git batch-clone variableway --ssh         # Use SSH
-spark git batch-clone variableway --include spark --exclude test
-spark git batch-clone variableway -o ./repos  # Specify the output directory
+spark git batch-clone qdriven                    # Clone every repo for an account
+spark git batch-clone jackwener                  # Clone every repo for a user
+spark git batch-clone https://github.com/qdriven
+spark git batch-clone qdriven --ssh             # Use SSH
+spark git batch-clone qdriven --include spark --exclude test
+spark git batch-clone qdriven -o ./repos        # Specify the output directory
 
 # GitLab (self-hosted or gitlab.com, supports subgroups at any depth)
 spark git batch-clone https://gitlab.example.com/myorg/mygroup
@@ -363,22 +363,139 @@ Cloning private repositories additionally requires git-side credentials: prefer 
 
 ## spark git update-org-status
 
-Fetch the org's repository list and update `README.md`.
+Fetch the repository list of a GitHub account and update the project-list
+section in `README.md`.
+
+The argument accepts an **account name** (`qdriven`) or an **account URL**
+(`https://github.com/qdriven`) — the account name is parsed out of the URL.
 
 | Flag | Short | Default | Description |
 |------|-------|---------|-------------|
 | `--output` | `-o` | `.github/README.md` | Output file path |
 | `--dry-run` | | `false` | Preview without writing |
-| `--update-dot-github` | | `false` | Update the org's `.github` repo directly |
+| `--update-dot-github` | | `false` | Update the account's profile repo directly |
 | `--section` | | `Project List` | Section name to update |
 | `--skip-push` | | `false` | Skip `git push` |
 
 ```bash
-spark git update-org-status variableway                    # Update the local README
-spark git update-org-status variableway --dry-run          # Preview
-spark git update-org-status variableway --update-dot-github # Push directly
-spark git update-org-status variableway --section "My Projects"
+spark git update-org-status qdriven                    # Update the local README
+spark git update-org-status qdriven --dry-run          # Preview
+spark git update-org-status qdriven --update-dot-github # Push to the profile repo
+spark git update-org-status qdriven --section "Featured Projects"
+spark git update-org-status https://github.com/qdriven # A URL works too
 ```
+
+### Account type is detected automatically
+
+The command asks the GitHub API whether the account is an **organization** or a
+**user**, then picks the matching profile repository:
+
+| Account type | Profile repository | README location |
+|--------------|-------------------|-----------------|
+| Organization `Organization` | `<org>/.github` | `README.md` and `profile/README.md` |
+| User `User` | `<user>/<user>` | `README.md` at the repository root |
+
+So refreshing the project list of a personal account (such as `qdriven`) into
+`qdriven/qdriven` is the same command:
+
+```bash
+spark git update-org-status qdriven --update-dot-github
+```
+
+> The command clones the profile repository, rewrites the README and runs
+> `git push`. Run `--dry-run` first to see exactly what would be written.
+
+### The generated section
+
+```markdown
+## Project List
+
+*Last updated: 2026-11-06 21:28:50*
+
+| Name | Description | Stars | Language |
+|------|-------------|-------|----------|
+| [spark-cli](https://github.com/variableway/spark-cli) | Daily Cli command ideas fired by spark | ⭐ 12 | Go |
+
+**Statistics**: 97 repositories, 37 total stars, 0.4 average
+```
+
+Rules:
+
+- Repositories are sorted by **star count, descending**
+- **Forked repositories are not listed** in the table and are excluded from the
+  statistics
+- Empty `description` and `language` render as `-`
+- The section title comes from `--section` (default `Project List`)
+- If the section does not exist it is inserted before the last `##` section;
+  if it exists it is replaced wholesale
+
+### Other behaviour
+
+- The repository list is fetched **page by page** (100 per page), so it is not
+  capped at a single page
+- Set `GITHUB_TOKEN` to raise the API rate limit (60 requests/hour anonymous)
+- The default output is `.github/README.md`; when that path sits in a
+  `.github/` directory, `.github/profile/README.md` is updated **as well**
+- `--output README.md` writes to the repository root (the usual spot for a
+  personal profile repo)
+- `--skip-push` only edits the file; `--dry-run` only prints
+- In local mode the command runs `git add` → `git commit` → `git push` with the
+  message `docs: update <account> project list [skip ci]`
+
+---
+
+## How to get the list of GitHub repository projects
+
+Three paths for the same need — pick by the artifact you want:
+
+### Path A: `spark git update-org-status` — write it straight into the README
+
+The artifact is a Markdown section (table + statistics), described above. Use it
+when the project list belongs on a README or a profile repository.
+
+```bash
+spark git update-org-status qdriven --section "Featured Projects"
+```
+
+### Path B: the `gh` CLI — render it yourself
+
+When you need precise control over format, fields or filtering, fetch the raw
+list with `gh`:
+
+```bash
+# Repositories of an organization
+gh repo list qdriven --limit 200 --json name,description,stargazersCount,isFork,url
+
+# Raw API: organizations use /orgs/, users use /users/
+gh api orgs/someorg/repos --jq '.[] | {name, stargazers_count}'
+gh api users/qdriven/repos --jq '.[] | {name, stargazers_count}'
+
+# Paginate through everything
+gh api --paginate users/qdriven/repos --jq '.[].name'
+```
+
+### Path C: `spark hub scan` — generate a project registry
+
+For a project registry (JSON) carrying **category / status / visibility /
+language**, scan the local repositories with `spark hub scan`:
+
+```bash
+spark hub scan . -o registry/apps.json --merge registry/apps.json
+```
+
+See [Project Hub usage](./hub.md).
+
+### Which one to pick
+
+| Artifact you want | Use |
+|-------------------|-----|
+| A project-list section in a README | Path A |
+| The raw repository list, rendered yourself | Path B |
+| A registry JSON with categories and status | Path C |
+
+> **Registry vs README**: `registry/apps.json` is the **data source**; the
+> project sections in READMEs and profile repositories are its **rendered
+> output**. Change the data source and refresh the rendered output.
 
 ---
 

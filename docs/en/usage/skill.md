@@ -59,3 +59,33 @@ spark skill sync ~/.claude/skills       # Sync into Claude skills directory
 | `--clear` | Clear the target directory before copying |
 
 Typical use: consolidate skills scattered across locations into one directory (e.g. the `fire-skills` repo), or copy builtin skills into a project for local customization.
+
+---
+
+## The spark-cli skill shipped with this repository
+
+`skills/spark-cli/SKILL.md` is a skill that ships with this repository. It is
+the **agent-facing version of this usage guide**: the command map, the common
+workflows, and the three paths for fetching the list of GitHub repository
+projects. Install it into your agent's skill directory and the assistant knows
+how to drive spark:
+
+```bash
+# Install from this repository into Claude's skills directory
+spark skill sync ~/.claude/skills --clear
+
+# Or install just this one
+mkdir -p ~/.claude/skills/spark-cli
+cp skills/spark-cli/SKILL.md ~/.claude/skills/spark-cli/
+```
+
+Afterwards `spark skill list` shows it:
+
+```text
+NAME                   SOURCE           PATH
+spark-cli              claude           /Users/me/.claude/skills/spark-cli
+```
+
+> Skill directory convention: each skill is a **directory** holding a
+> `SKILL.md`; the `name` and `description` in its frontmatter decide when the
+> assistant picks it up.

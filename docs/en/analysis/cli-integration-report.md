@@ -4,6 +4,18 @@
 **Date**: 2026-04-02
 **Goal**: assess the feasibility of integrating OpenCLI, public-clis, and CLI-Anything into Spark CLI and produce a detailed implementation plan.
 
+
+> [!NOTE]
+> **Status: historical research, not adopted.** This document dates from
+> 2026-04-02 and evaluates integrating OpenCLI / public-clis / CLI-Anything,
+> proposing a new `spark hub` command as the single entry point for external
+> CLIs.
+>
+> The proposal was not implemented. spark-cli does ship a `spark hub` command
+> today, but it means something entirely different: it scans local git
+> repositories and emits the innate-apps registry (`registry/apps.json`).
+> It involves no external CLI integration. See [Project Hub usage](../usage/hub.md)
+> and [Hub command spec](../spec/hub.md).
 ---
 
 ## 1. Executive Summary

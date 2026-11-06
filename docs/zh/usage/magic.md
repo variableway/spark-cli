@@ -6,7 +6,7 @@
 
 ```bash
 spark magic flush-dns                         # 刷新 DNS 缓存
-spark magic clean [-m node|python]            # 清理 node_modules 和 .venv
+spark magic clean [-m node|python]            # 清理 node_modules、package-lock.json 和 .venv
 spark magic copy-config [<user@host:path>]    # 部署内置 nvim + ghostty 模板
 
 # 镜像源切换（pip / go / node 通用子命令）
@@ -34,11 +34,11 @@ spark magic flush-dns
 
 ## spark magic clean
 
-递归清理项目目录中的 `node_modules` 和 `.venv` 目录。
+递归清理项目目录中的 `node_modules`、`.venv` 目录和 `package-lock.json` 文件。
 
 ```bash
-spark magic clean                             # 清理两者
-spark magic clean -m node                     # 只清理 node_modules
+spark magic clean                             # 清理 node_modules、package-lock.json 和 .venv
+spark magic clean -m node                     # 只清理 node_modules 和 package-lock.json
 spark magic clean -m python                   # 只清理 .venv
 ```
 
@@ -49,7 +49,7 @@ spark magic clean -m python                   # 只清理 .venv
 **行为**：
 - 扫描 `--path` 指定的目录（默认当前目录）
 - 自动跳过 `.git` 目录
-- 列出所有被清理的目录
+- 列出所有被清理的项（目录与文件）
 
 ---
 

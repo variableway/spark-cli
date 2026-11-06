@@ -18,6 +18,10 @@
         "path": "/quick-start/golang-cli-101"
       },
       {
+        "title": "Node + TypeScript 入门 · 第一课",
+        "path": "/quick-start/nodejs-typescript-101"
+      },
+      {
         "title": "从零创建 Go CLI 项目",
         "path": "/quick-start/golang-project-from-scratch"
       },
@@ -99,6 +103,14 @@
         "path": "/features/repo"
       },
       {
+        "title": "Skill 管理",
+        "path": "/features/skill"
+      },
+      {
+        "title": "项目 Hub",
+        "path": "/features/hub"
+      },
+      {
         "title": "系统工具",
         "path": "/features/magic"
       },
@@ -109,6 +121,10 @@
       {
         "title": "文档管理",
         "path": "/features/docs-feature"
+      },
+      {
+        "title": "进程诊断",
+        "path": "/features/witr"
       }
     ]
   },
@@ -126,6 +142,14 @@
         "path": "/spec/repo"
       },
       {
+        "title": "Skill",
+        "path": "/spec/skill"
+      },
+      {
+        "title": "Hub",
+        "path": "/spec/hub"
+      },
+      {
         "title": "Magic",
         "path": "/spec/magic"
       },
@@ -136,6 +160,14 @@
       {
         "title": "Docs",
         "path": "/spec/docs-cmd"
+      },
+      {
+        "title": "Witr",
+        "path": "/spec/witr"
+      },
+      {
+        "title": "Version",
+        "path": "/spec/version"
       }
     ]
   },

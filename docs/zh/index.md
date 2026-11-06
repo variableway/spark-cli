@@ -65,8 +65,8 @@ make clean          # Remove binary
 验证安装的二进制确实是最新的：
 
 ```bash
-spark version       # -> spark v0.3.2 / commit 1ef84d7 / build date ...
-spark --version     # -> spark version v0.3.2
+spark version       # -> spark v0.3.3 / commit 1ef84d7 / build date ...
+spark --version     # -> spark version v0.3.3
 ```
 
 Run a single test:
@@ -91,8 +91,8 @@ go test ./internal/git/... -v -run TestFunctionName
 |---------|-------------|
 | `spark git clone <url-or-slug> [dir] [-- <git-args>]` | Clone a GitHub repo via `gh repo clone` (SSH by default) |
 | `spark git update [--ssh]` | Update all repos to latest version (`--ssh` 强制 SSH) |
-| `spark git submodule add [-p <path>]` | Add existing repos as submodules |
-| `spark git submodule add <repo-url> [-n <name>]` | Add a remote repo as a submodule |
+| `spark git submodule add <path>` | Add existing repos under a local folder as submodules |
+| `spark git submodule add <repo-url> [-n <name>]` | Add a remote repo as a submodule (`-n` = custom submodule name, URL mode only) |
 | `spark git submodule init [-j <n>] [-r] [--name <name>]` | Initialize missing submodules |
 | `spark git submodule status` | Show submodule initialization status |
 | `spark git submodule ensure-ssh` | Rewrite HTTPS submodule URLs to SSH |
@@ -107,6 +107,8 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git push-all [-p <path>]` | Commit and push all changes in repositories |
 | `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
 
+`spark git submodule add` 只接受一个位置参数：待扫描的本地目录，或远程仓库 URL。全局 `-p/--path` 对该命令无效。
+
 ---
 
 ### spark repo — Repository Management
@@ -118,6 +120,39 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark repo list -f <file>` | List repos in a registry file |
 
 Registry files (`registry_<folder>.yaml`) replace submodules for managing many repos in one directory.
+
+---
+
+### spark skill — AI Skill 管理
+
+| 命令 | 说明 |
+|------|------|
+| `spark skill list [--json]` | 发现并列出 agent skill（`SKILL.md` 目录） |
+| `spark skill sync <dir> [--clear]` | 把发现的 skill 复制到目标目录 |
+
+发现位置：`.mimocode/skills/`、`.agents/skills/`、`~/.claude/skills/`、
+`~/.mimocode/skills/` 与内置 skill 包。
+
+---
+
+### spark hub — 项目 Hub（Collections 注册）
+
+| 命令 | 说明 |
+|------|------|
+| `spark hub scan [path] [-o <file>]` | 扫描 git 仓库，输出 innate-apps registry JSON |
+| `spark hub scan --merge <registry>` | 与已有注册表合并，保留手工字段 |
+| `spark hub scan --skip-api [--deep] [--category <c>]` | 离线 / 嵌套 / 分类选项 |
+
+输出格式与 `registry/apps.json` 一致（字段定义见 `registry/schema.json`）。
+
+---
+
+### spark docs — 文档管理
+
+| 命令 | 说明 |
+|------|------|
+| `spark docs init [--root]` | 创建标准文档目录结构 |
+| `spark docs site [--root]` | 初始化 docmd 站点配置 |
 
 ---
 
@@ -193,12 +228,20 @@ Online docs: https://variableway.github.io/spark-cli/
 
 | Path | Content |
 |------|---------|
-| [usage/](usage/usage.md) | 命令使用指南总览 |
+| [usage/usage.md](usage/usage.md) | 命令使用指南总览 |
 | [usage/git.md](usage/git.md) | Git 仓库管理 |
 | [usage/repo.md](usage/repo.md) | 仓库管理（registry） |
+| [usage/skill.md](usage/skill.md) | Skill 管理 |
+| [usage/hub.md](usage/hub.md) | 项目 Hub |
 | [usage/magic.md](usage/magic.md) | 系统工具 |
 | [usage/script.md](usage/script.md) | 脚本管理 |
 | [usage/docs-cmd.md](usage/docs-cmd.md) | 文档管理 |
 | [usage/witr.md](usage/witr.md) | 进程诊断 |
+| [quick-start/golang-cli-101.md](quick-start/golang-cli-101.md) | Go CLI 入门 · 第一课 |
+| [quick-start/nodejs-typescript-101.md](quick-start/nodejs-typescript-101.md) | Node + TypeScript 入门 · 第一课 |
+| [quick-start/docs-site-from-scratch.md](quick-start/docs-site-from-scratch.md) | 从零创建文档站 |
+| [spec/git.md](spec/git.md) | 命令规格 |
+| [features/git.md](features/git.md) | 功能说明 |
 | [Agents.md](Agents.md) | 命令完整参考（站点镜像） |
 | [../../AGENTS.md](../../AGENTS.md) | 权威来源：AI 助手指令 |
+| [../../skills/spark-cli/SKILL.md](../../skills/spark-cli/SKILL.md) | spark-cli Skill（AI 助手使用说明） |

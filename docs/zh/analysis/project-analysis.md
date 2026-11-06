@@ -26,6 +26,8 @@ Spark CLI 是一个 Go 语言编写的命令行工具，定位为日常开发自
 | 仓库管理 | `spark repo` | registry 文件驱动的 scan / clone / list，用于替代 submodule |
 | 系统工具 | `spark magic` | DNS 刷新、pip/go/node 镜像源切换、目录清理、dotfiles 部署 |
 | 脚本管理 | `spark script` | 自定义脚本发现与执行 |
+| Skill 管理 | `spark skill` | 发现、列出与同步 AI agent skill（`SKILL.md` 目录） |
+| 项目 Hub | `spark hub` | 扫描本地 Git 仓库，生成 innate-apps 注册表 |
 | 文档管理 | `spark docs` | 文档结构初始化、docmd 站点配置 |
 | 进程诊断 | `spark witr` | Why-Is-This-Running 进程排查 |
 
@@ -39,6 +41,8 @@ main.go → cmd.Execute()
 │   ├── repo/               # registry 仓库管理命令组
 │   ├── magic/              # 系统工具命令组
 │   ├── script/             # 脚本管理命令组
+│   ├── skill/              # AI Skill 管理命令组
+│   ├── hub/                # 项目 Hub 命令组
 │   ├── docs/               # 文档管理命令组
 │   ├── version.go          # 版本信息
 │   └── witr.go             # 进程诊断桥接
@@ -49,9 +53,19 @@ main.go → cmd.Execute()
     ├── github/             # GitHub API 交互
     ├── gitlab/             # GitLab API 交互（批量克隆）
     ├── registry/           # registry 文件扫描/读写/合并
+    ├── collection/         # hub 命令的注册表模型、扫描与合并
     ├── script/             # 脚本发现与执行
+    ├── skill/              # skill 发现（SKILL.md 目录扫描）与同步
     ├── templates/          # 内嵌 nvim/ghostty dotfiles
+    ├── testreport/         # Ginkgo JSON 报告 → 自包含 HTML 渲染器
     └── witr/               # 进程诊断引擎
+│
+├── pkg/
+│   └── witr/model/         # witr 的共享数据模型
+├── tools/
+│   └── testreport/         # test-report CLI：Ginkgo JSON → HTML
+├── docs/                   # docmd 文档站点（zh/en 双语）
+└── scripts/                # 默认脚本目录（spark script 使用）
 ```
 
 **设计特点：**
@@ -113,4 +127,4 @@ Cobra + Viper + PTerm 是 Go CLI 开发的成熟组合，降低了开发和维�
 
 ## 总结
 
-Spark CLI 是一个实用的开发工具，架构清晰、功能覆盖合理。核心优势在于将多种日常开发操作（Git 管理、镜像切换）统一到一个 CLI 中，并通过 Profile 系统和 TUI 模式提供了良好的用户体验。主要改进方向是扩展测试覆盖、减少代码重复、统一外部命令调用模式。
+Spark CLI 是一个实用的开发工具，架构清晰、功能覆盖合理。核心优势在于将多种日常开发操作（Git 管理、镜像切换、仓库注册）统一到一个 CLI 中，并通过彩色表格与 TUI 模式提供了良好的用户体验。主要改进方向是扩展测试覆盖、减少代码重复、统一外部命令调用模式。

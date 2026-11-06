@@ -5,6 +5,14 @@
 **状态**: 草案（Draft）  
 **目标**: 评估独立 Hub 仓库的必要性，深度剖析 OpenCLI Hub 协议的优劣，明确 spark-hub、opencli、cli-anything 三者的边界与协作关系，并给出可执行的架构决策。
 
+
+> [!NOTE]
+> **状态：草案，未采纳。** 本文写于 2026-04-02，提出把 Hub 能力拆成独立的
+> `spark-hub` 仓库，并与 OpenCLI Hub 协议桥接。
+>
+> 该 RFC 没有落地。今天 spark-cli 里的 `spark hub` 是**另一条命令**——扫描本地
+> Git 仓库生成 innate-apps 注册表，与本文讨论的外部 CLI 聚合无关。
+> 当前实现见 [项目 Hub 使用说明](../usage/hub.md) 与 [Hub 命令规格](../spec/hub.md)。
 ---
 
 ## 1. 执行摘要

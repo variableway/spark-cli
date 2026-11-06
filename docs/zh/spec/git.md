@@ -14,7 +14,7 @@ spark git
 
 ## spark git update
 
-更新所有 Git 仓库到最新版本。扫描配置中 `repo-path` 下的所有仓库，执行 `git fetch --all && git pull`。
+更新所有 Git 仓库到最新版本。扫描配置中 `repo-path` 下的所有仓库，对每个仓库执行 `git fetch --all`，再执行 `git pull origin <当前分支>`。
 
 ```
 spark git update [-p <path>] [--ssh]
@@ -26,6 +26,28 @@ spark git update [-p <path>] [--ssh]
 | `--ssh` | bool | `false` | 否 | 强制通过 SSH 更新（临时将 HTTPS GitHub URL 改写为 SSH，不修改仓库配置） |
 
 无参数。
+
+---
+
+## spark git clone
+
+使用 GitHub CLI（`gh repo clone`）克隆单个 GitHub 仓库，默认使用 SSH。
+
+```
+spark git clone <url-or-slug> [directory] [-- <git-args>]
+```
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `url-or-slug` | string | 是 | 仓库 URL 或 `owner/repo` 简写 |
+| `directory` | string | 否 | 本地克隆目录名 |
+
+无标志。
+
+**行为**：
+- 支持的输入格式：`https://github.com/owner/repo.git`、`git@github.com:owner/repo.git`、`github.com/owner/repo`、`owner/repo`
+- 输入被解析为 `owner/repo` 后执行 `gh repo clone owner/repo [directory] [-- <git-args>...]`，`gh` 默认使用 SSH URL
+- `--` 之后的参数原样透传给 `git clone`
 
 ---
 
@@ -77,10 +99,15 @@ spark git submodule init [-j <n>] [-r] [--name <name>]
 显示所有子模块的初始化状态、commit 和分支。
 
 ```
-spark git submodule status
+spark git submodule status [-r] [-j <n>]
 ```
 
-无标志，无参数。
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-r, --recursive` | bool | `false` | 否 | 显示嵌套子模块 |
+| `-j, --parallel` | int | `1` | 否 | 命令帮助原文为 `Not used for status`（status 不使用该值） |
+
+无参数。
 
 **输出**：表格格式，包含 `PATH`、`INIT`（✅/❌）、`COMMIT`、`BRANCH` 列。
 
@@ -102,22 +129,24 @@ spark git submodule ensure-ssh
 
 ## spark git submodule add
 
-添加 Git 仓库为子模块。支持两种模式：
+添加 Git 仓库为子模块。需要**恰好一个位置参数**，按其形态自动选择模式：
 
-1. 本地模式：将目录下已有的 Git 仓库添加为子模块，无需重新克隆
-2. 远程模式：将远程 Git 仓库克隆并添加为子模块
+1. 目录模式：位置参数为目录，扫描该目录下已有的 Git 仓库并添加为子模块，无需重新克隆
+2. 远程模式：位置参数为 Git URL，将远程 Git 仓库克隆并添加为子模块
 
-### 本地模式
+当前目录必须是 Git 仓库，否则提示先执行 `spark git init`。
+
+### 目录模式
 
 ```
-spark git submodule add [-p <path>]
+spark git submodule add <path>
 ```
 
-| 标志 | 类型 | 默认值 | 必填 | 说明 |
-|------|------|--------|------|------|
-| `-p, --path` | string | `.` | 否 | 包含 Git 仓库的目录路径 |
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `path` | string | 是 | 要扫描的目录路径；若该目录本身就是一个 Git 仓库，则只添加这一个仓库 |
 
-无参数。
+无标志。根命令的 `-p, --path` 对本命令无效，父仓库路径固定为当前目录。
 
 **智能检测行为**：
 
@@ -125,13 +154,13 @@ spark git submodule add [-p <path>]
 |------|------|
 | 目标已是 submodule（160000） | `Skipping <name>: already as submodule` |
 | 目标与父仓库 URL 相同（worktree） | `Skipping <name>: already as submodule` |
-| 目录存在但不是 submodule | `Skipping <name>: directory already exists (use 'git submodule add' manually)` |
-| 正常添加 | `Adding submodule: <name> (<url>)` |
+| 目录存在但不是 submodule | `Adding existing repo as submodule: <name> (<url>)` |
+| 正常添加（远程模式） | `Adding submodule: <name> (<url>)` |
 
 ### 远程模式
 
 ```
-spark git submodule add <repo-url> [-n <name>] [-p <path>]
+spark git submodule add <repo-url> [-n <name>]
 ```
 
 | 参数 | 类型 | 必填 | 说明 |
@@ -251,23 +280,53 @@ spark git batch-clone <account-name-or-url> [--ssh] [--include <pattern>] [--exc
 
 ## spark git update-org-status
 
-更新组织 README 中的仓库状态列表。
+更新账号 README 中的仓库状态列表。账号既可以是组织，也可以是用户，类型由 GitHub API 自动识别。
 
 ```
-spark git update-org-status <org-name-or-url> [--dry-run] [--update-dot-github] [--section <name>] [-o <path>] [--skip-push]
+spark git update-org-status <account-name-or-url> [--dry-run] [--update-dot-github] [--section <name>] [-o <path>] [--skip-push]
 ```
 
 | 标志 | 类型 | 默认值 | 必填 | 说明 |
 |------|------|--------|------|------|
 | `-o, --output` | string | `.github/README.md` | 否 | 输出文件路径 |
 | `--dry-run` | bool | `false` | 否 | 仅打印不写入 |
-| `--update-dot-github` | bool | `false` | 否 | 直接更新组织的 .github 仓库 |
+| `--update-dot-github` | bool | `false` | 否 | 直接更新账号的 profile 仓库 |
 | `--section` | string | `Project List` | 否 | README 中更新的章节名 |
 | `--skip-push` | bool | `false` | 否 | 跳过 git commit 和 push |
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `org-name-or-url` | string | 是 | 组织名或 URL |
+| `account-name-or-url` | string | 是 | 账号名或 URL（组织名或用户名，如 `qdriven`） |
+
+**行为**：
+- 账号类型通过 GitHub API 自动识别：组织 → profile 仓库为 `<org>/.github`（写入 `README.md` 与 `profile/README.md`）；用户 → profile 仓库为 `<user>/<user>`（写入仓库根目录的 `README.md`）
+- 仓库列表分页获取（每页 100 个），因此不受单页数量限制
+- 设置 `GITHUB_TOKEN` 可提升 API 速率限制（匿名访问为 60 次/小时）
+- fork 仓库不写入表格，也不计入统计
+- `--update-dot-github` 会把账号的 profile 仓库克隆到 `$TMPDIR/github-repo-<account>-<ts>`，改写 README 后 commit 并 push
+
+---
+
+## spark git issues
+
+从 Markdown 文档或任务文件创建 GitHub Issue，支持两种模式：
+
+- 目录模式（`-d`）：目录下每个 `.md` 文件创建一个 Issue
+- 任务模式（`-f`）：单个文件按 `# Task <id>` / `## Task <id>` 分段，每个分段创建一个 Issue
+
+```
+spark git issues [-r <owner/repo>] (-d <dir> | -f <file>) [-l <labels>] [--dry-run]
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-r, --repo` | string | 当前仓库的 `origin` | 否 | 目标仓库（`owner/repo`）；省略时自动从当前仓库的 `origin` 解析 |
+| `-d, --dir` | string | | 否 | 目录模式：包含 Markdown 文档的目录 |
+| `-f, --file` | string | | 否 | 任务模式：包含任务分段的 Markdown 文件 |
+| `-l, --labels` | stringSlice | `[]` | 否 | 为所有 Issue 添加的标签（逗号分隔） |
+| `--dry-run` | bool | `false` | 否 | 预览，不创建 Issue |
+
+无参数。`-d` 与 `-f` 互斥，必须且只能指定其一。
 
 ---
 
@@ -301,9 +360,12 @@ spark git push-all [-p <path>]
 spark git scan [folder-path] [-d <db-path>] [--skip-api]
 ```
 
-| 标志 | 类型 | 默认值 | 必填 | 说明 |
+| 参数 | 类型 | 默认值 | 必填 | 说明 |
 |------|------|--------|------|------|
 | `folder-path` | string | `.` | 否 | 要扫描的目录路径 |
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
 | `-d, --db` | string | `~/.innate/feeds.db` | 否 | SQLite 数据库路径 |
 | `--skip-api` | bool | `false` | 否 | 跳过 API 调用，仅扫描本地仓库 |
 

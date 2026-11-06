@@ -42,9 +42,15 @@ spark script run deploy -- --env production
 spark:
   scripts:
     - name: hello
-      description: Say hello
-      command: echo "Hello, World!"
+      content: |
+        #!/bin/bash
+        echo "Hello, World!"
 ```
+
+A configured script has exactly three keys: `name` (the script name), `content`
+(the script body) and `path` (optional, path to a script file). A key such as
+`command:` has **no effect** — with an empty `content`, `spark script run`
+fails with `script 'hello' has no content`.
 
 ## Related
 
