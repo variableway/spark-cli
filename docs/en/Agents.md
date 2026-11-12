@@ -22,7 +22,7 @@ Core capabilities:
 11. **System utilities** — `spark magic` provides DNS cache flushing, `node_modules`/`.venv` cleanup, pip/npm/go mirror switching, and Neovim/Ghostty template deployment
 12. **Docs management** — `spark docs init`/`spark docs site` (docmd site initialization)
 13. **Process diagnostics** — `spark witr` (Why Is This Running), inspecting why a process or port is running
-14. **Repo management** — `spark repo` manages multiple GitHub repositories in a directory via a registry file (`scan`/`clone`/`list`), replacing submodules
+14. **Repo management** — `spark repo` manages multiple GitHub repositories in a directory via a registry file (`scan`/`clone`/`list`), replacing submodules; `scan` emits the categorized format (version 2: `category/subcategory/others`) and falls back to the legacy flat format for directories without category subdirectories
 15. **Skill management** — `spark skill` discovers and syncs AI agent skills (`SKILL.md` directories), with `list`/`sync`
 16. **Project hub** — `spark hub scan` scans local Git repositories and generates innate-apps registry (`registry/apps.json`) registration info
 
@@ -595,13 +595,13 @@ The default database path can be set via `git.scanner.db` in `~/.spark.yaml`. Se
 
 ### `spark repo` — Repository Management
 
-The parent command `RepoCmd` is defined in `cmd/repo/repo.go` and manages multiple GitHub repositories under a directory via a registry file (replacing submodules).
+The parent command `RepoCmd` is defined in `cmd/repo/repo.go` and manages multiple GitHub repositories under a directory via a registry file (replacing submodules). Scanning a three-level tree (`<category>/<subcategory>/<project>`) emits the categorized format (version 2, always with an `others` subcategory); directories without category subdirectories keep the legacy flat `projects:` format.
 
 ```bash
-spark repo scan [folder-name]                       # Scan the directory and write registry_<folder>.yaml
-spark repo clone -f registry_<folder>.yaml          # Clone all repositories in the registry
+spark repo scan [folder-name]                       # Scan a categorized directory and write registry_<folder>.yaml
+spark repo clone -f registry_<folder>.yaml          # Clone every repo in the registry (to its recorded path)
 spark repo clone -r <name> -f registry_<folder>.yaml # Clone only the specified repository
-spark repo list -f registry_<folder>.yaml           # List the repositories in the registry
+spark repo list -f registry_<folder>.yaml           # List the repositories in the registry (grouped when categorized)
 ```
 
 Registry file format:
@@ -617,13 +617,34 @@ projects:
       desc: Spark CLI tool
 ```
 
+Categorized format (version 2):
+
+```yaml
+version: 2
+categories:
+    - name: skills
+      subcategories:
+        - name: dev-tool
+          projects:
+            - name: spark-cli
+              repo: https://github.com/variableway/spark-cli.git
+              path: skills/dev-tool/spark-cli
+```
+
 #### `spark repo scan [folder-name]`
 
 Recursively scan the directory, discover Git repositories that have an `origin` remote, and write them to `registry_<folder>.yaml` in the current directory. Hidden directories and `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build` are skipped; SSH URLs are normalized to the HTTPS form for storage; repeated scans are merged with the existing registry (matched first by `path`, then by `repo` URL, keeping the old `name`/`desc`, deleting stale entries whose directories no longer exist, and appending newly discovered repositories).
 
+Grouping rules: a category is a first-level subdirectory (directories containing `.git` are treated as projects, never as categories/subcategories); projects without a subcategory go into that category's `others` subcategory (`others` is always present and sorted last); root-level repositories print a WARNING and are excluded; when no directory has category subdirectories the scanner falls back to the legacy flat format and prints a NOTE.
+
+| Option | Description |
+|------|------|
+| `--json` | Additionally write a formatted (2-space indent) `registry_<folder>.json` alongside the YAML |
+| `--flatten` | Legacy two-level layout only: move repositories deeper than two levels (`category/repo`) up before scanning; conflicts are skipped, never overwritten. Do not use it on a `category/subcategory/project` tree (it would move projects out of their subcategory) |
+
 #### `spark repo clone`
 
-Clone the repositories from the registry file into the folder directory (the directory name is derived from `registry_<folder>.yaml` as `<folder>`). It skips repositories that already have a `.git` or whose directory already exists; it runs `git clone <repo> <target>` one by one; at the end it prints the `cloned / skipped / failed` statistics and returns an error when `failed > 0`.
+Clone the repositories from the registry file into the folder directory (the directory name is derived from `registry_<folder>.yaml` as `<folder>`). It skips repositories that already have a `.git` or whose directory already exists; it runs `git clone <repo> <target>` one by one; at the end it prints the `cloned / skipped / failed` statistics and returns an error when `failed > 0`. Repositories are cloned in ascending path-depth order (parents before nested repositories); categorized registries are flattened via `AllProjects`.
 
 | Option | Description |
 |------|------|
@@ -632,7 +653,7 @@ Clone the repositories from the registry file into the folder directory (the dir
 
 #### `spark repo list`
 
-List the repositories in the registry file, printing `name<TAB>repo<TAB>path` per line; when the registry is empty it prints `No repositories in registry.`.
+List the repositories in the registry file, printing `name<TAB>repo<TAB>path` per line; when the registry is empty it prints `No repositories in registry.`. For categorized registries a `# <category> / <subcategory> (n)` group header is printed before each group; the per-line format is unchanged.
 
 | Option | Description |
 |------|------|

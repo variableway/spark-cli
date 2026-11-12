@@ -22,7 +22,7 @@
 11. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
 12. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
 13. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
-14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
+14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule；`scan` 输出分类格式（version 2：`分类/子分类/others`），无分类目录的目录自动回退旧扁平格式
 15. **Skill 管理** — `spark skill` 发现并同步 AI agent skills（`SKILL.md` 目录），支持 `list`/`sync`
 16. **项目 Hub** — `spark hub scan` 扫描本地 Git 仓库并生成 innate-apps registry（`registry/apps.json`）注册信息
 
@@ -580,13 +580,13 @@ spark git scan . --db ~/.innate/feeds.db
 
 ### `spark repo` — 仓库管理
 
-父命令 `RepoCmd` 在 `cmd/repo/repo.go` 中定义，通过 registry 文件管理目录下的多个 GitHub 仓库（替代 submodule）。
+父命令 `RepoCmd` 在 `cmd/repo/repo.go` 中定义，通过 registry 文件管理目录下的多个 GitHub 仓库（替代 submodule）。扫描三分层目录（`<分类>/<子分类>/<项目>`）时输出分类格式（version 2，恒含 `others` 子分类）；无一级分类目录时回退旧扁平 `projects:` 格式。
 
 ```bash
-spark repo scan [folder-name]                       # 扫描目录并写入 registry_<folder>.yaml
-spark repo clone -f registry_<folder>.yaml          # 克隆 registry 中全部仓库
+spark repo scan [folder-name]                       # 扫描分类目录并写入 registry_<folder>.yaml
+spark repo clone -f registry_<folder>.yaml          # 克隆 registry 中全部仓库（按 path 还原）
 spark repo clone -r <name> -f registry_<folder>.yaml # 仅克隆指定仓库
-spark repo list -f registry_<folder>.yaml           # 列出 registry 中的仓库
+spark repo list -f registry_<folder>.yaml           # 列出 registry 中的仓库（分类格式按分组输出）
 ```
 
 registry 文件格式：
@@ -602,13 +602,34 @@ projects:
       desc: Spark CLI 工具
 ```
 
+分类格式（version 2）：
+
+```yaml
+version: 2
+categories:
+    - name: skills
+      subcategories:
+        - name: dev-tool
+          projects:
+            - name: spark-cli
+              repo: https://github.com/variableway/spark-cli.git
+              path: skills/dev-tool/spark-cli
+```
+
 #### `spark repo scan [folder-name]`
 
 递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，删除目录已不存在的旧条目，追加新发现仓库）。
 
+归组规则：分类 = 一级子目录（含 `.git` 的目录视为项目，不作分类/子分类）；无子分类的项目归入该分类的 `others` 子分类（`others` 恒存在且排最后）；根级仓库打印 WARNING 且不入册；所有项目均无分类目录时回退旧扁平格式并打印 NOTE。
+
+| 选项 | 说明 |
+|------|------|
+| `--json` | 在 YAML 之外额外写出格式化（2 空格缩进）的 `registry_<folder>.json` |
+| `--flatten` | 仅旧两层布局：扫描前把超过两层（`category/repo`）的仓库上移到两层布局，冲突跳过不覆盖；三分层分类树禁用（会把项目移出子分类） |
+
 #### `spark repo clone`
 
-从 registry 文件克隆仓库到 folder 目录（目录名由 `registry_<folder>.yaml` 推导为 `<folder>`）。已存在 `.git` 或目录已存在时跳过；逐个执行 `git clone <repo> <target>`；结束打印 `cloned / skipped / failed` 统计，`failed > 0` 时返回错误。
+从 registry 文件克隆仓库到 folder 目录（目录名由 `registry_<folder>.yaml` 推导为 `<folder>`）。已存在 `.git` 或目录已存在时跳过；逐个执行 `git clone <repo> <target>`；结束打印 `cloned / skipped / failed` 统计，`failed > 0` 时返回错误。克隆按 path 深度从浅到深执行（先父项目、后其内部嵌套仓）；分类 registry 经 `AllProjects` 展开为扁平列表处理。
 
 | 选项 | 说明 |
 |------|------|
@@ -617,7 +638,7 @@ projects:
 
 #### `spark repo list`
 
-列出 registry 文件中的仓库，每行输出 `name<TAB>repo<TAB>path`；registry 为空时打印 `No repositories in registry.`。
+列出 registry 文件中的仓库，每行输出 `name<TAB>repo<TAB>path`；registry 为空时打印 `No repositories in registry.`。分类格式在每组前输出 `# <分类> / <子分类> (n)` 分组头，行格式保持不变。
 
 | 选项 | 说明 |
 |------|------|

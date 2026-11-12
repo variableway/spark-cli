@@ -1,6 +1,7 @@
 package registry_test
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 
@@ -147,6 +148,94 @@ var _ = Describe("Registry", func() {
 
 			merged := registry.Merge(nil, discovered)
 			Expect(merged).To(HaveLen(1))
+		})
+	})
+
+	Describe("WriteJSON", func() {
+		It("writes an indented json file that round-trips", func() {
+			path := filepath.Join(tempDir, "registry_demo.json")
+			reg := &registry.Registry{Projects: []registry.Project{
+				{Name: "spark-cli", Repo: "https://github.com/variableway/spark-cli.git", Path: "tooling/spark-cli", Desc: "Spark CLI"},
+			}}
+
+			Expect(registry.WriteJSON(path, reg)).To(Succeed())
+
+			data, err := os.ReadFile(path)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(data)).To(ContainSubstring("\n  \"projects\""))
+			Expect(string(data)).To(ContainSubstring("spark-cli"))
+
+			var got registry.Registry
+			Expect(json.Unmarshal(data, &got)).To(Succeed())
+			Expect(got.Projects).To(Equal(reg.Projects))
+		})
+	})
+
+	Describe("Flatten", func() {
+		It("moves a level-3 repository up into the two-level layout", func() {
+			writeGitRepo(filepath.Join(tempDir, "tooling", "spark"), "spark-cli", "https://github.com/variableway/spark-cli.git")
+
+			result, err := registry.Flatten(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result.Moves).To(Equal([]registry.FlattenMove{{From: "tooling/spark/spark-cli", To: "tooling/spark-cli"}}))
+			Expect(result.Conflicts).To(BeEmpty())
+
+			_, err = os.Stat(filepath.Join(tempDir, "tooling", "spark-cli", ".git"))
+			Expect(err).ToNot(HaveOccurred())
+			_, err = os.Stat(filepath.Join(tempDir, "tooling", "spark"))
+			Expect(os.IsNotExist(err)).To(BeTrue())
+
+			projects, err := registry.Scan(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(projects).To(HaveLen(1))
+			Expect(projects[0].Path).To(Equal("tooling/spark-cli"))
+		})
+
+		It("flattens deeper nesting to two levels", func() {
+			writeGitRepo(filepath.Join(tempDir, "apps", "fe", "innate", "web"), "innate-fe-cli", "https://github.com/variableway/innate-fe-cli.git")
+
+			result, err := registry.Flatten(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result.Moves).To(Equal([]registry.FlattenMove{{From: "apps/fe/innate/web/innate-fe-cli", To: "apps/innate-fe-cli"}}))
+
+			projects, err := registry.Scan(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(projects).To(HaveLen(1))
+			Expect(projects[0].Path).To(Equal("apps/innate-fe-cli"))
+		})
+
+		It("leaves two-level repositories untouched", func() {
+			writeGitRepo(filepath.Join(tempDir, "tooling"), "spark-cli", "https://github.com/variableway/spark-cli.git")
+
+			result, err := registry.Flatten(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result.Moves).To(BeEmpty())
+			Expect(result.Conflicts).To(BeEmpty())
+		})
+
+		It("reports a conflict instead of overwriting an existing target", func() {
+			writeGitRepo(filepath.Join(tempDir, "tooling", "old"), "spark-cli", "https://github.com/variableway/spark-cli.git")
+			writeGitRepo(filepath.Join(tempDir, "tooling"), "spark-cli", "https://github.com/other/spark-cli.git")
+
+			result, err := registry.Flatten(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result.Moves).To(BeEmpty())
+			Expect(result.Conflicts).To(HaveLen(1))
+			Expect(result.Conflicts[0].From).To(Equal("tooling/old/spark-cli"))
+			Expect(result.Conflicts[0].To).To(Equal("tooling/spark-cli"))
+
+			_, err = os.Stat(filepath.Join(tempDir, "tooling", "old", "spark-cli", ".git"))
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("reports a conflict when two repositories flatten to the same target", func() {
+			writeGitRepo(filepath.Join(tempDir, "tooling", "a"), "spark-cli", "https://github.com/a/spark-cli.git")
+			writeGitRepo(filepath.Join(tempDir, "tooling", "b"), "spark-cli", "https://github.com/b/spark-cli.git")
+
+			result, err := registry.Flatten(tempDir)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result.Moves).To(HaveLen(1))
+			Expect(result.Conflicts).To(HaveLen(1))
 		})
 	})
 

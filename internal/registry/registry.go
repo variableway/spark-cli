@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,14 +11,61 @@ import (
 )
 
 type Project struct {
-	Name string `yaml:"name"`
-	Repo string `yaml:"repo"`
-	Path string `yaml:"path,omitempty"`
-	Desc string `yaml:"desc,omitempty"`
+	Name string `yaml:"name" json:"name"`
+	Repo string `yaml:"repo" json:"repo"`
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+	Desc string `yaml:"desc,omitempty" json:"desc,omitempty"`
 }
 
+// RegistryVersion is written whenever the registry uses the categorized layout.
+const RegistryVersion = 2
+
+// OthersSubcategory is the default bucket for a project that sits directly
+// under a category and therefore has no subcategory of its own.
+const OthersSubcategory = "others"
+
+// Subcategory groups projects under one category. "others" is always present
+// so unclassified projects have a home.
+type Subcategory struct {
+	Name     string    `yaml:"name" json:"name"`
+	Projects []Project `yaml:"projects" json:"projects"`
+}
+
+// Category is one top-level bucket (e.g. skills / products / plugins).
+type Category struct {
+	Name          string        `yaml:"name" json:"name"`
+	Subcategories []Subcategory `yaml:"subcategories" json:"subcategories"`
+}
+
+// Registry holds either the categorized layout (Version=2, Categories set —
+// the canonical format) or the legacy flat layout (Projects only).
+// Read() always derives a flattened Projects slice, so callers written against
+// the legacy shape keep working.
 type Registry struct {
-	Projects []Project `yaml:"projects"`
+	Version    int        `yaml:"version,omitempty" json:"version,omitempty"`
+	Projects   []Project  `yaml:"projects,omitempty" json:"projects,omitempty"`
+	Categories []Category `yaml:"categories,omitempty" json:"categories,omitempty"`
+}
+
+// IsCategorized reports whether this registry uses the v2 category layout.
+func (r *Registry) IsCategorized() bool {
+	return r != nil && len(r.Categories) > 0
+}
+
+// AllProjects flattens the registry into a single list, preserving order
+// (categories -> subcategories -> projects). Legacy flat registries return
+// their Projects unchanged.
+func (r *Registry) AllProjects() []Project {
+	if !r.IsCategorized() {
+		return r.Projects
+	}
+	flat := make([]Project, 0, len(r.Projects))
+	for _, c := range r.Categories {
+		for _, s := range c.Subcategories {
+			flat = append(flat, s.Projects...)
+		}
+	}
+	return flat
 }
 
 func Read(path string) (*Registry, error) {
@@ -33,11 +81,42 @@ func Read(path string) (*Registry, error) {
 	if err := yaml.Unmarshal(data, &reg); err != nil {
 		return nil, fmt.Errorf("parse registry %s: %w", path, err)
 	}
+	if reg.IsCategorized() {
+		// v2 file: derive the flattened view so legacy callers (clone/list/find)
+		// keep working against a categorized registry.
+		reg.Version = RegistryVersion
+		reg.Projects = reg.AllProjects()
+	}
 	return &reg, nil
 }
 
+// wire shapes keep the on-disk formats exactly distinguishable:
+// legacy = {projects: [...]}, v2 = {version: 2, categories: [...]}.
+type legacyYAML struct {
+	Projects []Project `yaml:"projects"`
+}
+type categorizedYAML struct {
+	Version    int        `yaml:"version"`
+	Categories []Category `yaml:"categories"`
+}
+type legacyJSON struct {
+	Projects []Project `json:"projects"`
+}
+type categorizedJSON struct {
+	Version    int        `json:"version"`
+	Categories []Category `json:"categories"`
+}
+
 func Write(path string, reg *Registry) error {
-	data, err := yaml.Marshal(reg)
+	var (
+		data []byte
+		err  error
+	)
+	if reg.IsCategorized() {
+		data, err = yaml.Marshal(categorizedYAML{Version: RegistryVersion, Categories: reg.Categories})
+	} else {
+		data, err = yaml.Marshal(legacyYAML{Projects: reg.Projects})
+	}
 	if err != nil {
 		return fmt.Errorf("encode registry: %w", err)
 	}
@@ -46,10 +125,27 @@ func Write(path string, reg *Registry) error {
 	return os.WriteFile(path, append([]byte(header), data...), 0644)
 }
 
+func WriteJSON(path string, reg *Registry) error {
+	var (
+		data []byte
+		err  error
+	)
+	if reg.IsCategorized() {
+		data, err = json.MarshalIndent(categorizedJSON{Version: RegistryVersion, Categories: reg.Categories}, "", "  ")
+	} else {
+		data, err = json.MarshalIndent(legacyJSON{Projects: reg.Projects}, "", "  ")
+	}
+	if err != nil {
+		return fmt.Errorf("encode registry: %w", err)
+	}
+	return os.WriteFile(path, append(data, '\n'), 0644)
+}
+
 func FindByName(reg *Registry, name string) (*Project, error) {
-	for i := range reg.Projects {
-		if reg.Projects[i].Name == name {
-			return &reg.Projects[i], nil
+	projects := reg.AllProjects()
+	for i := range projects {
+		if projects[i].Name == name {
+			return &projects[i], nil
 		}
 	}
 	return nil, fmt.Errorf("repository %q not found in registry", name)
