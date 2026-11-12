@@ -23,6 +23,8 @@
 12. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
 13. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
 14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
+15. **Skill 管理** — `spark skill` 发现并同步 AI agent skills（`SKILL.md` 目录），支持 `list`/`sync`
+16. **项目 Hub** — `spark hub scan` 扫描本地 Git 仓库并生成 innate-apps registry（`registry/apps.json`）注册信息
 
 ## 技术栈
 
@@ -49,6 +51,8 @@ spark-cli/
 │   ├── repo/                # registry 文件驱动的仓库管理（scan/clone/list）
 │   ├── magic/               # clean/copy-config/flush-dns/pip/go/node
 │   ├── script/              # list/run
+│   ├── skill/               # list [--json] / sync <dir> [--clear]
+│   ├── hub/                 # scan [path]（registry/apps.json 生成）
 │   └── docs/                # init/site
 ├── internal/
 │   ├── config/              # 配置加载
@@ -56,7 +60,9 @@ spark-cli/
 │   ├── github/              # GitHub API（org / markdown issue）
 │   ├── gitlab/              # GitLab API（batch-clone：URL 解析、token 来源、嵌套群组）
 │   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
+│   ├── collection/          # hub 命令的 registry/apps.json 模型、扫描与 merge
 │   ├── script/              # 脚本发现与执行
+│   ├── skill/               # skill 发现（SKILL.md 目录扫描）与同步
 │   ├── templates/           # 嵌入的 dotfiles（nvim + ghostty）
 │   └── witr/                # Why-Is-This-Running 进程诊断引擎
 ├── pkg/witr/model/          # witr 共享数据模型
@@ -159,6 +165,30 @@ spark script run <script-name> [args...]
 
 搜索顺序：`~/.spark.yaml` 的 `spark.scripts` → `spark.scripts_dir`（默认 `scripts/`）下的脚本文件。
 支持扩展名：`.sh` `.bash` `.zsh` `.py` `.rb` `.pl` `.ps1` `.bat` `.cmd`。
+
+---
+
+### `spark skill` — AI Skill 管理
+
+```bash
+spark skill list [--json]                  # 列出所有发现的 skill
+spark skill sync <target-dir> [--clear]    # 复制 skill 到目标目录
+```
+
+发现位置：`.mimocode/skills/`、`.agents/skills/`（项目）、`~/.claude/skills/`、
+`~/.agents/skills/`、`~/.mimocode/skills/`、`~/.local/share/mimocode/builtin_skills/<version>/skills/`。
+按名称去重（project > global > builtin，builtin 取最新版本）。
+
+---
+
+### `spark hub` — 项目 Hub（Collections 注册）
+
+```bash
+spark hub scan [path] [-o out.json] [--merge apps.json] [--skip-api] [--deep] [--category ...]
+```
+
+扫描 Git 仓库并生成 innate-apps registry 格式（`registry/apps.json`）。`--merge` 保留手工字段
+（`title`/`category`/`status`/`url`/`description`）并追加新发现；`--deep` 包含嵌套仓库（默认仅顶层）。
 
 ---
 

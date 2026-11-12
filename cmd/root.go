@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"spark/cmd/docs"
 	"spark/cmd/git"
+	"spark/cmd/hub"
 	"spark/cmd/magic"
 	"spark/cmd/repo"
 	"spark/cmd/script"
+	"spark/cmd/skill"
 	"os"
 	"path/filepath"
 
@@ -42,6 +44,8 @@ func init() {
 	rootCmd.AddCommand(repo.RepoCmd)
 	rootCmd.AddCommand(magic.MagicCmd)
 	rootCmd.AddCommand(script.ScriptCmd)
+	rootCmd.AddCommand(skill.SkillCmd)
+	rootCmd.AddCommand(hub.HubCmd)
 	rootCmd.AddCommand(docs.DocsCmd)
 }
 

@@ -155,7 +155,7 @@ func getCwdAndBinaryPath(pid int) (cwd string, binPath string) {
 		}
 		switch line[0] {
 		case 'f':
-			currentFD = line[1:]
+			currentFD = strings.TrimSpace(line[1:])
 		case 'n':
 			path := strings.TrimSpace(line[1:])
 			switch currentFD {

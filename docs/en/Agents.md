@@ -23,6 +23,8 @@ Core capabilities:
 12. **Docs management** — `spark docs init`/`spark docs site` (docmd site initialization)
 13. **Process diagnostics** — `spark witr` (Why Is This Running), inspecting why a process or port is running
 14. **Repo management** — `spark repo` manages multiple GitHub repositories in a directory via a registry file (`scan`/`clone`/`list`), replacing submodules
+15. **Skill management** — `spark skill` discovers and syncs AI agent skills (`SKILL.md` directories), with `list`/`sync`
+16. **Project hub** — `spark hub scan` scans local git repositories and produces innate-apps registry (`registry/apps.json`) registration info
 
 ## Tech Stack
 
@@ -49,6 +51,8 @@ spark-cli/
 │   ├── repo/                # Registry-file-driven repo management (scan/clone/list)
 │   ├── magic/               # clean/copy-config/flush-dns/pip/go/node
 │   ├── script/              # list/run
+│   ├── skill/               # list [--json] / sync <dir> [--clear]
+│   ├── hub/                 # scan [path] (registry/apps.json generation)
 │   └── docs/                # init/site
 ├── internal/
 │   ├── config/              # Configuration loading
@@ -56,7 +60,9 @@ spark-cli/
 │   ├── github/              # GitHub API (org / markdown issue)
 │   ├── gitlab/              # GitLab API (batch-clone: URL parsing, token sources, nested groups)
 │   ├── registry/            # Scan/read-write/merge logic for the repo command
+│   ├── collection/          # registry/apps.json model, scan and merge for the hub command
 │   ├── script/              # Script discovery and execution
+│   ├── skill/               # Skill discovery (SKILL.md directory scanning) and sync
 │   ├── templates/           # Embedded dotfiles (nvim + ghostty)
 │   └── witr/                # Why-Is-This-Running process diagnostics engine
 ├── pkg/witr/model/          # Shared witr data model
@@ -160,6 +166,31 @@ spark script run <script-name> [args...]
 
 Search order: `spark.scripts` in `~/.spark.yaml` → script files under `spark.scripts_dir` (default `scripts/`).
 Supported extensions: `.sh` `.bash` `.zsh` `.py` `.rb` `.pl` `.ps1` `.bat` `.cmd`.
+
+---
+
+### `spark skill` — AI Skill management
+
+```bash
+spark skill list [--json]                  # List all discovered skills
+spark skill sync <target-dir> [--clear]    # Copy skills to the target directory
+```
+
+Discovery locations: `.mimocode/skills/`, `.agents/skills/` (project), `~/.claude/skills/`,
+`~/.agents/skills/`, `~/.mimocode/skills/`, `~/.local/share/mimocode/builtin_skills/<version>/skills/`.
+Deduplicated by name (project > global > builtin; builtin prefers the newest version).
+
+---
+
+### `spark hub` — Project hub (collections registration)
+
+```bash
+spark hub scan [path] [-o out.json] [--merge apps.json] [--skip-api] [--deep] [--category ...]
+```
+
+Scans git repositories and emits innate-apps registry format (`registry/apps.json`).
+`--merge` preserves curated fields (`title`/`category`/`status`/`url`/`description`) and
+appends new discoveries; `--deep` includes nested repositories (default: top-level only).
 
 ---
 

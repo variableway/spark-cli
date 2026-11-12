@@ -53,6 +53,14 @@
         "path": "/usage/script"
       },
       {
+        "title": "Skill Management",
+        "path": "/usage/skill"
+      },
+      {
+        "title": "Project Hub",
+        "path": "/usage/hub"
+      },
+      {
         "title": "Docs Management",
         "path": "/usage/docs-cmd"
       },
