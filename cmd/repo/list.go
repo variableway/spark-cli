@@ -25,6 +25,21 @@ var listCmd = &cobra.Command{
 			return err
 		}
 
+		if reg.IsCategorized() {
+			// Categorized (v2) registry: print one "# category / subcategory (n)"
+			// header per bucket, then the same name<TAB>repo<TAB>path rows as the
+			// legacy format (rows stay machine-readable, headers start with '#').
+			for _, c := range reg.Categories {
+				for _, s := range c.Subcategories {
+					fmt.Printf("# %s / %s (%d)\n", c.Name, s.Name, len(s.Projects))
+					for _, p := range s.Projects {
+						fmt.Printf("%s\t%s\t%s\n", p.Name, p.Repo, p.Path)
+					}
+				}
+			}
+			return nil
+		}
+
 		if len(reg.Projects) == 0 {
 			fmt.Println("No repositories in registry.")
 			return nil

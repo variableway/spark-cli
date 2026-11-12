@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `spark repo scan` — categorized registry format (version 2): groups repositories as `<category>/<subcategory>/<project>` from the folder's own directory layout, always emits an `others` subcategory per category (projects directly under a category land there), warns and skips repositories that sit directly in the folder root, and falls back to the legacy flat `projects:` format when the folder has no category directories; `list` prints `# category / subcategory (n)` group headers for categorized files, `clone` restores each project to its recorded `path` shallowest-path-first
+- `spark repo scan --json` — additionally writes a formatted (2-space indent) `registry_<folder>.json` with the same content as the YAML registry
+- `spark repo scan --flatten` — moves repositories nested deeper than two levels (`category/repo` layout) up into the two-level layout before scanning; conflicts are skipped with a warning and never overwritten, empty intermediate directories are removed (fixes #26)
 - `spark skill list [--json]` — Discover agent skills (`SKILL.md` directories) across project (`.mimocode/`, `.agents/`), global (`~/.claude/`, `~/.agents/`, `~/.mimocode/`), and builtin skill-pack locations, deduplicated by name with version-aware builtin preference (`internal/skill`)
 - `spark skill sync <dir> [--clear]` — Copy all discovered skills into a target directory, optionally clearing it first
 - `spark hub scan [path] [-o <file>]` — Scan git repositories with an `origin` remote, enrich via the GitHub API (description, language, visibility), and emit innate-apps registry format (`registry/apps.json`) (`internal/collection`)

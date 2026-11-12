@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"spark/internal/registry"
@@ -37,7 +38,7 @@ otherwise all repositories in the registry are cloned.`,
 			return err
 		}
 
-		projects := reg.Projects
+		projects := reg.AllProjects()
 		if cloneRepoName != "" {
 			p, err := registry.FindByName(reg, cloneRepoName)
 			if err != nil {
@@ -50,6 +51,17 @@ otherwise all repositories in the registry are cloned.`,
 			fmt.Println("No repositories in registry.")
 			return nil
 		}
+
+		// Clone shallow paths first so a parent project (and any nested clone
+		// recorded under its path) is created in the right order.
+		sort.SliceStable(projects, func(i, j int) bool {
+			di := strings.Count(projects[i].Path, "/")
+			dj := strings.Count(projects[j].Path, "/")
+			if di != dj {
+				return di < dj
+			}
+			return projects[i].Path < projects[j].Path
+		})
 
 		root := folderFromRegistryFile(cloneFile)
 		cloned, skipped, failed := 0, 0, 0

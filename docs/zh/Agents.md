@@ -22,7 +22,7 @@
 11. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
 12. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
 13. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
-14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule
+14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule；`scan` 输出分类格式（version 2：`分类/子分类/others`），无分类目录的目录自动回退旧扁平格式
 15. **Skill 管理** — `spark skill` 发现并同步 AI agent skills（`SKILL.md` 目录），支持 `list`/`sync`
 16. **项目 Hub** — `spark hub scan` 扫描本地 Git 仓库并生成 innate-apps registry（`registry/apps.json`）注册信息
 
@@ -138,17 +138,19 @@ GitLab 实现要点：
 
 ### `spark repo` — 仓库管理
 
-通过 registry 文件管理目录下的多个 GitHub 仓库（替代 submodule）：
+通过 registry 文件管理目录下的多个 GitHub 仓库（替代 submodule）。扫描三分层目录（`<分类>/<子分类>/<项目>`）时输出分类格式（version 2，恒含 `others` 子分类）；无一级分类目录时回退旧扁平 `projects:` 格式：
 
 ```bash
-spark repo scan [folder-name]                        # 扫描目录写入 registry_<folder>.yaml
-spark repo clone -f registry_<folder>.yaml           # 克隆 registry 中全部仓库
+spark repo scan [folder-name]                        # 扫描分类目录写入 registry_<folder>.yaml
+spark repo clone -f registry_<folder>.yaml           # 克隆 registry 中全部仓库（按 path 还原）
 spark repo clone -r <name> -f registry_<folder>.yaml # 仅克隆指定仓库
-spark repo list -f registry_<folder>.yaml            # 列出 registry 中的仓库
+spark repo list -f registry_<folder>.yaml            # 列出 registry 中的仓库（分类格式按分组输出）
 ```
 
 | 选项 | 命令 | 说明 |
 |------|------|------|
+| `--json` | `scan` | 在 YAML 之外额外写出格式化（2 空格缩进）的 `registry_<folder>.json` |
+| `--flatten` | `scan` | 仅旧两层布局：扫描前把超过两层（`category/repo`）的仓库上移到两层布局，冲突跳过不覆盖；三分层分类树禁用（会把项目移出子分类） |
 | `-r, --repo` | `clone` | 仅克隆指定名称的仓库（省略则全部） |
 | `-f, --file` | `clone` / `list` | registry 文件（必填） |
 
