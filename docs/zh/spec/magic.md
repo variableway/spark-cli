@@ -50,7 +50,7 @@ spark magic pip use <source-name>
 |------|------|------|------|
 | `source-name` | string | 是 | 镜像源名称 |
 
-可用镜像源：`tsinghua`、`aliyun`、`douban`、`ustc`、`tencent`
+可用镜像源：`default`、`tsinghua`、`aliyun`、`douban`、`ustc`、`tencent`
 
 ### spark magic pip current
 
@@ -90,7 +90,7 @@ spark magic go use <proxy-name>
 |------|------|------|------|
 | `proxy-name` | string | 是 | Proxy 名称 |
 
-可用 proxy：`aliyun`、`tsinghua`、`goproxy`、`ustc`、`nju`
+可用 proxy：`default`、`aliyun`、`tsinghua`、`goproxy`、`ustc`、`nju`
 
 ### spark magic go current
 
@@ -130,7 +130,7 @@ spark magic node use <registry-name>
 |------|------|------|------|
 | `registry-name` | string | 是 | Registry 名称 |
 
-可用 registry：`taobao`、`aliyun`、`tencent`、`huawei`、`ustc`
+可用 registry：`default`、`taobao`、`aliyun`、`tencent`、`huawei`、`ustc`
 
 ### spark magic node current
 
@@ -146,7 +146,7 @@ spark magic node current
 
 ## spark magic clean
 
-递归清理项目目录中的 `node_modules` 和 `.venv`。
+递归清理项目目录中的 `node_modules`、`.venv` 目录和 `package-lock.json` 文件。
 
 ```
 spark magic clean [-m <mode>]
@@ -161,4 +161,29 @@ spark magic clean [-m <mode>]
 **行为**：
 - 扫描 `--path` 指定的目录（默认当前目录）
 - 自动跳过 `.git` 目录
-- 列出所有被清理的目录
+- `node` 模式删除 `node_modules` 目录和 `package-lock.json` 文件；`python` 模式删除 `.venv` 目录
+- 列出所有被清理的项（目录与文件）
+
+---
+
+## spark magic copy-config
+
+部署编译时嵌入的 Neovim 与 Ghostty 配置模板到目标位置。
+
+```
+spark magic copy-config [<user@host:path>]
+```
+
+| 标志 | 简写 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|------|--------|------|------|
+| — | — | — | — | — | 无标志 |
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `target` | string | 否 | 目标目录，或 `<user@host:path>` 形式的远程地址（最多 1 个） |
+
+**行为**：
+- 模板源码位于 `internal/templates/dotfiles/`，构建时通过 `//go:embed` 嵌入二进制
+- 无参数时写入本机默认路径 `~/.config/nvim/`、`~/.config/ghostty/`
+- 带参数时部署到该本地目录或 SSH 远程目标
+- 优先使用 `rsync` 传输；本地目标在缺少 `rsync` 时回退到 `cp`，远程目标必须使用 `rsync`

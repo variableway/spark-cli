@@ -97,5 +97,5 @@ spark witr -i                                 # Short flag
 
 ## Related
 
-- [System Utilities](./magic)
-- [Git Management](./git)
+- [System Utilities](./magic.md)
+- [Git Management](./git.md)

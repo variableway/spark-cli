@@ -19,10 +19,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `github.GetRepo(owner, repo)` — Fetch single-repository metadata (topics, homepage, created/pushed timestamps, owner) with `GITHUB_TOKEN` support
 - BDD tests for `internal/skill` (discovery/dedup/sync) and `internal/collection` (parse/scan/merge/read-write)
 - Docs — `docs/{zh,en}/usage/{skill,hub}.md`, README command tables, navigation entries
+- `skills/spark-cli/SKILL.md` — Ready-to-install agent skill that documents how to drive the CLI: command map, common workflows, and the three routes for fetching a GitHub repository list
+- `docs/{zh,en}/quick-start/nodejs-typescript-101.md` — Beginner lesson one for Node + TypeScript, using "write a navigation.json generator for a docs site" as the running case (mirrors the Go lesson), with a course prompt and SKILL.md template
+- `docs/{zh,en}/spec/{skill,hub,witr,version}.md` and `docs/{zh,en}/features/{skill,hub,witr}.md` — Command specs and feature pages for the `skill`, `hub` and `witr` command groups, plus `spark version`
+- `docs/{zh,en}/usage/git.md` — New section "How to get the list of GitHub repository projects" comparing `spark git update-org-status`, the `gh` CLI and `spark hub scan`
+
+### Changed
+
+- `spark git update-org-status` now accepts an **account** (organization **or** user) instead of an organization only; the account type is auto-detected and the matching profile repository is targeted — `<org>/.github` for organizations, `<user>/<user>` for users (e.g. `qdriven/qdriven`). The repository list is now fetched **paginated** (100 per page) instead of a single page, and `GITHUB_TOKEN` is honoured on every GitHub API call
+- `internal/github` — Added `User-Agent: spark-cli` to API requests (requests without a User-Agent can be answered with `504` by intermediaries) and unified the JSON fetch path in `getJSON`
+- Docs — `docs/{zh,en}/Agents.md` regenerated as a true mirror of `AGENTS.md` (command tree, per-command reference, automation history, build/test detail, config keys and assistant guidelines) instead of a condensed summary
 
 ### Fixed
 
 - `internal/witr/proc` — `getCwdAndBinaryPath` (macOS) failed to parse `lsof` output because `strings.Lines` yields lines with trailing newlines, so the `cwd`/`txt` field labels never matched. Trim whitespace from the field label; the darwin test `TestGetCwdAndBinaryPath` now passes
+- Docs — corrected several statements that contradicted the implementation: `spark git submodule add` takes one positional argument (the global `-p/--path` flag does not apply to it) and `submodule status` does have `-r/--recursive` and `-j/--parallel`; `spark git update` pulls `origin <current-branch>`; `spark magic clean` in node mode also deletes `package-lock.json` files; `spark script` config scripts use `name`/`content`/`path` (a `command:` key yields "script has no content"); `spark hub scan` scans the top level by default and writes back to the `--merge` file when no `-o` is given; the `default` mirror entry is documented for pip/go/node; `spark magic copy-config` gained a spec section; `spark git clone` and `spark git issues` gained spec sections
+- Docs — fixed broken relative links (`../.vscode/*.json` pointed inside `docs/zh/`) and made every navigation entry, locale mirror and cross-link resolve
+- Docs — the two historical analysis documents (external CLI integration report and the `spark-hub` RFC, both dated 2026-04-02) now carry a status banner: they were **not adopted**, and the `spark hub` command that ships today is the innate-apps registry scanner, an unrelated feature
+- Docs — `AGENTS.md` contained literal backspace bytes inside the Windows pnpm path (`D:\pnpm^Hin`); restored to `D:\pnpm\bin`
+- Docs — version samples refreshed from `v0.3.2` to `v0.3.3`; the README test-report line now matches the current package count (32 packages, 18 with tests)
 
 ## [0.3.3] - 2026-10-20
 

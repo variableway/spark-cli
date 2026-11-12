@@ -65,8 +65,8 @@ make clean          # Remove binary
 Verify the installed binary is current:
 
 ```bash
-spark version       # -> spark v0.3.2 / commit 1ef84d7 / build date ...
-spark --version     # -> spark version v0.3.2
+spark version       # -> spark v0.3.3 / commit 1ef84d7 / build date ...
+spark --version     # -> spark version v0.3.3
 ```
 
 Run a single test:
@@ -92,8 +92,8 @@ go test ./internal/git/... -v -run TestFunctionName
 |---------|-------------|
 | `spark git clone <url-or-slug> [dir] [-- <git-args>]` | Clone a GitHub repo via `gh repo clone` (SSH by default) |
 | `spark git update [--ssh]` | Update all repos to latest version (`--ssh` forces SSH) |
-| `spark git submodule add [-p <path>]` | Add existing repos as submodules |
-| `spark git submodule add <repo-url> [-n <name>]` | Add a remote repo as a submodule |
+| `spark git submodule add <path>` | Add existing repos under a local folder as submodules |
+| `spark git submodule add <repo-url> [-n <name>]` | Add a remote repo as a submodule (`-n` = custom submodule name, URL mode only) |
 | `spark git submodule init [-j <n>] [-r] [--name <name>]` | Initialize missing submodules |
 | `spark git submodule status` | Show submodule initialization status |
 | `spark git submodule ensure-ssh` | Rewrite HTTPS submodule URLs to SSH |
@@ -108,6 +108,8 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git push-all [-p <path>]` | Commit and push all changes in repositories |
 | `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
 
+`spark git submodule add` takes exactly one positional argument: a local folder to scan, or a remote repo URL. The global `-p/--path` flag does not apply to this command.
+
 ---
 
 ### spark repo — Repository Management
@@ -119,6 +121,39 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark repo list -f <file>` | List repos in a registry file |
 
 Registry files (`registry_<folder>.yaml`) replace submodules for managing many repos in one directory.
+
+---
+
+### spark skill — AI Skill Management
+
+| Command | Description |
+|---------|-------------|
+| `spark skill list [--json]` | Discover and list agent skills (`SKILL.md` directories) |
+| `spark skill sync <dir> [--clear]` | Copy all discovered skills to a target directory |
+
+Discovered in `.mimocode/skills/`, `.agents/skills/`, `~/.claude/skills/`,
+`~/.mimocode/skills/` and the builtin skill packs.
+
+---
+
+### spark hub — Project Hub (Collections Registration)
+
+| Command | Description |
+|---------|-------------|
+| `spark hub scan [path] [-o <file>]` | Scan git repos, emit innate-apps registry JSON |
+| `spark hub scan --merge <registry>` | Merge with an existing registry, keep curated fields |
+| `spark hub scan --skip-api [--deep] [--category <c>]` | Offline / nested / category options |
+
+The output matches `registry/apps.json` (see `registry/schema.json`).
+
+---
+
+### spark docs — Documentation
+
+| Command | Description |
+|---------|-------------|
+| `spark docs init [--root]` | Create the standard docs directory structure |
+| `spark docs site [--root]` | Initialize the docmd site configuration |
 
 ---
 
@@ -194,12 +229,20 @@ Online docs: https://variableway.github.io/spark-cli/
 
 | Path | Content |
 |------|---------|
-| [usage/](/en/usage/usage) | Command usage guide overview |
+| [usage/usage.md](/en/usage/usage) | Command usage guide overview |
 | [usage/git.md](/en/usage/git) | Git repository management |
 | [usage/repo.md](/en/usage/repo) | Repository management (registry) |
+| [usage/skill.md](/en/usage/skill) | Skill management |
+| [usage/hub.md](/en/usage/hub) | Project hub |
 | [usage/magic.md](/en/usage/magic) | System utilities |
 | [usage/script.md](/en/usage/script) | Script management |
 | [usage/docs-cmd.md](/en/usage/docs-cmd) | Docs management |
 | [usage/witr.md](/en/usage/witr) | Process diagnostics |
+| [quick-start/golang-cli-101.md](/en/quick-start/golang-cli-101) | Go CLI essentials, lesson 1 |
+| [quick-start/nodejs-typescript-101.md](/en/quick-start/nodejs-typescript-101) | Node + TypeScript essentials, lesson 1 |
+| [quick-start/docs-site-from-scratch.md](/en/quick-start/docs-site-from-scratch) | Docs site from scratch |
+| [spec/git.md](/en/spec/git) | Command specs |
+| [features/git.md](/en/features/git) | Feature guides |
 | [Agents.md](/en/Agents) | Full command reference (site mirror) |
 | [../../AGENTS.md](../../AGENTS.md) | Authoritative source: AI assistant instructions |
+| [../../skills/spark-cli/SKILL.md](../../skills/spark-cli/SKILL.md) | spark-cli Skill (usage guide for AI assistants) |

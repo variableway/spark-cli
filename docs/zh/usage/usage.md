@@ -46,7 +46,20 @@ github-owner: your-username  # spark git init --owner 默认值
 
 - [Git 仓库管理](./git.md)
 - [仓库管理](./repo.md)
+- [Skill 管理](./skill.md)
+- [项目 Hub](./hub.md)
 - [系统工具](./magic.md)
 - [脚本管理](./script.md)
 - [文档管理](./docs-cmd.md)
 - [进程诊断](./witr.md)
+
+## 新手上手
+
+| 想要 | 从这里开始 |
+|------|------------|
+| 一条命令先试试 | `spark magic flush-dns`（零配置）、`spark version` |
+| 让 AI 助手用好 spark | [spark-cli Skill](https://github.com/variableway/spark-cli/blob/main/skills/spark-cli/SKILL.md) |
+| 学会写 Go CLI | [Golang CLI 入门 · 第一课](../quick-start/golang-cli-101.md) |
+| 学会写 Node/TS 工具 | [Node + TypeScript 入门 · 第一课](../quick-start/nodejs-typescript-101.md) |
+| 搭一个文档站 | [从零创建文档站](../quick-start/docs-site-from-scratch.md) |
+| 命令完整参考 | [命令规格](../spec/git.md) 与 [AGENTS.md 镜像](../Agents.md) |

@@ -53,4 +53,4 @@ Or place executable files in the `scripts/` directory.
 
 ## Related
 
-- [Docs Management](./docs-cmd)
+- [Docs Management](./docs-cmd.md)

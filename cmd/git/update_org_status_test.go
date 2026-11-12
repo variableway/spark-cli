@@ -331,6 +331,46 @@ func TestWriteReadmeFile(t *testing.T) {
 	})
 }
 
+func TestResolveProfileRepo(t *testing.T) {
+	t.Run("organization uses the .github repo", func(t *testing.T) {
+		spec := resolveProfileRepo("someorg", github.AccountTypeOrg)
+
+		if spec.url != "https://github.com/someorg/.github.git" {
+			t.Errorf("unexpected url: %s", spec.url)
+		}
+		if spec.dir != ".github" {
+			t.Errorf("unexpected dir: %s", spec.dir)
+		}
+		want := []string{filepath.Join(".github", "README.md"), filepath.Join(".github", "profile", "README.md")}
+		if len(spec.readme) != len(want) {
+			t.Fatalf("expected %d readme paths, got %d", len(want), len(spec.readme))
+		}
+		for i, p := range want {
+			if spec.readme[i] != p {
+				t.Errorf("readme[%d] = %s, want %s", i, spec.readme[i], p)
+			}
+		}
+	})
+
+	t.Run("user uses the <user>/<user> profile repo", func(t *testing.T) {
+		spec := resolveProfileRepo("qdriven", github.AccountTypeUser)
+
+		if spec.url != "https://github.com/qdriven/qdriven.git" {
+			t.Errorf("unexpected url: %s", spec.url)
+		}
+		if spec.dir != "qdriven" {
+			t.Errorf("unexpected dir: %s", spec.dir)
+		}
+		want := []string{filepath.Join("qdriven", "README.md")}
+		if len(spec.readme) != len(want) {
+			t.Fatalf("expected %d readme paths, got %d", len(want), len(spec.readme))
+		}
+		if spec.readme[0] != want[0] {
+			t.Errorf("readme[0] = %s, want %s", spec.readme[0], want[0])
+		}
+	})
+}
+
 func TestUpdateLocalFileUpdatesBothPaths(t *testing.T) {
 	updateOrgStatusSection = "Project List"
 	updateOrgStatusSkipPush = true

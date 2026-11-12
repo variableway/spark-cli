@@ -5,6 +5,16 @@
 **Status**: Draft
 **Goal**: assess whether a dedicated Hub repository is necessary, deeply analyze the strengths and weaknesses of the OpenCLI Hub protocol, clarify the boundaries and collaboration between `spark-hub`, `opencli`, and `cli-anything`, and produce an actionable architecture decision.
 
+
+> [!NOTE]
+> **Status: draft, not adopted.** This document dates from 2026-04-02 and
+> proposes splitting Hub capabilities into a separate `spark-hub` repository
+> bridged to the OpenCLI Hub protocol.
+>
+> The RFC was not implemented. The `spark hub` command in spark-cli today is a
+> **different command** — it scans local git repositories and emits the
+> innate-apps registry, unrelated to the external CLI aggregation discussed
+> here. See [Project Hub usage](../usage/hub.md) and [Hub command spec](../spec/hub.md).
 ---
 
 ## 1. Executive Summary

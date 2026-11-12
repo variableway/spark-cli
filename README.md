@@ -98,12 +98,12 @@ see [docs/zh/usage/how-to-build.md](docs/zh/usage/how-to-build.md)。
 
 ## Test Report
 
-`go test ./...` on Windows (2026-10-20) — all packages pass:
+`go test ./...` — all packages pass:
 
 ![spark-cli test report](docs/assets/test-report.png)
 
 ```
-PASS  (15 packages ok, 9 without tests, 0 failed)
+PASS  (32 packages, 18 with tests, 14 without tests, 0 failed)
 ```
 
 
@@ -131,7 +131,7 @@ PASS  (15 packages ok, 9 without tests, 0 failed)
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
 | `spark git batch-clone <account-or-url> [--ssh] [--token] [-o <dir>]` | Clone all repos from GitHub or GitLab |
-| `spark git update-org-status <org>` | Update org README with repo list |
+| `spark git update-org-status <account>` | Update an account's profile README with its repo list |
 | `spark git issues (-d <dir> \| -f <file>)` | Create GitHub issues from markdown/tasks |
 | `spark git push-all` | Commit and push changes across repos |
 | `spark git scan [path] [--db] [--skip-api]` | Scan repos and save to SQLite |
@@ -227,6 +227,17 @@ git:
 
 - [golang-cli-app skill](https://github.com/variableway/fire-skills/tree/main/dev/golang-cli-app) - Go CLI app code templates and best practices (Cobra/Viper/PTerm/Bubble Tea)
 
+## AI Skill
+
+`skills/spark-cli/SKILL.md` is a ready-to-install skill that teaches an AI
+assistant how to drive this CLI — command map, common workflows, and the three
+ways to fetch a GitHub repository list.
+
+```bash
+spark skill list                 # see every discovered skill
+spark skill sync ~/.claude/skills # install into your agent's skill directory
+```
+
 ## Documentation
 
 Online docs: https://variableway.github.io/spark-cli/
@@ -236,6 +247,9 @@ Online docs: https://variableway.github.io/spark-cli/
 | [docs/zh/usage/](docs/zh/usage/) | Per-command usage guides (Chinese, default) |
 | [docs/en/usage/](docs/en/usage/) | Per-command usage guides (English) |
 | [docs/zh/usage/how-to-build.md](docs/zh/usage/how-to-build.md) | How to build (Go binary + Node docs site) |
+| [docs/zh/quick-start/golang-cli-101.md](docs/zh/quick-start/golang-cli-101.md) | Go CLI essentials, lesson 1 |
+| [docs/zh/quick-start/nodejs-typescript-101.md](docs/zh/quick-start/nodejs-typescript-101.md) | Node + TypeScript essentials, lesson 1 |
 | [docs/zh/analysis/](docs/zh/analysis/) | Architecture & RFC documents |
+| [skills/spark-cli/SKILL.md](skills/spark-cli/SKILL.md) | spark-cli skill (AI assistant usage guide) |
 | [AGENTS.md](AGENTS.md) | AI integration guide |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |

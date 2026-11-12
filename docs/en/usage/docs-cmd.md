@@ -67,4 +67,4 @@ docmd build                                   # Build the static site
 
 ## Related
 
-- [Script Management](./script)
+- [Script Management](./script.md)
