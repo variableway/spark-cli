@@ -20,11 +20,22 @@ var scanCmd = &cobra.Command{
 	Long: `Recursively scan a folder for git repositories that have an origin remote and
 write them to a registry file named registry_<folder>.yaml in the current directory.
 
-The folder is expected to hold a two-level layout: the first level is the category
-and the second level holds the actual repositories. With --flatten, repositories
-nested deeper than two levels are moved up into the two-level layout (no files are
-overwritten; conflicts are reported and left in place) before scanning. With --json,
-an additional registry_<folder>.json file with the same content is written.
+The folder is expected to hold the categorized layout:
+
+    <category>/<subcategory>/<project>      e.g. skills/agent/taste-skill
+
+The registry is written in the categorized format (version: 2): categories are the
+folder's immediate subdirectories (so empty categories still appear), every category
+always contains an "others" subcategory, and a project directly under a category
+(<category>/<project>, i.e. without a subcategory) is recorded under "others".
+Folders without category directories keep the legacy flat "projects" format.
+
+With --json, an additional registry_<folder>.json file with the same content is
+written. With --flatten, repositories nested deeper than two levels are moved up
+into the LEGACY two-level <category>/<repo> layout first (no files are overwritten;
+conflicts are reported and left in place) — do NOT pass --flatten on a categorized
+<category>/<subcategory>/<project> tree, it would move projects out of their
+subcategory.
 
 The registry records each repository's name, remote URL and relative path. Re-scanning
 merges results and preserves existing descriptions.`,
@@ -66,23 +77,59 @@ merges results and preserves existing descriptions.`,
 			return err
 		}
 
-		final := registry.Merge(existing.Projects, projects)
-		if err := registry.Write(registryFile, &registry.Registry{Projects: final}); err != nil {
+		final := registry.Merge(existing.AllProjects(), projects)
+
+		groups, skipped, err := registry.Categorize(absFolder, final)
+		if err != nil {
+			return err
+		}
+		// Categorized output only once at least one project actually has a
+		// category (or the categorized tree holds no projects at all). A folder
+		// whose projects all sit in the root keeps the legacy flat format so
+		// nothing silently disappears from an existing registry.
+		classified := len(final) - len(skipped)
+		useCategories := len(groups) > 0 && (len(final) == 0 || classified > 0)
+		reg := &registry.Registry{Projects: final}
+		if useCategories {
+			reg = &registry.Registry{Categories: groups}
+		}
+		if err := registry.Write(registryFile, reg); err != nil {
 			return err
 		}
 
 		fmt.Printf("Scanned %s: found %d repositories\n", absFolder, len(projects))
-		for _, p := range projects {
-			fmt.Printf("  %s -> %s\n", p.Path, p.Repo)
+		if reg.IsCategorized() {
+			for _, c := range reg.Categories {
+				for _, s := range c.Subcategories {
+					if len(s.Projects) == 0 {
+						fmt.Printf("%s / %s (0)\n", c.Name, s.Name)
+						continue
+					}
+					fmt.Printf("%s / %s\n", c.Name, s.Name)
+					for _, p := range s.Projects {
+						fmt.Printf("  %s -> %s\n", p.Path, p.Repo)
+					}
+				}
+			}
+			for _, p := range skipped {
+				fmt.Printf("WARNING: %s sits directly in the folder root and has no category — move it into <category>/<subcategory>/ (not written to the registry)\n", p.Path)
+			}
+		} else {
+			if len(groups) > 0 && len(final) > 0 {
+				fmt.Println("NOTE: no project has a category — wrote the legacy flat registry; move projects into <category>/<subcategory>/ to get the categorized format")
+			}
+			for _, p := range projects {
+				fmt.Printf("  %s -> %s\n", p.Path, p.Repo)
+			}
 		}
-		fmt.Printf("Wrote %d projects to %s\n", len(final), registryFile)
+		fmt.Printf("Wrote %d projects to %s\n", len(reg.AllProjects()), registryFile)
 
 		if scanJSON {
 			jsonFile := fmt.Sprintf("registry_%s.json", folderName)
-			if err := registry.WriteJSON(jsonFile, &registry.Registry{Projects: final}); err != nil {
+			if err := registry.WriteJSON(jsonFile, reg); err != nil {
 				return err
 			}
-			fmt.Printf("Wrote %d projects to %s\n", len(final), jsonFile)
+			fmt.Printf("Wrote %d projects to %s\n", len(reg.AllProjects()), jsonFile)
 		}
 		return nil
 	},

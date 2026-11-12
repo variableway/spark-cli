@@ -12,8 +12,11 @@ git submodules.
 
 Commands:
 - scan:  scan a folder and write its repositories to registry_<folder>.yaml
+         (categorized format: <category>/<subcategory>/<project>, "others"
+         as the default subcategory; folders without categories stay flat)
 - clone: clone repositories from a registry file into the folder directory
-- list:  list repositories declared in a registry file`,
+         (categorized registries restore each project to its recorded path)
+- list:  list repositories declared in a registry file (grouped when categorized)`,
 }
 
 func init() {
