@@ -61,8 +61,8 @@ spark-cli/
 │   ├── repo/                # Repository registry management commands
 │   │   ├── repo.go          # RepoCmd parent command
 │   │   ├── scan.go          # spark repo scan [folder-name]
-│   │   ├── clone.go         # spark repo clone (-r, -f)
-│   │   ├── clone_registry.go # spark repo clone-registry (--out, --dry-run)
+│   │   ├── clone.go         # spark repo clone (-r, -f, --depth)
+│   │   ├── clone_registry.go # spark repo clone-registry (--out, --dry-run, --depth)
 │   │   └── list.go          # spark repo list (-f)
 │   ├── magic/               # System utility commands
 │   │   ├── magic.go         # MagicCmd parent command
@@ -651,6 +651,7 @@ Clone the repositories from the registry file into the folder directory (the dir
 |------|------|
 | `-r, --repo` | Clone only the repository with the given name (omit to clone all) |
 | `-f, --file` | Registry file (required) |
+| `--depth` | Shallow clone depth (`git clone --depth=N`; default 0 = full history) |
 
 #### `spark repo clone-registry`
 
@@ -660,6 +661,7 @@ Clone only the repositories from the registry file whose target directory is mis
 |------|------|
 | `--out` | Destination folder (default: derived from the registry file's location and name) |
 | `--dry-run` | Print the plan without cloning |
+| `--depth` | Shallow clone depth (`git clone --depth=N`; default 0 = full history) |
 
 #### `spark repo list`
 

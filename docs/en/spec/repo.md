@@ -60,6 +60,7 @@ spark repo clone [-r <repo-name>] -f <registry-file>
 |------|------|---------|----------|-------------|
 | `-r, --repo` | string | | No | Clone only the named repository (omit to clone all) |
 | `-f, --file` | string | | Yes | Registry file (`registry_<folder>.yaml`) |
+| `--depth` | int | `0` | No | Shallow clone depth (`git clone --depth=N`; 0 = full history) |
 
 No arguments.
 
@@ -82,6 +83,7 @@ spark repo clone-registry <registry-file> [--out <folder>] [--dry-run]
 |------|------|---------|----------|-------------|
 | `--out` | string | | No | Destination folder (default: derived from the registry file's location and name, `path/to/registry_<folder>.yaml` -> `path/to/<folder>/`) |
 | `--dry-run` | bool | `false` | No | Print what would be cloned / skipped without cloning |
+| `--depth` | int | `0` | No | Shallow clone depth (`git clone --depth=N`; 0 = full history) |
 
 **Behavior**:
 - Splits entries into on-disk / missing up front and prints an `N entries, N on disk, N missing` plan

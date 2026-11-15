@@ -82,6 +82,7 @@ Clone repositories from a registry file into the folder directory. The target fo
 |------|-------|---------|-------------|
 | `-r, --repo` | | | Clone only the named repository |
 | `-f, --file` | | | Registry file (required) |
+| `--depth` | | `0` | Shallow clone depth (0 = full history) |
 
 ```bash
 # Clone every repository in the registry into the innate-apps directory
@@ -105,6 +106,7 @@ Clone only the registry entries **missing on disk** — the on-demand restore on
 |------|---------|-------------|
 | `--out` | | Destination folder (default: derived from the registry file's location and name) |
 | `--dry-run` | `false` | Print what would be cloned / skipped without cloning |
+| `--depth` | `0` | Shallow clone depth (0 = full history) |
 
 ```bash
 # Preview the plan, then restore (works from any directory)

@@ -82,6 +82,7 @@ tooling/spark/spark-cli           →  tooling/spark-cli
 |------|------|--------|------|
 | `-r, --repo` | | | 仅克隆指定名称的仓库 |
 | `-f, --file` | | | registry 文件（必填） |
+| `--depth` | | `0` | 浅克隆深度（0 = 完整历史） |
 
 ```bash
 # 克隆 registry 中全部仓库到 innate-apps 目录
@@ -105,6 +106,7 @@ spark repo clone -r spark-cli -f registry_innate-apps.yaml
 |------|--------|------|
 | `--out` | | 目标目录（默认由 registry 文件位置与名称推导） |
 | `--dry-run` | `false` | 只打印将克隆 / 跳过的清单，不执行克隆 |
+| `--depth` | `0` | 浅克隆深度（0 = 完整历史） |
 
 ```bash
 # 先看计划，再补齐（在任意目录执行都可以）

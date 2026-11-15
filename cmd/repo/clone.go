@@ -16,6 +16,7 @@ import (
 var (
 	cloneRepoName string
 	cloneFile     string
+	cloneDepth    int
 )
 
 var cloneCmd = &cobra.Command{
@@ -25,9 +26,11 @@ var cloneCmd = &cobra.Command{
 
 The target folder name is derived from the registry file name
 (registry_<folder>.yaml -> <folder>). Use -r to clone a single repository by name;
-otherwise all repositories in the registry are cloned.`,
+otherwise all repositories in the registry are cloned. --depth N clones shallowly
+(git clone --depth=N); 0 keeps the full history.`,
 	Example: `  spark repo clone -f registry_innate-apps.yaml
-  spark repo clone -r spark-cli -f registry_innate-apps.yaml`,
+  spark repo clone -r spark-cli -f registry_innate-apps.yaml
+  spark repo clone -f registry_innate-apps.yaml --depth 1`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if cloneFile == "" {
 			return fmt.Errorf("registry file is required: use -f registry_<folder>.yaml")
@@ -55,7 +58,7 @@ otherwise all repositories in the registry are cloned.`,
 		sortByDepth(projects)
 
 		root := folderFromRegistryFile(cloneFile)
-		cloned, skipped, failed := cloneProjects(projects, root)
+		cloned, skipped, failed := cloneProjects(projects, root, cloneDepth)
 
 		fmt.Printf("\nDone: cloned %d, skipped %d, failed %d\n", cloned, skipped, failed)
 		if failed > 0 {
@@ -80,7 +83,8 @@ func sortByDepth(projects []registry.Project) {
 
 // cloneProjects clones each project into root, skipping targets that already
 // exist (`.git` or directory). Callers pass projects ordered via sortByDepth.
-func cloneProjects(projects []registry.Project, root string) (cloned, skipped, failed int) {
+// depth > 0 makes every clone shallow (git clone --depth=N).
+func cloneProjects(projects []registry.Project, root string, depth int) (cloned, skipped, failed int) {
 	for _, p := range projects {
 		target := registry.TargetPath(root, p)
 		if isGitRepo(target) {
@@ -100,7 +104,12 @@ func cloneProjects(projects []registry.Project, root string) (cloned, skipped, f
 			failed++
 			continue
 		}
-		c := exec.Command("git", "clone", p.Repo, target)
+		args := []string{"clone"}
+		if depth > 0 {
+			args = append(args, fmt.Sprintf("--depth=%d", depth))
+		}
+		args = append(args, p.Repo, target)
+		c := exec.Command("git", args...)
 		c.Stdout = os.Stdout
 		c.Stderr = os.Stderr
 		if err := c.Run(); err != nil {
@@ -128,5 +137,6 @@ func isGitRepo(path string) bool {
 func init() {
 	cloneCmd.Flags().StringVarP(&cloneRepoName, "repo", "r", "", "Repository name to clone (omit to clone all)")
 	cloneCmd.Flags().StringVarP(&cloneFile, "file", "f", "", "Registry file (registry_<folder>.yaml)")
+	cloneCmd.Flags().IntVar(&cloneDepth, "depth", 0, "Shallow clone depth (0 = full history)")
 	RepoCmd.AddCommand(cloneCmd)
 }

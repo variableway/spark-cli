@@ -152,8 +152,8 @@ spark
 │   └── scan                 ([folder-path], -d, --db, --skip-api)
 ├── repo
 │   ├── scan                 ([folder-name], --json, --flatten)
-│   ├── clone                (-r, --repo, -f, --file)
-│   ├── clone-registry       (<registry-file>, --out, --dry-run)
+│   ├── clone                (-r, --repo, -f, --file, --depth)
+│   ├── clone-registry       (<registry-file>, --out, --dry-run, --depth)
 │   └── list                 (-f, --file)
 ├── script
 │   ├── list
@@ -651,6 +651,7 @@ projects:
 |------|------|
 | `-r, --repo` | 仅克隆指定名称的仓库（省略则克隆全部） |
 | `-f, --file` | registry 文件（必填） |
+| `--depth` | 浅克隆深度（`git clone --depth=N`；默认 0 = 完整历史） |
 
 #### `spark repo clone-registry`
 
@@ -660,6 +661,7 @@ projects:
 |------|------|
 | `--out` | 目标目录（默认由 registry 文件位置与名称推导） |
 | `--dry-run` | 只打印计划，不执行克隆 |
+| `--depth` | 浅克隆深度（`git clone --depth=N`；默认 0 = 完整历史） |
 
 #### `spark repo list`
 

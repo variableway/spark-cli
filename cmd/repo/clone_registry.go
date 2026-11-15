@@ -13,6 +13,7 @@ import (
 var (
 	cloneRegistryOut    string
 	cloneRegistryDryRun bool
+	cloneRegistryDepth  int
 )
 
 var cloneRegistryCmd = &cobra.Command{
@@ -26,9 +27,11 @@ The registry file is a positional argument. The destination folder is derived
 from the registry file's location and name (path/to/registry_<folder>.yaml ->
 path/to/<folder>/), so the registry restores the tree it sits next to no matter
 the current directory; override with --out. Entries already on disk are skipped
-and counted, never re-cloned. --dry-run prints the plan without cloning.`,
+and counted, never re-cloned. --dry-run prints the plan without cloning, and
+--depth N clones shallowly (git clone --depth=N; 0 = full history).`,
 	Example: `  spark repo clone-registry registry_references.yaml
   spark repo clone-registry /path/to/registry_references.yaml --dry-run
+  spark repo clone-registry registry_references.yaml --depth 1
   spark repo clone-registry registry_references.yaml --out ~/innate/base/innate-skills/references`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -75,7 +78,7 @@ and counted, never re-cloned. --dry-run prints the plan without cloning.`,
 			return nil
 		}
 
-		cloned, _, failed := cloneProjects(missing, root)
+		cloned, _, failed := cloneProjects(missing, root, cloneRegistryDepth)
 
 		fmt.Printf("\nDone: cloned %d, skipped %d (existing), failed %d\n", cloned, len(present), failed)
 		if failed > 0 {
@@ -88,5 +91,6 @@ and counted, never re-cloned. --dry-run prints the plan without cloning.`,
 func init() {
 	cloneRegistryCmd.Flags().StringVar(&cloneRegistryOut, "out", "", "Destination folder (default: next to the registry file, derived from its name)")
 	cloneRegistryCmd.Flags().BoolVar(&cloneRegistryDryRun, "dry-run", false, "Print what would be cloned without cloning")
+	cloneRegistryCmd.Flags().IntVar(&cloneRegistryDepth, "depth", 0, "Shallow clone depth (0 = full history)")
 	RepoCmd.AddCommand(cloneRegistryCmd)
 }

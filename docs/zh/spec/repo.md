@@ -60,6 +60,7 @@ spark repo clone [-r <repo-name>] -f <registry-file>
 |------|------|--------|------|------|
 | `-r, --repo` | string | | 否 | 仅克隆指定名称的仓库（省略则克隆全部） |
 | `-f, --file` | string | | 是 | registry 文件（`registry_<folder>.yaml`） |
+| `--depth` | int | `0` | 否 | 浅克隆深度（`git clone --depth=N`；0 = 完整历史） |
 
 无参数。
 
@@ -82,6 +83,7 @@ spark repo clone-registry <registry-file> [--out <folder>] [--dry-run]
 |------|------|--------|------|------|
 | `--out` | string | | 否 | 目标目录（默认由 registry 文件位置与名称推导：`path/to/registry_<folder>.yaml` → `path/to/<folder>/`） |
 | `--dry-run` | bool | `false` | 否 | 只打印将克隆 / 跳过的清单，不执行克隆 |
+| `--depth` | int | `0` | 否 | 浅克隆深度（`git clone --depth=N`；0 = 完整历史） |
 
 **行为**：
 - 先按目标路径切分「已在盘 / 缺失」并打印 `N entries, N on disk, N missing` 计划

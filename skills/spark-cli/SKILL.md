@@ -123,6 +123,7 @@ spark repo clone -f registry_workspace.yaml       # 克隆全部
 spark repo clone -r spark-cli -f registry_workspace.yaml   # 只克隆一个
 spark repo clone-registry registry_workspace.yaml --dry-run  # 只看本地缺失的清单
 spark repo clone-registry registry_workspace.yaml            # 只补齐本地缺失的仓（目标目录由 registry 文件位置推导）
+spark repo clone-registry registry_workspace.yaml --depth 1  # 浅克隆补齐（只要最新提交，参考仓推荐）
 ```
 
 重扫是**合并而非替换**（v0.3.4+）：本地缺失的条目原样保留——registry 兼作恢复
