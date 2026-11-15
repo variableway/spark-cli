@@ -62,6 +62,7 @@ spark-cli/
 │   │   ├── repo.go          # RepoCmd parent command
 │   │   ├── scan.go          # spark repo scan [folder-name]
 │   │   ├── clone.go         # spark repo clone (-r, -f)
+│   │   ├── clone_registry.go # spark repo clone-registry (--out, --dry-run)
 │   │   └── list.go          # spark repo list (-f)
 │   ├── magic/               # System utility commands
 │   │   ├── magic.go         # MagicCmd parent command
@@ -633,7 +634,7 @@ categories:
 
 #### `spark repo scan [folder-name]`
 
-Recursively scan the directory, discover Git repositories that have an `origin` remote, and write them to `registry_<folder>.yaml` in the current directory. Hidden directories and `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build` are skipped; SSH URLs are normalized to the HTTPS form for storage; repeated scans are merged with the existing registry (matched first by `path`, then by `repo` URL, keeping the old `name`/`desc`, deleting stale entries whose directories no longer exist, and appending newly discovered repositories).
+Recursively scan the directory, discover Git repositories that have an `origin` remote, and write them to `registry_<folder>.yaml` in the current directory. Hidden directories and `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build` are skipped; SSH URLs are normalized to the HTTPS form for storage; repeated scans are merged with the existing registry (matched first by `path`, then by `repo` URL, keeping the old `name`/`desc`, preserving entries whose clone is absent locally verbatim — the registry doubles as a restore record, so removal is a manual registry edit — and appending newly discovered repositories).
 
 Grouping rules: a category is a first-level subdirectory (directories containing `.git` are treated as projects, never as categories/subcategories); projects without a subcategory go into that category's `others` subcategory (`others` is always present and sorted last); root-level repositories print a WARNING and are excluded; when no directory has category subdirectories the scanner falls back to the legacy flat format and prints a NOTE.
 
@@ -650,6 +651,15 @@ Clone the repositories from the registry file into the folder directory (the dir
 |------|------|
 | `-r, --repo` | Clone only the repository with the given name (omit to clone all) |
 | `-f, --file` | Registry file (required) |
+
+#### `spark repo clone-registry`
+
+Clone only the repositories from the registry file whose target directory is missing on disk — the restore counterpart of `repo scan` keeping entries that are not checked out. The registry file is a positional argument; the destination folder is derived from the registry file's location and name (`path/to/registry_<folder>.yaml` -> `path/to/<folder>/`), independent of the current directory. It prints an "entries / on disk / missing" plan first, SKIPs and counts entries already on disk (never re-clones), clones missing ones in ascending path-depth order (parents before nested repositories), and `--dry-run` only prints the `WOULD CLONE` list.
+
+| Option | Description |
+|------|------|
+| `--out` | Destination folder (default: derived from the registry file's location and name) |
+| `--dry-run` | Print the plan without cloning |
 
 #### `spark repo list`
 

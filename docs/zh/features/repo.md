@@ -16,7 +16,7 @@ spark repo scan ~/workspace/innate-apps
 
 - 跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`
 - SSH URL 归一化为 HTTPS 形式存储
-- 重复扫描与已有 registry 合并，保留 `name`/`desc`，清理已消失的条目
+- 重复扫描与已有 registry 合并，保留 `name`/`desc`；本地缺失的条目原样保留——registry 兼作恢复记录，删除条目需手工编辑
 
 ### 批量克隆
 
@@ -31,6 +31,14 @@ spark repo clone -r spark-cli -f registry_innate-apps.yaml
 ```
 
 已存在的仓库自动跳过。
+
+### 缺失补齐
+
+只克隆 registry 中本地缺失的条目，registry 文件是位置参数；目标目录默认落在 registry 文件旁边（由文件位置与名称推导）。
+
+```bash
+spark repo clone-registry ~/innate/base/innate-skills/registry_references.yaml --dry-run
+```
 
 ### 列出仓库
 

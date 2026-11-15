@@ -16,7 +16,7 @@ spark repo scan ~/workspace/innate-apps
 
 - Skips hidden directories and `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`
 - Normalizes SSH URLs to HTTPS form before storing
-- Re-scanning merges with the existing registry, preserving `name`/`desc` and removing vanished entries
+- Re-scanning merges with the existing registry, preserving `name`/`desc`; entries missing on disk are kept verbatim — the registry doubles as a restore record, removal is a manual registry edit
 
 ### Batch Cloning
 
@@ -31,6 +31,14 @@ spark repo clone -r spark-cli -f registry_innate-apps.yaml
 ```
 
 Repositories that already exist are skipped automatically.
+
+### Restoring Missing Entries
+
+Clone only the registry entries missing on disk; the registry file is a positional argument and the destination defaults to the folder next to the registry file (derived from its location and name).
+
+```bash
+spark repo clone-registry ~/innate/base/innate-skills/registry_references.yaml --dry-run
+```
 
 ### Listing Repositories
 

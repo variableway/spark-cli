@@ -52,48 +52,10 @@ otherwise all repositories in the registry are cloned.`,
 			return nil
 		}
 
-		// Clone shallow paths first so a parent project (and any nested clone
-		// recorded under its path) is created in the right order.
-		sort.SliceStable(projects, func(i, j int) bool {
-			di := strings.Count(projects[i].Path, "/")
-			dj := strings.Count(projects[j].Path, "/")
-			if di != dj {
-				return di < dj
-			}
-			return projects[i].Path < projects[j].Path
-		})
+		sortByDepth(projects)
 
 		root := folderFromRegistryFile(cloneFile)
-		cloned, skipped, failed := 0, 0, 0
-		for _, p := range projects {
-			target := registry.TargetPath(root, p)
-			if isGitRepo(target) {
-				fmt.Printf("SKIP %s (already exists)\n", target)
-				skipped++
-				continue
-			}
-			if _, err := os.Stat(target); err == nil {
-				fmt.Printf("SKIP %s (directory already exists)\n", target)
-				skipped++
-				continue
-			}
-
-			fmt.Printf("CLONE %s -> %s\n", p.Repo, target)
-			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-				fmt.Printf("  Error: create directory: %v\n", err)
-				failed++
-				continue
-			}
-			c := exec.Command("git", "clone", p.Repo, target)
-			c.Stdout = os.Stdout
-			c.Stderr = os.Stderr
-			if err := c.Run(); err != nil {
-				fmt.Printf("  Error: clone failed: %v\n", err)
-				failed++
-				continue
-			}
-			cloned++
-		}
+		cloned, skipped, failed := cloneProjects(projects, root)
 
 		fmt.Printf("\nDone: cloned %d, skipped %d, failed %d\n", cloned, skipped, failed)
 		if failed > 0 {
@@ -101,6 +63,54 @@ otherwise all repositories in the registry are cloned.`,
 		}
 		return nil
 	},
+}
+
+// sortByDepth orders projects shallow-path first so a parent project (and any
+// nested clone recorded under its path) is created in the right order.
+func sortByDepth(projects []registry.Project) {
+	sort.SliceStable(projects, func(i, j int) bool {
+		di := strings.Count(projects[i].Path, "/")
+		dj := strings.Count(projects[j].Path, "/")
+		if di != dj {
+			return di < dj
+		}
+		return projects[i].Path < projects[j].Path
+	})
+}
+
+// cloneProjects clones each project into root, skipping targets that already
+// exist (`.git` or directory). Callers pass projects ordered via sortByDepth.
+func cloneProjects(projects []registry.Project, root string) (cloned, skipped, failed int) {
+	for _, p := range projects {
+		target := registry.TargetPath(root, p)
+		if isGitRepo(target) {
+			fmt.Printf("SKIP %s (already exists)\n", target)
+			skipped++
+			continue
+		}
+		if _, err := os.Stat(target); err == nil {
+			fmt.Printf("SKIP %s (directory already exists)\n", target)
+			skipped++
+			continue
+		}
+
+		fmt.Printf("CLONE %s -> %s\n", p.Repo, target)
+		if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			fmt.Printf("  Error: create directory: %v\n", err)
+			failed++
+			continue
+		}
+		c := exec.Command("git", "clone", p.Repo, target)
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+		if err := c.Run(); err != nil {
+			fmt.Printf("  Error: clone failed: %v\n", err)
+			failed++
+			continue
+		}
+		cloned++
+	}
+	return cloned, skipped, failed
 }
 
 func folderFromRegistryFile(path string) string {

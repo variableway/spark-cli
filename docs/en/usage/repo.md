@@ -11,6 +11,7 @@ spark repo scan [folder-name] --flatten          # (legacy two-level layout only
 spark repo list -f registry_<folder>.yaml        # List repositories (grouped output for categorized registries)
 spark repo clone -f registry_<folder>.yaml       # Clone every repository to its recorded path
 spark repo clone -r <name> -f registry_<folder>.yaml  # Clone only the named repository
+spark repo clone-registry <registry-file>             # Clone only entries missing on disk (--dry-run to preview)
 ```
 
 ---
@@ -33,7 +34,7 @@ spark repo scan ~/workspace/legacy-refs --flatten  # Legacy two-level layout: fl
 
 **Flow**: (optional) `--flatten` deep directories → recursively locate `.git` (including `.git` files) → parse the `origin` remote URL → normalize → merge with the existing registry → group by category (`Categorize`) → write `registry_<folder>.yaml` (plus `registry_<folder>.json` when `--json` is set).
 
-Scanning skips hidden directories and `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`. SSH URLs are normalized to HTTPS form. Re-scanning preserves existing `name`/`desc` and removes entries whose directory no longer exists.
+Scanning skips hidden directories and `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`. SSH URLs are normalized to HTTPS form. Re-scanning preserves existing `name`/`desc`; entries whose directory no longer exists are kept verbatim (the registry doubles as a restore record — `spark repo clone -f` restores them anytime), and removal is a manual registry edit.
 
 ### Three-level categorized layout (registry v2)
 
@@ -93,6 +94,28 @@ spark repo clone -r spark-cli -f registry_innate-apps.yaml
 Repositories that already exist (`.git` present or directory exists) are skipped; a `cloned / skipped / failed` summary is printed at the end.
 
 Destinations restore the `path` recorded in the registry (for a categorized registry that is `<category>/<subcategory>/<project>`), cloned **shallowest path first** so a parent project exists before any nested clone recorded under it.
+
+---
+
+## spark repo clone-registry
+
+Clone only the registry entries **missing on disk** — the on-demand restore once scan keeps ghost entries. The registry file is a positional argument; the destination folder is derived from the registry file's location and name (`path/to/registry_<folder>.yaml` → `path/to/<folder>/`), independent of the current directory.
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--out` | | Destination folder (default: derived from the registry file's location and name) |
+| `--dry-run` | `false` | Print what would be cloned / skipped without cloning |
+
+```bash
+# Preview the plan, then restore (works from any directory)
+spark repo clone-registry ~/innate/base/innate-skills/registry_references.yaml --dry-run
+spark repo clone-registry ~/innate/base/innate-skills/registry_references.yaml
+
+# Explicit destination folder
+spark repo clone-registry registry_references.yaml --out ./references
+```
+
+It prints an "entries / on disk / missing" plan plus the SKIP list first; entries already on disk are never re-cloned.
 
 ---
 

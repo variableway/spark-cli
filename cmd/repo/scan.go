@@ -38,7 +38,9 @@ conflicts are reported and left in place) — do NOT pass --flatten on a categor
 subcategory.
 
 The registry records each repository's name, remote URL and relative path. Re-scanning
-merges results and preserves existing descriptions.`,
+merges results and preserves existing descriptions. Entries whose clone is absent from
+the folder are kept verbatim — the registry doubles as a restore record for repos that
+are not checked out here, so removing an entry is a manual registry edit, never a scan.`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		folder := "."

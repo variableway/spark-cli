@@ -14,7 +14,7 @@ description: spark 命令行工具的使用说明。当用户需要批量更新/
 ## 0. 先确认二进制可用
 
 ```bash
-spark version     # -> spark v0.3.2 / commit <sha> / build date <date>
+spark version     # -> spark v0.4.0 / commit <sha> / build date <date>
 ```
 
 没有安装时，从源码构建：
@@ -121,7 +121,13 @@ spark repo scan ~/workspace                       # 生成 registry_workspace.ya
 spark repo list -f registry_workspace.yaml
 spark repo clone -f registry_workspace.yaml       # 克隆全部
 spark repo clone -r spark-cli -f registry_workspace.yaml   # 只克隆一个
+spark repo clone-registry registry_workspace.yaml --dry-run  # 只看本地缺失的清单
+spark repo clone-registry registry_workspace.yaml            # 只补齐本地缺失的仓（目标目录由 registry 文件位置推导）
 ```
+
+重扫是**合并而非替换**（v0.3.4+）：本地缺失的条目原样保留——registry 兼作恢复
+记录，`spark repo clone -f` 随时能把没 checkout 的仓补齐。反过来，删掉本地
+clone **不会**注销 registry 条目；要移除一个仓只能手工编辑 registry 文件。
 
 ### 3.4 建 Issue
 

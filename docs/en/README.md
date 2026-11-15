@@ -112,6 +112,7 @@ go test ./internal/git/... -v -run TestFunctionName
 |---------|-------------|
 | `spark repo scan [folder-name]` | Scan a directory and write `registry_<folder>.yaml` |
 | `spark repo clone -f <file> [-r <name>]` | Clone repos listed in a registry file |
+| `spark repo clone-registry <file> [--out <folder>] [--dry-run]` | Clone only the registry entries missing on disk |
 | `spark repo list -f <file>` | List repos in a registry file |
 
 Registry files (`registry_<folder>.yaml`) replace submodules for managing many repos in one directory.

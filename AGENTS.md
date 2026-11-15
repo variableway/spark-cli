@@ -61,6 +61,7 @@ spark-cli/
 │   │   ├── repo.go          # RepoCmd 父命令
 │   │   ├── scan.go          # spark repo scan [folder-name]
 │   │   ├── clone.go         # spark repo clone（-r, -f）
+│   │   ├── clone_registry.go # spark repo clone-registry（--out, --dry-run）
 │   │   └── list.go          # spark repo list（-f）
 │   ├── magic/               # 系统实用命令
 │   │   ├── magic.go         # MagicCmd 父命令
@@ -152,6 +153,7 @@ spark
 ├── repo
 │   ├── scan                 ([folder-name], --json, --flatten)
 │   ├── clone                (-r, --repo, -f, --file)
+│   ├── clone-registry       (<registry-file>, --out, --dry-run)
 │   └── list                 (-f, --file)
 ├── script
 │   ├── list
@@ -632,7 +634,7 @@ projects:
 
 #### `spark repo scan [folder-name]`
 
-递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。目录约定为**三层分类**：`<分类>/<子分类>/<项目>`——分类取自一级子目录（即使为空也入册），每个分类恒有 `others` 子分类，直接放在分类下的项目（无子分类）归入 `others`，项目内部更深的嵌套仓保全完整 path 但仍归入其前两段的 `分类/子分类`，直接放在扫描根目录的仓库打印 `WARNING` 且不入册（需先移入分类）；没有任何一级分类目录时回退旧扁平格式。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，删除目录已不存在的旧条目，追加新发现仓库）。`--flatten` 只服务于旧两层布局——**禁止**在三分层分类树上使用（会把项目移出子分类）。
+递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。目录约定为**三层分类**：`<分类>/<子分类>/<项目>`——分类取自一级子目录（即使为空也入册），每个分类恒有 `others` 子分类，直接放在分类下的项目（无子分类）归入 `others`，项目内部更深的嵌套仓保全完整 path 但仍归入其前两段的 `分类/子分类`，直接放在扫描根目录的仓库打印 `WARNING` 且不入册（需先移入分类）；没有任何一级分类目录时回退旧扁平格式。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，本地缺失的旧条目原样保留——registry 兼作恢复记录，删除条目需手工编辑，追加新发现仓库）。`--flatten` 只服务于旧两层布局——**禁止**在三分层分类树上使用（会把项目移出子分类）。
 
 | 选项 | 说明 |
 |------|------|
@@ -649,6 +651,15 @@ projects:
 |------|------|
 | `-r, --repo` | 仅克隆指定名称的仓库（省略则克隆全部） |
 | `-f, --file` | registry 文件（必填） |
+
+#### `spark repo clone-registry`
+
+从 registry 文件**只克隆本地缺失**的仓库——`repo scan` 保留未 checkout 条目后的对应恢复操作。registry 文件是位置参数；目标目录默认由 registry 文件位置与名称推导（`path/to/registry_<folder>.yaml` → `path/to/<folder>/`），与当前目录无关。执行前先打印「总数 / 在盘 / 缺失」计划，已在盘条目 `SKIP` 并计数、绝不重克隆；缺失条目按 path 深度从浅到深克隆；`--dry-run` 只打印 `WOULD CLONE` 清单。
+
+| 选项 | 说明 |
+|------|------|
+| `--out` | 目标目录（默认由 registry 文件位置与名称推导） |
+| `--dry-run` | 只打印计划，不执行克隆 |
 
 #### `spark repo list`
 

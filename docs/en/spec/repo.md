@@ -44,7 +44,7 @@ No flags.
 - Skips hidden directories and `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`
 - SSH URLs are normalized to HTTPS form before being stored
 - The registry file name uses the base name of the directory's absolute path: `registry_<folder>.yaml`
-- Re-scanning merges with the existing registry: matches by `path` first, then by `repo` URL, preserves old `name`/`desc`, drops entries whose directory no longer exists, and appends newly discovered repos
+- Re-scanning merges with the existing registry: matches by `path` first, then by `repo` URL, preserves old `name`/`desc`, keeps entries whose clone is absent locally verbatim (the registry doubles as a restore record for `repo clone -f`; removing an entry is a manual registry edit), and appends newly discovered repos
 
 ---
 
@@ -67,6 +67,27 @@ No arguments.
 - Skips when `.git` already exists or the directory exists (`SKIP ...`)
 - Runs `git clone <repo> <target>` for each repository
 - Prints a `cloned / skipped / failed` summary; returns an error when `failed > 0`
+
+---
+
+## spark repo clone-registry
+
+Clone only the repositories declared in a registry file whose target directory is missing on disk — the restore counterpart of `repo scan` keeping entries that are not checked out. The registry file is a positional argument.
+
+```
+spark repo clone-registry <registry-file> [--out <folder>] [--dry-run]
+```
+
+| Flag | Type | Default | Required | Description |
+|------|------|---------|----------|-------------|
+| `--out` | string | | No | Destination folder (default: derived from the registry file's location and name, `path/to/registry_<folder>.yaml` -> `path/to/<folder>/`) |
+| `--dry-run` | bool | `false` | No | Print what would be cloned / skipped without cloning |
+
+**Behavior**:
+- Splits entries into on-disk / missing up front and prints an `N entries, N on disk, N missing` plan
+- On-disk entries print `SKIP` and are counted, never re-cloned
+- Missing entries run `git clone <repo> <target>` in ascending path-depth order
+- `--dry-run` prints the `WOULD CLONE` list and returns immediately
 
 ---
 

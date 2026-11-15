@@ -44,7 +44,7 @@ spark repo scan [folder-name]
 - 跳过隐藏目录以及 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`
 - SSH URL 归一化为 HTTPS 形式后存储
 - registry 文件名取目录绝对路径的 basename：`registry_<folder>.yaml`
-- 重复扫描会与已有 registry 合并：按 `path` 优先、其次按 `repo` URL 匹配，保留旧的 `name`/`desc`，删除目录已不存在的旧条目，追加新发现的仓库
+- 重复扫描会与已有 registry 合并：按 `path` 优先、其次按 `repo` URL 匹配，保留旧的 `name`/`desc`，本地缺失的旧条目原样保留（registry 兼作恢复记录，`repo clone -f` 可随时补齐；删除条目只能手工编辑 registry 文件），追加新发现的仓库
 
 ---
 
@@ -67,6 +67,27 @@ spark repo clone [-r <repo-name>] -f <registry-file>
 - 已存在 `.git` 或目录已存在时跳过（输出 `SKIP ...`）
 - 逐个执行 `git clone <repo> <target>`
 - 结束打印 `cloned / skipped / failed` 统计；`failed > 0` 时返回错误
+
+---
+
+## spark repo clone-registry
+
+从 registry 文件只克隆**本地缺失**的仓库，是 `repo scan` 保留未 checkout 条目的对应恢复操作。registry 文件是位置参数。
+
+```
+spark repo clone-registry <registry-file> [--out <folder>] [--dry-run]
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `--out` | string | | 否 | 目标目录（默认由 registry 文件位置与名称推导：`path/to/registry_<folder>.yaml` → `path/to/<folder>/`） |
+| `--dry-run` | bool | `false` | 否 | 只打印将克隆 / 跳过的清单，不执行克隆 |
+
+**行为**：
+- 先按目标路径切分「已在盘 / 缺失」并打印 `N entries, N on disk, N missing` 计划
+- 已在盘条目打印 `SKIP` 并计数，绝不重新克隆
+- 缺失条目按 path 深度从浅到深执行 `git clone <repo> <target>`
+- `--dry-run` 打印 `WOULD CLONE` 清单后直接返回
 
 ---
 

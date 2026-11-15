@@ -62,6 +62,7 @@ spark-cli/
 │   │   ├── repo.go          # RepoCmd 父命令
 │   │   ├── scan.go          # spark repo scan [folder-name]
 │   │   ├── clone.go         # spark repo clone（-r, -f）
+│   │   ├── clone_registry.go # spark repo clone-registry（--out, --dry-run）
 │   │   └── list.go          # spark repo list（-f）
 │   ├── magic/               # 系统实用命令
 │   │   ├── magic.go         # MagicCmd 父命令
@@ -618,7 +619,7 @@ categories:
 
 #### `spark repo scan [folder-name]`
 
-递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，删除目录已不存在的旧条目，追加新发现仓库）。
+递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，本地缺失的旧条目原样保留——registry 兼作恢复记录，删除条目需手工编辑，追加新发现仓库）。
 
 归组规则：分类 = 一级子目录（含 `.git` 的目录视为项目，不作分类/子分类）；无子分类的项目归入该分类的 `others` 子分类（`others` 恒存在且排最后）；根级仓库打印 WARNING 且不入册；所有项目均无分类目录时回退旧扁平格式并打印 NOTE。
 
@@ -635,6 +636,15 @@ categories:
 |------|------|
 | `-r, --repo` | 仅克隆指定名称的仓库（省略则克隆全部） |
 | `-f, --file` | registry 文件（必填） |
+
+#### `spark repo clone-registry`
+
+从 registry 文件**只克隆本地缺失**的仓库——`repo scan` 保留未 checkout 条目后的对应恢复操作。registry 文件是位置参数；目标目录默认由 registry 文件位置与名称推导（`path/to/registry_<folder>.yaml` → `path/to/<folder>/`），与当前目录无关。执行前先打印「总数 / 在盘 / 缺失」计划，已在盘条目 `SKIP` 并计数、绝不重克隆；缺失条目按 path 深度从浅到深克隆（先父项目、后其内部嵌套仓）；`--dry-run` 只打印 `WOULD CLONE` 清单。
+
+| 选项 | 说明 |
+|------|------|
+| `--out` | 目标目录（默认由 registry 文件位置与名称推导） |
+| `--dry-run` | 只打印计划，不执行克隆 |
 
 #### `spark repo list`
 

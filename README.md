@@ -155,6 +155,7 @@ PASS  (32 packages, 18 with tests, 14 without tests, 0 failed)
 |---------|-------------|
 | `spark repo scan [folder-name]` | Scan directory, write `registry_<folder>.yaml` |
 | `spark repo clone -f <registry> [-r <name>]` | Clone all (or one) repos from a registry |
+| `spark repo clone-registry <registry> [--out <folder>] [--dry-run]` | Clone only the registry entries missing on disk |
 | `spark repo list -f <registry>` | List repos in a registry |
 
 ---

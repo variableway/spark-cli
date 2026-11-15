@@ -11,6 +11,7 @@ spark repo scan [folder-name] --flatten          # （仅旧两层布局）拍�
 spark repo list -f registry_<folder>.yaml        # 列出 registry 中的仓库（分类格式按分组输出）
 spark repo clone -f registry_<folder>.yaml       # 克隆 registry 中全部仓库（按记录的 path 还原）
 spark repo clone -r <name> -f registry_<folder>.yaml  # 仅克隆指定仓库
+spark repo clone-registry <registry文件>              # 只克隆本地缺失的条目（--dry-run 先看计划）
 ```
 
 ---
@@ -33,7 +34,7 @@ spark repo scan ~/workspace/legacy-refs --flatten  # 旧两层布局：先拍平
 
 **流程**：（可选）`--flatten` 拍平深层目录 → 递归查找 `.git`（含 `.git` 文件）→ 解析 `origin` 远程 URL → 归一化 → 与已有 registry 合并 → 按分类目录归组（`Categorize`）→ 写入 `registry_<folder>.yaml`（及 `--json` 时的 `registry_<folder>.json`）
 
-扫描时会跳过隐藏目录以及 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`。SSH URL 会归一化为 HTTPS 形式存储。重复扫描会保留已有的 `name`/`desc`，并清理目录已不存在的旧条目。
+扫描时会跳过隐藏目录以及 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`。SSH URL 会归一化为 HTTPS 形式存储。重复扫描会保留已有的 `name`/`desc`；本地缺失的旧条目原样保留（registry 兼作恢复记录，`spark repo clone -f` 可随时补齐），删除条目需手工编辑 registry 文件。
 
 ### 三层分类布局（registry v2）
 
@@ -93,6 +94,28 @@ spark repo clone -r spark-cli -f registry_innate-apps.yaml
 已存在的仓库（`.git` 或目录已存在）会被跳过，结束时打印 `cloned / skipped / failed` 统计。
 
 克隆目标按 registry 记录的 `path` 还原（分类格式即 `<分类>/<子分类>/<项目>`），并按 path 深度**从浅到深**执行——先克隆父项目，再克隆记录在其内部的嵌套仓。
+
+---
+
+## spark repo clone-registry
+
+只克隆 registry 中**本地缺失**的条目——scan 保留幽灵条目后按需补齐。registry 文件是位置参数；目标目录默认由 registry 文件位置与名称推导（`path/to/registry_<folder>.yaml` → `path/to/<folder>/`），与当前目录无关。
+
+| 标志 | 默认值 | 说明 |
+|------|--------|------|
+| `--out` | | 目标目录（默认由 registry 文件位置与名称推导） |
+| `--dry-run` | `false` | 只打印将克隆 / 跳过的清单，不执行克隆 |
+
+```bash
+# 先看计划，再补齐（在任意目录执行都可以）
+spark repo clone-registry ~/innate/base/innate-skills/registry_references.yaml --dry-run
+spark repo clone-registry ~/innate/base/innate-skills/registry_references.yaml
+
+# 显式指定目标目录
+spark repo clone-registry registry_references.yaml --out ./references
+```
+
+执行时先打印「总数 / 在盘 / 缺失」与 SKIP 清单；已在盘的条目不会被重新克隆。
 
 ---
 

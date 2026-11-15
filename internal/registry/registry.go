@@ -160,8 +160,10 @@ func TargetPath(root string, p Project) string {
 	return filepath.Join(root, filepath.FromSlash(rel))
 }
 
-// Merge keeps existing name/desc (matched by path, then repo URL), drops entries
-// whose directory no longer exists, and appends newly discovered projects.
+// Merge keeps existing name/desc (matched by path, then repo URL), preserves
+// entries whose clone is absent on disk, and appends newly discovered projects.
+// The registry doubles as a restore record: a scan never unregisters a repo
+// just because it is not checked out — dropping an entry means editing the file.
 func Merge(existing, discovered []Project) []Project {
 	byPath := make(map[string]Project, len(discovered))
 	byURL := make(map[string]Project, len(discovered))
@@ -170,7 +172,7 @@ func Merge(existing, discovered []Project) []Project {
 		byURL[urlKey(p.Repo)] = p
 	}
 
-	final := make([]Project, 0, len(discovered))
+	final := make([]Project, 0, len(existing)+len(discovered))
 	matchedPath := make(map[string]bool, len(discovered))
 	matchedURL := make(map[string]bool, len(discovered))
 
@@ -180,6 +182,9 @@ func Merge(existing, discovered []Project) []Project {
 			p, ok = byURL[urlKey(old.Repo)]
 		}
 		if !ok {
+			// No local clone matched: keep the entry verbatim so repos that are
+			// not checked out in this folder stay restorable via repo clone -f.
+			final = append(final, old)
 			continue
 		}
 

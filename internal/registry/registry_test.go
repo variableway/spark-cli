@@ -103,10 +103,10 @@ var _ = Describe("Registry", func() {
 	})
 
 	Describe("Merge", func() {
-		It("preserves descriptions, drops missing entries and appends new ones", func() {
+		It("preserves descriptions, keeps entries missing on disk and appends new ones", func() {
 			existing := []registry.Project{
 				{Name: "spark-cli", Repo: "https://github.com/variableway/spark-cli.git", Path: "tooling/spark-cli", Desc: "keep me"},
-				{Name: "gone", Repo: "https://github.com/variableway/gone.git", Path: "gone"},
+				{Name: "gone", Repo: "https://github.com/variableway/gone.git", Path: "gone", Desc: "not checked out"},
 			}
 			discovered := []registry.Project{
 				{Name: "spark-cli", Repo: "https://github.com/variableway/spark-cli.git", Path: "tooling/spark-cli"},
@@ -114,7 +114,7 @@ var _ = Describe("Registry", func() {
 			}
 
 			merged := registry.Merge(existing, discovered)
-			Expect(merged).To(HaveLen(2))
+			Expect(merged).To(HaveLen(3))
 
 			byName := map[string]registry.Project{}
 			for _, p := range merged {
@@ -123,7 +123,8 @@ var _ = Describe("Registry", func() {
 
 			Expect(byName["spark-cli"].Desc).To(Equal("keep me"))
 			Expect(byName).To(HaveKey("new"))
-			Expect(byName).NotTo(HaveKey("gone"))
+			Expect(byName["gone"].Path).To(Equal("gone"))
+			Expect(byName["gone"].Desc).To(Equal("not checked out"))
 		})
 
 		It("updates the path when a repository moves and matches by URL", func() {
