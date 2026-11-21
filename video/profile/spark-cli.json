@@ -1,0 +1,95 @@
+{
+  "name": "spark-cli",
+  "title": "Spark CLI",
+  "summary": "给多仓库工作准备的命令行工具",
+  "language": "zh",
+
+  "binary": {
+    "path": "/tmp/spark-new",
+    "build": "make build",
+    "build_env": {
+      "GOPROXY": "https://goproxy.cn,direct",
+      "GOSUMDB": "off"
+    },
+    "note": "构建产物。/tmp 会被系统清理，没了按 build 重来一遍。录制素材和事实核对都用它。"
+  },
+
+  "links": {
+    "site": "https://variableway.github.io/spark-cli",
+    "repo_ssh": "ssh://git@ssh.github.com:443/variableway/spark-cli.git",
+    "repo_web": "github.com/variableway/spark-cli"
+  },
+
+  "install": "make build  →  ~/.local/bin/spark",
+
+  "card_order": ["16x9", "1x1", "9x16"],
+
+  "command_families": [
+    "git", "repo", "hub", "skill", "script", "magic", "docs", "witr", "version", "completion"
+  ],
+
+  "quick_commands": [
+    ["git", "update"],
+    ["repo", "scan"],
+    ["skill", "list"],
+    ["script", "run", "hello"],
+    ["witr", "nginx"]
+  ],
+
+  "assets": {
+    "help": {
+      "command": ["--help"],
+      "prompt": "$ spark --help",
+      "title": "spark --help",
+      "capture": {
+        "cols": 92, "rows": 23, "fps": 15, "head": 22,
+        "out_width": 1250, "seq_sec": 12, "still": true, "cps": 16
+      },
+      "crop": {
+        "16x9": { "rows": [0, 11], "cols": [0, 92] },
+        "9x16": { "rows": [0, 10], "cols": [0, 58] },
+        "1x1":  { "rows": [0, 5],  "cols": [0, 58] }
+      }
+    },
+    "version": {
+      "command": ["version"],
+      "prompt": "$ spark version",
+      "title": "spark version",
+      "capture": {
+        "cols": 92, "rows": 6, "fps": 15, "skip": 1,
+        "out_width": 1250, "still": true
+      },
+      "crop": {
+        "16x9": { "rows": [0, 4], "cols": [0, 56] },
+        "9x16": { "rows": [0, 4], "cols": [0, 56] },
+        "1x1":  { "rows": [0, 4], "cols": [0, 56] }
+      }
+    },
+    "repo": {
+      "command": ["repo", "--help"],
+      "prompt": "$ spark repo --help",
+      "title": "spark repo --help",
+      "capture": {
+        "cols": 92, "rows": 29, "out_width": 1250, "still": true, "seq": false
+      },
+      "crop": {
+        "16x9": { "rows": [0, 11], "cols": [0, 84] },
+        "9x16": { "rows": [0, 11], "cols": [0, 82] },
+        "1x1":  { "rows": [0, 11], "cols": [0, 82] }
+      }
+    },
+    "skill": {
+      "command": ["skill", "--help"],
+      "prompt": "$ spark skill --help",
+      "title": "spark skill --help",
+      "capture": {
+        "cols": 92, "rows": 28, "out_width": 1250, "still": true, "seq": false
+      },
+      "crop": {
+        "16x9": { "rows": [0, 11], "cols": [0, 84] },
+        "9x16": { "rows": [0, 11], "cols": [0, 74] },
+        "1x1":  { "rows": [0, 11], "cols": [0, 74] }
+      }
+    }
+  }
+}

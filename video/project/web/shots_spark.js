@@ -3,11 +3,11 @@
 
    画面分工（按用户确认的方案）：
      · 真实录屏主线：spark --help / version / repo --help / skill --help 的**真实输出**，
-       由 tools/record_terminal.py 录成无损帧序列，画面里是命令真的敲出来、输出真的打印。
+       由 cli-intro-video skill 的 record_terminal.py 录成无损帧序列，画面里是命令真的敲出来、输出真的打印。
      · 代码动画做架构图与标注层：命令族树、共享配置、标注下划线与编号对应，全部用画布代码画。
 
-   素材几何来自 tools/record_terminal.py 的输出（scale 2 超采样后缩到 1250 宽）：
-     行高 CH = 30.2px，文本首行顶 TOP = 51px，列宽 COLW = 1250/92。
+   素材几何来自 web/img/<素材>/meta.json 的 cell 字段（scale 2 超采样后缩到 1250 宽）：
+     行高 CH = 30.1871px，文本首行顶 TOP = 51.0204px，列宽 COLW = 13.1803px，文本左边距 PADX = 18.7075px。
      所以「第 k 行」在素材里的 y = TOP + k*CH，可以精确换算到画面坐标做标注。
 
    约定：SHOT.<id> = function (ctx, t, S) {...}，画面只由 t 算出；EV() 写在文件顶层。
@@ -16,10 +16,13 @@
 (function () {
 
   // ---------------------------------------------------------------- 素材几何与公共工具
-  // 素材几何来自 tools/record_terminal.py 的输出（scale 2 超采样后缩到 1250 宽）：
-  //     行高 CH = 30.2px，文本首行顶 TOP = 51px，列宽 COLW = 1250/92，文本左边距 PADX = 18.7px。
+  // 素材几何来自 web/img/<素材>/meta.json 的 cell 字段（录制时写下的真实网格）：
+  //     行高 CH = 30.1871px，文本首行顶 TOP = 51.0204px，列宽 COLW = 13.1803px，文本左边距 PADX = 18.7075px。
+  //     列宽**不是**「画幅宽 ÷ 列数」：素材文本区两侧留了内边距（1250px 里文字只占 1212.6px），
+  //     用名义值会让裁剪框超出素材边界，浏览器只能横向压掉一截——字被拉宽，标注线也整体偏 3%。
   //     所以「第 c 列的文本」在素材里的 x = PADX + c*COLW，「第 k 行」的 y = TOP + k*CH。
-  const CH = 30.2, TOP = 51, COLW = 1250 / 92, PADX = 18.7;
+  //     check_crop.py 会拿这些常量和 meta.json 逐个比对，对不上就拦下来。
+  const CH = 30.1871, TOP = 51.0204, COLW = 13.1803, PADX = 18.7075;
   const B = safeBox();
   const WIDE = !PORTRAIT && !SQUARE;          // 16:9 横版构图；竖版和方形走竖排
   // 标题区高度：方形只有 1080 高，标题两行放 380 太高，标题下留给画面的空间被吃掉一大半

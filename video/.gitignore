@@ -4,9 +4,8 @@
 # Python 虚拟环境
 project/.venv/
 
-# 帧序列（终端录屏的无损帧，几十 MB；静帧 help-still.png 等保留）
-project/web/img/help/
-project/web/img/version/
+# 帧序列（终端录屏的无损帧，几十 MB；静帧 help-still.png 等保留在上一层）
+project/web/img/*/
 
 # 音频产物（配音原片、混音、配乐、音效）
 project/audio/*.wav
