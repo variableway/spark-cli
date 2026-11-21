@@ -1,0 +1,184 @@
+{
+  "title": "Spark CLI：把每天重复的事交给命令行",
+  "output": "spark",
+  "genre": "explainer",
+  "target_sec": 52.5,
+  "canvas": {
+    "w": 1920,
+    "h": 1080
+  },
+  "formats": {
+    "16x9": {
+      "w": 1920,
+      "h": 1080
+    },
+    "9x16": {
+      "w": 1080,
+      "h": 1920
+    },
+    "1x1": {
+      "w": 1080,
+      "h": 1080
+    }
+  },
+  "fps": 30,
+  "seed": 20261121,
+  "timeline": {
+    "mode": "voice",
+    "bpm": 96
+  },
+  "subtitles": {
+    "burn": true,
+    "langs": [
+      "zh",
+      "en"
+    ],
+    "size": "auto"
+  },
+  "voice": {
+    "provider": "mcode",
+    "voice_id": "Chinese (Mandarin)_Gentleman",
+    "speed": 1.06,
+    "gap": 1.2,
+    "why": "温润男声，语速适中，讲技术不赶也不拖"
+  },
+  "chapters": [
+    {
+      "id": "hook",
+      "label": "钩子",
+      "scenes": [
+        "S01"
+      ]
+    },
+    {
+      "id": "what",
+      "label": "它是什么",
+      "scenes": [
+        "S02"
+      ]
+    },
+    {
+      "id": "demo",
+      "label": "真实命令",
+      "scenes": [
+        "S03",
+        "S04"
+      ]
+    },
+    {
+      "id": "why",
+      "label": "为什么用",
+      "scenes": [
+        "S05"
+      ]
+    },
+    {
+      "id": "close",
+      "label": "速查与落版",
+      "scenes": [
+        "S06"
+      ]
+    }
+  ],
+  "timing": {
+    "lead": {
+      "S01": 0.5
+    },
+    "hold": {
+      "S04": 0.5,
+      "S06": 1.8
+    },
+    "defLead": 0.3,
+    "defHold": 0.25,
+    "tail": 0.5
+  },
+  "modules": [],
+  "transitions": {
+    "default": "cut"
+  },
+  "motion_blur": {
+    "samples": 4,
+    "shutter": 0.5,
+    "max": 128
+  },
+  "post": {
+    "grain": 0.025,
+    "vignette": 0.1
+  },
+  "theme": {
+    "colors": {
+      "bg": "#F7FAFC",
+      "ink": "#1A1F36",
+      "ink2": "#7D828F",
+      "dim": "#DCE0E4",
+      "acc": "#0097FF",
+      "acc2": "#A626A4",
+      "acc3": "#10B981",
+      "termBg": "#12151C",
+      "termInk": "#D7DEE9",
+      "termDim": "#5A6474",
+      "termAcc": "#0097FF",
+      "termGreen": "#10B981",
+      "termAmber": "#F0A93B"
+    },
+    "fonts": {
+      "display": "PingFang SC",
+      "body": "PingFang SC",
+      "mono": "JetBrains Mono",
+      "serif": "Instrument Serif"
+    },
+    "font_files": []
+  },
+  "music": {
+    "source": "synth",
+    "style": "electronic",
+    "key": "A minor",
+    "progression": [
+      "Am",
+      "F",
+      "C",
+      "G"
+    ],
+    "sections": [
+      {
+        "from": 0,
+        "to": 12,
+        "type": "intro"
+      },
+      {
+        "from": 12,
+        "to": 44,
+        "type": "groove"
+      },
+      {
+        "from": 44,
+        "to": 56,
+        "type": "build"
+      },
+      {
+        "from": 56,
+        "to": 72,
+        "type": "drop"
+      },
+      {
+        "from": 72,
+        "to": 84,
+        "type": "outro"
+      }
+    ],
+    "kicks": [
+      [
+        12,
+        44,
+        2
+      ],
+      [
+        56,
+        72,
+        1
+      ]
+    ],
+    "lufs": -16
+  },
+  "background": null
+}

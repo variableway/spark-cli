@@ -1,0 +1,26 @@
+# 视频工程：只提交「能重跑出片子的东西」，不提交产物
+# 产物（成片、帧序列、混音、虚拟环境）都可以由工程重新生成
+
+# Python 虚拟环境
+project/.venv/
+
+# 帧序列（终端录屏的无损帧，几十 MB；静帧 help-still.png 等保留）
+project/web/img/help/
+project/web/img/version/
+
+# 音频产物（配音原片、混音、配乐、音效）
+project/audio/*.wav
+project/audio/*.mp3
+project/audio/asr/
+project/audio/checks/
+project/audio/events.json
+
+# 构建出来的 spark 二进制（video/assets/raw）
+assets/raw/
+
+# 仓库顶层有 spark_* 规则，会误伤落版用的 logo 素材，这里放行
+!project/web/img/spark_*.png
+
+# 缓存
+__pycache__/
+*.pyc

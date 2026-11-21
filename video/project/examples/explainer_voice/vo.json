@@ -1,0 +1,17 @@
+{
+  "scenes": [
+    { "id": "S01", "text": "(breath)一棵大树没有心脏，却能把水送到几十米高的树梢。",
+      "en": ["A tall tree has no heart,", "yet it lifts water dozens of meters up to its crown."] },
+    { "id": "S02", "text": "水从根部进来，沿着树干里的细管往上走。",
+      "en": ["Water comes in through the roots,", "and climbs thin tubes inside the trunk."] },
+    { "id": "S03", "text": "动力来自叶子：叶片背面有很多气孔，水从这里变成水汽散出去。",
+      "en": ["The pull comes from the leaves:", "their undersides are full of tiny pores,", "where water escapes as vapor."] },
+    { "id": "S04", "text": "叶子散掉一点水，细管里的水就被往上拉一点，像用吸管喝水。",
+      "en": ["Each time a leaf loses a little water,", "the water in the tubes is pulled up a little,", "like sipping through a straw."] },
+    { "id": "S05", "text": "中午阳光最强，叶子散水最多，树喝水也最快。",
+      "en": ["At noon the sun is strongest,", "the leaves lose the most water,", "and the tree drinks fastest."] },
+    { "id": "S06", "text": "树喝水，靠的是叶子在上面拉。",
+      "en": ["A tree drinks", "because its leaves pull from above."] }
+  ],
+  "tts_fix": {}
+}

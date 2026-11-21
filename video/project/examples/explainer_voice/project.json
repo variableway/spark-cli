@@ -1,0 +1,115 @@
+{
+  "title": "示例：植物怎么喝水",
+  "output": "demo",
+  "genre": "explainer",
+  "target_sec": 36,
+  "canvas": {
+    "w": 1920,
+    "h": 1080
+  },
+  "fps": 30,
+  "seed": 20261016,
+  "timeline": {
+    "mode": "voice",
+    "bpm": 80
+  },
+  "subtitles": {
+    "burn": true,
+    "langs": [
+      "zh",
+      "en"
+    ],
+    "size": "auto"
+  },
+  "voice": {
+    "speed": 1.12,
+    "gap": 1.4,
+    "provider": "mcode"
+  },
+  "chapters": [
+    {
+      "id": "question",
+      "label": "问题",
+      "scenes": [
+        "S01"
+      ]
+    },
+    {
+      "id": "path",
+      "label": "水走的路",
+      "scenes": [
+        "S02",
+        "S03",
+        "S04"
+      ]
+    },
+    {
+      "id": "close",
+      "label": "什么时候最快、结论",
+      "scenes": [
+        "S05",
+        "S06"
+      ]
+    }
+  ],
+  "timing": {
+    "lead": {
+      "S01": 0.6
+    },
+    "hold": {
+      "S04": 0.4,
+      "S06": 1.6
+    },
+    "defLead": 0.3,
+    "defHold": 0.2,
+    "tail": 0.45
+  },
+  "modules": [],
+  "transitions": {
+    "default": "cut"
+  },
+  "motion_blur": {
+    "samples": 4,
+    "shutter": 0.5,
+    "max": 128
+  },
+  "post": {
+    "grain": 0.03,
+    "vignette": 0.12
+  },
+  "theme": {
+    "colors": {
+      "bg": "#F4F0E6",
+      "ink": "#1D2523",
+      "ink2": "#5B6863",
+      "dim": "#D9D3C5",
+      "acc": "#E06A3B",
+      "water": "#2E7FC8",
+      "leaf": "#3F9A5C",
+      "wet": "#7ACB8E",
+      "leafBack": "#8CC49A",
+      "trunk": "#8A6247",
+      "soil": "#C8B193",
+      "sun": "#F0A93B"
+    },
+    "fonts": {
+      "display": "PingFang SC",
+      "body": "PingFang SC",
+      "mono": "JetBrains Mono",
+      "serif": "Instrument Serif"
+    }
+  },
+  "music": {
+    "source": "synth",
+    "style": "piano",
+    "key": "F",
+    "groove_start": "S02@0",
+    "roles": {
+      "question": "sparse",
+      "path": "groove",
+      "close": "arp"
+    },
+    "lufs": -16
+  },
+  "background": null
+}

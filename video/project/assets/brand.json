@@ -1,0 +1,74 @@
+{
+ "url": "https://variableway.github.io/spark-cli/",
+ "time": "2026-11-21 14:54:20",
+ "dark": false,
+ "theme": {
+  "colors": {
+   "bg": "#F7FAFC",
+   "ink": "#1A1F36",
+   "ink2": "#7D828F",
+   "dim": "#DCE0E4",
+   "acc": "#0097FF",
+   "acc2": "#A626A4",
+   "acc3": "#10B981"
+  },
+  "fonts": {
+   "display": "Inter",
+   "body": "Inter",
+   "mono": "JetBrains Mono"
+  }
+ },
+ "evidence": [
+  {
+   "color": "#0097FF",
+   "weight": 44.3,
+   "why": [
+    "CSS 变量 --sky-primary",
+    "按钮背景 ×1",
+    "文字色，400 个字",
+    "文字色，822 个字",
+    "文字色，48 个字",
+    "背景色，面积 0%",
+    "链接色 ×21",
+    "链接色 ×2",
+    "logo 主色",
+    "首屏面积 0%",
+    "首屏面积 0%"
+   ]
+  },
+  {
+   "color": "#A626A4",
+   "weight": 5.1,
+   "why": [
+    "文字色，41 个字"
+   ]
+  },
+  {
+   "color": "#10B981",
+   "weight": 0.0,
+   "why": [
+    "背景色，面积 0%"
+   ]
+  }
+ ],
+ "mark": {
+  "file": "web/img/spark_mark.png",
+  "size": [
+   854,
+   897
+  ],
+  "source": "页头首页链接里的内联 <svg>",
+  "reliable": true,
+  "note": ""
+ },
+ "files": [
+  "assets/raw/spark_logo.svg",
+  "web/img/spark_logo.png",
+  "assets/raw/spark_icon_raw.png",
+  "web/img/spark_icon.png",
+  "web/img/spark_mark.png"
+ ],
+ "font_files": [],
+ "site": null,
+ "title": "Spark CLI"
+}

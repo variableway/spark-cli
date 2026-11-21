@@ -1,0 +1,41 @@
+[
+ {
+  "time": "2026-11-21 14:54:20",
+  "cmd": "brand",
+  "source": "https://variableway.github.io/spark-cli/",
+  "files": [
+   {
+    "file": "assets/raw/spark_logo.svg"
+   },
+   {
+    "file": "web/img/spark_logo.png",
+    "size": [
+     936,
+     979
+    ]
+   },
+   {
+    "file": "assets/raw/spark_icon_raw.png",
+    "size": [
+     48,
+     48
+    ]
+   },
+   {
+    "file": "web/img/spark_icon.png",
+    "size": [
+     48,
+     48
+    ]
+   },
+   {
+    "file": "web/img/spark_mark.png",
+    "size": [
+     854,
+     897
+    ]
+   }
+  ],
+  "notes": []
+ }
+]
