@@ -5,6 +5,11 @@
     "icon": "home"
   },
   {
+    "title": "介绍片",
+    "path": "/media",
+    "icon": "play"
+  },
+  {
     "title": "快速开始",
     "icon": "rocket",
     "collapsible": true,

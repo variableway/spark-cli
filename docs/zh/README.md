@@ -6,6 +6,16 @@ A CLI tool for daily dev automation and AI skill integration.
 
 > Most code is AI-generated, all inspired by real daily workflows.
 
+## Watch
+
+<video src="../assets/video/spark-cli-16x9.mp4" width="100%" controls preload="metadata" poster="../assets/video/spark-cli-16x9.jpg"></video>
+
+52 seconds. Everything on screen is real: the terminal output is recorded from an
+actual `spark --help` run, the version and commit come from `spark version`, and the
+command tree is the real one. Subtitles are burned in (Chinese + English).
+
+Other sizes: [9:16 for social](/media/) · [1:1 for the site hero](/media/)
+
 ## Tech Stack
 
 | Layer | Technology |

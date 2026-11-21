@@ -5,6 +5,11 @@
     "icon": "home"
   },
   {
+    "title": "Intro Video",
+    "path": "/media",
+    "icon": "play"
+  },
+  {
     "title": "Quick Start",
     "icon": "rocket",
     "collapsible": true,
