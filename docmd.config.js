@@ -84,10 +84,11 @@ export default defineConfig({
   },
 
   // --- Edit Link ---
-  // baseUrl always points at the default locale directory on disk so the
-  // "Edit this page" link resolves to a real file in docs/zh/.
+  // baseUrl 止于仓库根：docmd 会把页面在仓库里的相对路径接在后面
+  // （中文页 → docs/zh/xxx.md，英文页 → docs/en/xxx.md）。
+  // 若把 baseUrl 指到 docs/zh，中文页会拼成 docs/zh/docs/zh/...，英文页会错指到 zh 目录。
   editLink: {
     enabled: true,
-    baseUrl: 'https://github.com/variableway/spark-cli/edit/main/docs/zh',
+    baseUrl: 'https://github.com/variableway/spark-cli/edit/main',
   },
 });
