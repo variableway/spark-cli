@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """生成 video/docs/architecture.html —— 视频工作流的架构图与模块图。
 
-为什么用生成器而不是手写 HTML：图里的每个文件数、行数、差异清单都必须来自
+为什么用生成器而不是手写 HTML：图里的每个文件数、帧数、差异清单都必须来自
 真实的文件系统，不能是「写的时候大概是这个数」。脚本扫一遍工程，把结果填进
 页面；工程改了重跑一次，页面就跟着变。
 
 口径（写在页面上，也在这里实现）：
   * 文件清单：以 `git ls-files video` 为准——入库文件。工程内生成的产物
     （out/ 成片、web/img/ 帧序列、.venv、__pycache__）不在清单里。
-  * 代码行数：扩展名为 .py / .js 的文件，按物理行数（末行无换行不计）。
-  * 文档行数：扩展名为 .md 的文件。
-  * 交叉复核：另外用 find + wc -l 独立跑一遍，结果必须一致，不一致就报错退出。
+  * 交叉复核：另外用 find 独立数一遍代码文件，结果必须一致，不一致就报错退出。
+  * 本页不统计代码行数——行数不是这套工作流的事实，写进去只会变成需要维护的
+    噪音。文件个数、帧数、字节数才是会随工程变化的真实刻度。
 
 用法：
   python3 video/docs/build_architecture.py
@@ -62,17 +62,6 @@ def git(*args: str) -> str:
     return r.stdout.strip()
 
 
-def count_lines(path: Path) -> int:
-    """物理行数：末行没有换行符也计一行。空文件 0 行。"""
-    try:
-        data = path.read_bytes()
-    except OSError:
-        return 0
-    if not data:
-        return 0
-    return data.count(b'\n') + (0 if data.endswith(b'\n') else 1)
-
-
 def fmt_int(n: int) -> str:
     return f'{n:,}'
 
@@ -94,7 +83,6 @@ class Scan:
 
     def __init__(self):
         self.tracked: list[str] = []          # 相对 video/ 的入库文件路径
-        self.lines: dict[str, int] = {}       # 路径 -> 行数
         self.bytes: dict[str, int] = {}       # 路径 -> 字节数
         self.text: dict[str, bool] = {}       # 路径 -> 是否文本
         self._load()
@@ -110,12 +98,7 @@ class Scan:
             p = VIDEO / rel
             ext = p.suffix.lower()
             self.text[rel] = ext in TEXT_EXT or p.name == '.gitignore'
-            if self.text[rel]:
-                self.lines[rel] = count_lines(p)
-                self.bytes[rel] = p.stat().st_size
-            else:
-                self.lines[rel] = 0
-                self.bytes[rel] = p.stat().st_size if p.exists() else 0
+            self.bytes[rel] = p.stat().st_size if p.exists() else 0
 
     # -- 统计口径 ---------------------------------------------------
     def code_files(self) -> list[str]:
@@ -124,16 +107,10 @@ class Scan:
                 if Path(r).suffix.lower() in CODE_EXT and self.text[r]
                 and not r.startswith('docs/')]
 
-    def code_lines(self) -> int:
-        return sum(self.lines[r] for r in self.code_files())
-
     def doc_files(self) -> list[str]:
         return [r for r in self.tracked
                 if Path(r).suffix.lower() in DOC_EXT and self.text[r]
                 and r != self.SELF]
-
-    def doc_lines(self) -> int:
-        return sum(self.lines[r] for r in self.doc_files())
 
     def text_files(self) -> list[str]:
         return [r for r in self.tracked if self.text[r] and r != self.SELF]
@@ -141,26 +118,23 @@ class Scan:
     def binary_files(self) -> list[str]:
         return [r for r in self.tracked if not self.text[r]]
 
-    def cross_check(self) -> tuple[int, int]:
-        """独立复核：用 find + wc -l 再数一遍 .py/.js，排除生成目录。
+    def cross_check(self) -> int:
+        """独立复核：用 find 再数一遍 .py/.js 的文件个数。
 
-        两条命令分开跑：文件数用 find 计数，行数把 wc 每批输出的 total 行剔掉
-        再累加（xargs 分批时 total 只覆盖最后一批，直接取 total 会少算）。
+        不用行数——行数不进页面，也不值得维护。只复核文件个数，
+        结果必须与 git ls-files 的口径一致，不一致就报错退出。
         """
         find_cmd = ("find . -type f \\( -name '*.py' -o -name '*.js' \\) "
                     "-not -path '*/__pycache__/*' -not -path '*/.venv/*' "
                     "-not -path '*/out/*' -not -path '*/frames/*' "
                     "-not -path '*/references/*' -not -path '*/node_modules/*' "
                     "-not -path './docs/*'")
-        n_r = subprocess.run(f'{find_cmd} | wc -l', cwd=str(VIDEO),
-                             shell=True, capture_output=True, text=True)
-        l_r = subprocess.run(f"{find_cmd} -exec wc -l {{}} + | "
-                             "awk '$2!=\"total\"{s+=$1} END{print s+0}'",
-                             cwd=str(VIDEO), shell=True, capture_output=True, text=True)
+        r = subprocess.run(f'{find_cmd} | wc -l', cwd=str(VIDEO),
+                           shell=True, capture_output=True, text=True)
         try:
-            return (int(n_r.stdout.strip()), int(l_r.stdout.strip()))
+            return int(r.stdout.strip())
         except ValueError:
-            return (-1, -1)
+            return -1
 
 
 # ---------------------------------------------------------------- 模块定义
@@ -175,6 +149,9 @@ MODULES = [
      '录素材、事实核对、裁剪自检、流水线、脚手架——「内容必须真实」的落脚处。'),
     ('工作流层', '工作流说明', ['skills/cli-intro-video/SKILL.md', 'skills/cli-intro-video/references'],
      '什么时候用这套流程、profile 每个字段怎么写、踩过的坑。'),
+    ('工作流层', '演进计划', ['docs/cli-video-skill-plan.md'],
+     '这套流程要变成能长期用的 Skill 还差什么：素材层怎么生成的、改文案为什么难、'
+     '引擎层有没有硬编码、下一步先做哪一步。'),
     ('素材层', '终端素材', ['project/web/img'],
      '命令真跑一遍录下的无损 PNG 帧序列；静帧入库，帧序列不入库。'),
     ('镜头层', '镜头与引擎', ['project/web'],
@@ -201,20 +178,20 @@ MODULES = [
      '三画幅成片与海报，供文档站嵌入；工程内的 out/ 另存交付核对表（不入库）。'),
 ]
 
-# 图 1 的层。文件行数、目录规模全部由扫描结果算，不手写。
-# chip = (显示名, 文件路径, 模式)  模式：'lines' 按扫描出的行数追加，'fixed' 原样显示
+# 图 1 的层。目录规模全部由扫描结果算，不手写。
+# chip = (显示名, 文件路径, 模式)  模式：'name' 只显示文件名，'frames' 追加帧数，'fixed' 原样显示
 LAYERS = [
     ('①', '配置层', 'profile/', [
-        ('spark-cli.json', 'profile/spark-cli.json', 'lines'),
-        ('facts.json', 'profile/facts.json', 'lines'),
+        ('spark-cli.json', 'profile/spark-cli.json', 'name'),
+        ('facts.json', 'profile/facts.json', 'name'),
     ]),
     ('②', '工作流层', 'skills/cli-intro-video/scripts/', [
-        ('pipeline.py', 'skills/cli-intro-video/scripts/pipeline.py', 'lines'),
-        ('facts.py', 'skills/cli-intro-video/scripts/facts.py', 'lines'),
-        ('check_crop.py', 'skills/cli-intro-video/scripts/check_crop.py', 'lines'),
-        ('record_terminal.py', 'skills/cli-intro-video/scripts/record_terminal.py', 'lines'),
-        ('scaffold.py', 'skills/cli-intro-video/scripts/scaffold.py', 'lines'),
-        ('_paths.py', 'skills/cli-intro-video/scripts/_paths.py', 'lines'),
+        ('pipeline.py', 'skills/cli-intro-video/scripts/pipeline.py', 'name'),
+        ('facts.py', 'skills/cli-intro-video/scripts/facts.py', 'name'),
+        ('check_crop.py', 'skills/cli-intro-video/scripts/check_crop.py', 'name'),
+        ('record_terminal.py', 'skills/cli-intro-video/scripts/record_terminal.py', 'name'),
+        ('scaffold.py', 'skills/cli-intro-video/scripts/scaffold.py', 'name'),
+        ('_paths.py', 'skills/cli-intro-video/scripts/_paths.py', 'name'),
     ]),
     ('③', '素材层', 'project/web/img/', [
         ('help/', 'project/web/img/help/meta.json', 'frames'),
@@ -223,23 +200,23 @@ LAYERS = [
         ('skill/', 'project/web/img/skill/meta.json', 'frames'),
     ]),
     ('④', '镜头层', 'project/web/', [
-        ('shots_spark.js（自写）', 'project/web/shots_spark.js', 'lines'),
-        ('core.js', 'project/web/core.js', 'lines'),
-        ('main.js', 'project/web/main.js', 'lines'),
-        ('index.html', 'project/web/index.html', 'lines'),
-        ('modules/editorial.js', 'project/web/modules/editorial.js', 'lines'),
-        ('bg.js', 'project/web/bg.js', 'lines'),
-        ('gl3d.js', 'project/web/gl3d.js', 'lines'),
+        ('shots_spark.js（自写）', 'project/web/shots_spark.js', 'name'),
+        ('core.js', 'project/web/core.js', 'name'),
+        ('main.js', 'project/web/main.js', 'name'),
+        ('index.html', 'project/web/index.html', 'name'),
+        ('modules/editorial.js', 'project/web/modules/editorial.js', 'name'),
+        ('bg.js', 'project/web/bg.js', 'name'),
+        ('gl3d.js', 'project/web/gl3d.js', 'name'),
     ]),
     ('⑤', '引擎层', 'skills/lucid/template/tools/', [
-        ('render.py', 'skills/lucid/template/tools/render.py', 'lines'),
-        ('checkup.py', 'skills/lucid/template/tools/checkup.py', 'lines'),
-        ('deliver.py', 'skills/lucid/template/tools/deliver.py', 'lines'),
-        ('timeline.py', 'skills/lucid/template/tools/timeline.py', 'lines'),
-        ('tts.py', 'skills/lucid/template/tools/tts.py', 'lines'),
-        ('layout.py', 'skills/lucid/template/tools/layout.py', 'lines'),
-        ('assets.py', 'skills/lucid/template/tools/assets.py', 'lines'),
-        ('common.py', 'skills/lucid/template/tools/common.py', 'lines'),
+        ('render.py', 'skills/lucid/template/tools/render.py', 'name'),
+        ('checkup.py', 'skills/lucid/template/tools/checkup.py', 'name'),
+        ('deliver.py', 'skills/lucid/template/tools/deliver.py', 'name'),
+        ('timeline.py', 'skills/lucid/template/tools/timeline.py', 'name'),
+        ('tts.py', 'skills/lucid/template/tools/tts.py', 'name'),
+        ('layout.py', 'skills/lucid/template/tools/layout.py', 'name'),
+        ('assets.py', 'skills/lucid/template/tools/assets.py', 'name'),
+        ('common.py', 'skills/lucid/template/tools/common.py', 'name'),
     ]),
     ('⑥', '产物层', 'project/out/ ＋ docs/assets/video/', [
         ('project/out/*.mp4  16x9 / 9x16 / 1x1', '', 'fixed'),
@@ -282,6 +259,7 @@ DIFF_FILES = [
 # 参考资料：每篇一句话
 DOC_NOTES = {
     'skills/cli-intro-video/SKILL.md': '这套流程的入口：什么时候用、怎么用。',
+    'docs/cli-video-skill-plan.md': '演进计划：素材层怎么生成、改文案为什么难、引擎有无硬编码、下一步做什么。',
     'skills/cli-intro-video/references/workflow.md': '工作流详解：六步各自在做什么。',
     'skills/cli-intro-video/references/profile-schema.md': 'profile 每个字段怎么写、哪些必填。',
     'skills/cli-intro-video/references/pitfalls.md': '踩过的坑：为什么不能手算列宽。',
@@ -314,6 +292,7 @@ NOTES = {
     'skills/cli-intro-video/scripts/scaffold.py': '脚手架：按 profile 拉起一个新视频工程（只起骨架，数字留空）。',
     'skills/cli-intro-video/scripts/_paths.py': '定位工程、profile、仓库根与 python 解释器。',
     'skills/cli-intro-video/SKILL.md': '这套流程的入口：什么时候用、怎么用。',
+    'docs/cli-video-skill-plan.md': '演进计划：素材层怎么生成、改文案为什么难、引擎有无硬编码、下一步做什么。',
     'skills/lucid/SKILL.md': 'lucid 引擎入口。',
     'skills/lucid/PROVENANCE.md': '来源与授权说明。',
     'project/web/shots_spark.js': '自写镜头代码：六个镜头，几何常量抄自素材 meta.json。',
@@ -358,7 +337,7 @@ def svg_layer_chips(chips, x0: float, y0: float, width: float):
 
 
 def chip_label(label: str, file_path: str, mode: str, scan: Scan) -> str:
-    """小标签的显示文本。行数来自扫描结果，不写死。"""
+    """小标签的显示文本。帧数来自素材的 meta.json，不写死。"""
     if mode == 'fixed':
         return label
     if mode == 'frames':
@@ -368,8 +347,7 @@ def chip_label(label: str, file_path: str, mode: str, scan: Scan) -> str:
         except (OSError, ValueError):
             n = 0
         return f'{label}  {n} 帧'
-    n = scan.lines.get(file_path, 0)
-    return f'{label}  {fmt_int(n)} 行'
+    return label
 
 
 def layer_stat(path: str, scan: Scan) -> str:
@@ -384,17 +362,21 @@ def layer_stat(path: str, scan: Scan) -> str:
                 pass
         return f'4 个素材 · {fmt_int(total)} 帧'
     if path.startswith('project/out'):
-        return '3 画幅 · 52.5 秒'
+        try:
+            pj = json.loads((VIDEO / 'project' / 'project.json').read_text(encoding='utf-8'))
+            fmts = list((pj.get('formats') or {'main': pj.get('canvas')}).keys())
+            sec = pj.get('target_sec')
+        except (OSError, ValueError):
+            fmts, sec = [], None
+        tail = f' · {sec} 秒' if sec else ''
+        return f'{len(fmts)} 画幅{tail}'
     prefix = path.split(' ＋ ')[0].rstrip('/')
     files = [f for f in scan.tracked if f == prefix or f.startswith(prefix + '/')]
-    txt = [f for f in files if scan.text[f]]
     n = len(files)
-    extra = ''
     if path.startswith('project/web/'):
         # 素材层单独算；镜头层含 project/web/img 的静帧
         n = len([f for f in files if not f.startswith('project/web/img/')])
-        txt = [f for f in txt if not f.startswith('project/web/img/')]
-    return f'{n} 文件 · {fmt_int(sum(scan.lines[f] for f in txt))} 行' + extra
+    return f'{n} 文件'
 
 
 def svg_layers(scan: Scan) -> str:
@@ -668,10 +650,8 @@ def build_preview(scan: Scan):
         blobs[key] = raw
         items[rel] = {
             'blob': key,
-            'lines': scan.lines[rel],
             'bytes': scan.bytes[rel],
             'truncated': truncated,
-            'total_lines': scan.lines[rel],
             'note': NOTES.get(rel, ''),
         }
 
@@ -684,9 +664,8 @@ def build_preview(scan: Scan):
             key = hashlib.sha1(raw.encode('utf-8')).hexdigest()
             blobs[key] = raw
             items[rel] = {
-                'blob': key, 'lines': scan.lines.get(rel) or count_lines(p),
+                'blob': key,
                 'bytes': p.stat().st_size, 'truncated': False,
-                'total_lines': count_lines(p),
                 'note': '录制时写下的真实网格（cell 字段）：镜头代码的几何常量抄自这里。此文件不入库，重录素材后重生成。',
             }
     return blobs, items
@@ -856,7 +835,7 @@ pre{margin:0;padding:16px 18px;background:#faf8f4;border:1px solid var(--rule);
 .dw-backdrop{position:fixed;inset:0;background:rgba(29,27,24,.20);opacity:0;
   pointer-events:none;transition:opacity .24s ease;z-index:40}
 .dw-backdrop.open{opacity:1}
-.dw{position:fixed;top:0;right:0;height:100vh;width:min(600px,52vw);
+.dw{position:fixed;top:0;right:0;height:100vh;width:min(880px,64vw);
   background:var(--panel);border-left:1px solid var(--rule);
   box-shadow:-20px 0 50px rgba(29,27,24,.10);
   transform:translateX(101%);transition:transform .28s cubic-bezier(.22,.61,.36,1);
@@ -864,6 +843,15 @@ pre{margin:0;padding:16px 18px;background:#faf8f4;border:1px solid var(--rule);
   transition:transform .28s cubic-bezier(.22,.61,.36,1),visibility 0s linear .28s}
 .dw.open{transform:translateX(0);visibility:visible;
   transition:transform .28s cubic-bezier(.22,.61,.36,1),visibility 0s}
+.dw.resizing{transition:none}
+/* 左边的手柄：拖它改抽屉宽度 */
+.dw-resize{position:absolute;left:-5px;top:0;bottom:0;width:11px;cursor:ew-resize;
+  z-index:2;display:flex;align-items:center;justify-content:center}
+.dw-resize::after{content:'';width:4px;height:54px;border-radius:2px;background:#cfc6b4;
+  transition:background .15s}
+.dw-resize:hover::after{background:var(--accent)}
+.dw-resize:focus-visible{outline:2px solid var(--accent);outline-offset:0}
+body.resizing{cursor:ew-resize;user-select:none}
 .dw-head{display:flex;align-items:flex-start;gap:14px;padding:22px 24px 14px;
   border-bottom:1px solid var(--rule)}
 .dw-eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
@@ -916,6 +904,7 @@ footer code{font-size:11px}
     border-left:none;border-top:1px solid var(--rule);border-radius:12px 12px 0 0;
     transform:translateY(101%);box-shadow:0 -20px 50px rgba(29,27,24,.12)}
   .dw.open{transform:translateY(0)}
+  .dw-resize{display:none}
   .flow-card{flex:1 1 100%}
   .idea{flex:1 1 100%}
 }
@@ -930,6 +919,7 @@ JS = """
   var drawer = document.getElementById('dw');
   var backdrop = document.getElementById('dw-backdrop');
   var closeBtn = document.getElementById('dw-close');
+  var handle = document.getElementById('dw-resize');
   var titleEl = document.getElementById('dw-title');
   var eyebrowEl = document.getElementById('dw-eyebrow');
   var pathEl = document.getElementById('dw-path');
@@ -950,6 +940,60 @@ JS = """
     var i = p.lastIndexOf('/');
     return i < 0 ? p : p.slice(i + 1);
   }
+
+  // ---- 抽屉宽度：默认 min(880px, 64vw)，可拖左边缘调整，宽度记在本地 ----
+  var MIN_W = 360, MAX_RATIO = 0.86, WKEY = 'arch-drawer-width';
+  function isSheet() { return window.innerWidth <= 820; }
+  function readW() {
+    try { return parseInt(localStorage.getItem(WKEY) || '', 10) || 0; }
+    catch (e) { return 0; }
+  }
+  function setW(px, save) {
+    if (isSheet()) { drawer.style.width = ''; return 0; }
+    var max = Math.round(window.innerWidth * MAX_RATIO);
+    var w = Math.max(MIN_W, Math.min(Math.round(px), max));
+    drawer.style.width = w + 'px';
+    handle.setAttribute('aria-valuenow', String(w));
+    if (save) { try { localStorage.setItem(WKEY, String(w)); } catch (e) {} }
+    return w;
+  }
+  var saved = readW();
+  setW(saved || Math.min(880, Math.round(window.innerWidth * 0.64)), false);
+
+  var dragging = false, dragX = 0, dragW = 0;
+  handle.addEventListener('pointerdown', function (e) {
+    if (isSheet()) return;
+    dragging = true; dragX = e.clientX;
+    dragW = drawer.getBoundingClientRect().width;
+    drawer.classList.add('resizing');
+    document.body.classList.add('resizing');
+    try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+  handle.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    setW(dragW + (dragX - e.clientX), false);
+  });
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    drawer.classList.remove('resizing');
+    document.body.classList.remove('resizing');
+    try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
+    setW(drawer.getBoundingClientRect().width, true);
+  }
+  handle.addEventListener('pointerup', endDrag);
+  handle.addEventListener('pointercancel', endDrag);
+  handle.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    var cur = drawer.getBoundingClientRect().width;
+    setW(cur + (e.key === 'ArrowLeft' ? 48 : -48), true);
+  });
+  window.addEventListener('resize', function () {
+    if (isSheet()) { drawer.style.width = ''; return; }
+    setW(readW() || Math.min(880, Math.round(window.innerWidth * 0.64)), false);
+  });
   function open(rel, trigger) {
     var it = items[rel];
     if (!it) return;
@@ -959,7 +1003,7 @@ JS = """
     titleEl.textContent = baseName(rel);
     eyebrowEl.textContent = it.module || '—';
     pathEl.textContent = 'video/' + rel;
-    sizeEl.textContent = it.total_lines + ' 行 · ' + kb(it.bytes) +
+    sizeEl.textContent = kb(it.bytes) +
       (it.truncated ? ' · 预览前 ' + shown + ' 行' : ' · 全文');
     modEl.textContent = it.module || '—';
     noteEl.innerHTML = it.note ? it.note : '';
@@ -969,7 +1013,7 @@ JS = """
     ghEl.href = url;
     if (it.truncated) {
       warnEl.innerHTML = '文件超过 ' + (maxInline / 1024) + ' KB，抽屉里只放前 ' +
-        shown + ' 行（共 ' + it.total_lines + ' 行）。完整内容见下方链接。';
+        shown + ' 行。完整内容见下方链接。';
     } else {
       warnEl.innerHTML = '';
     }
@@ -1077,10 +1121,10 @@ def render(scan: Scan) -> str:
     commit = git('rev-parse', '--short', 'HEAD')
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
 
-    code_n, code_l = len(scan.code_files()), scan.code_lines()
-    doc_n, doc_l = len(scan.doc_files()), scan.doc_lines()
-    chk_n, chk_l = scan.cross_check()
-    agree = (chk_n == code_n and chk_l == code_l)
+    code_n = len(scan.code_files())
+    doc_n = len(scan.doc_files())
+    chk_n = scan.cross_check()
+    agree = (chk_n == code_n)
 
     # --- 模块清单：每个模块一个可折叠块，展开是它的文件
     details = []
@@ -1091,7 +1135,7 @@ def render(scan: Scan) -> str:
                  and any(r == q or r.startswith(q.rstrip('/') + '/') for q in prefix)]
         txt = [f for f in files if scan.text[f]]
         nbin = len(files) - len(txt)
-        stat = f'{len(files)} 文件 · {fmt_int(sum(scan.lines[f] for f in txt))} 行'
+        stat = f'{len(files)} 文件'
         if nbin:
             stat += f' · {nbin} 个二进制'
         if 'project/web/img' in prefix:
@@ -1112,14 +1156,12 @@ def render(scan: Scan) -> str:
                 frows.append(
                     f'<tr><td><button class="filebtn" data-file="{esc(f)}">{esc(Path(f).name)}</button></td>'
                     f'<td class="mono">{esc(str(Path(f).parent))}/</td>'
-                    f'<td class="num">{fmt_int(scan.lines[f])}</td>'
                     f'<td class="num">{kb(scan.bytes[f])}</td>'
                     f'<td>{esc(note)}</td></tr>')
             else:
                 frows.append(
                     f'<tr><td class="bin">{esc(Path(f).name)}</td>'
                     f'<td class="mono">{esc(str(Path(f).parent))}/</td>'
-                    f'<td class="num">—</td>'
                     f'<td class="num">{kb(scan.bytes[f])}</td>'
                     f'<td class="bin">二进制，不预览</td></tr>')
         # 素材网格元数据：不在入库清单里，单独特例补上
@@ -1130,7 +1172,6 @@ def render(scan: Scan) -> str:
                     frows.append(
                         f'<tr><td><button class="filebtn" data-file="{esc(rel)}">meta.json</button></td>'
                         f'<td class="mono">project/web/img/{esc(name2)}/</td>'
-                        f'<td class="num">{fmt_int(items[rel]["total_lines"])}</td>'
                         f'<td class="num">{kb(items[rel]["bytes"])}</td>'
                         f'<td>真实网格（cell 字段）——不入库，重录后重生成</td></tr>')
 
@@ -1145,7 +1186,7 @@ def render(scan: Scan) -> str:
     <p class="m-role">{esc(role)}</p>
     <div class="flist">
       <table>
-        <thead><tr><th>文件</th><th>目录</th><th class="num">行</th><th class="num">大小</th><th>说明</th></tr></thead>
+        <thead><tr><th>文件</th><th>目录</th><th class="num">大小</th><th>说明</th></tr></thead>
         <tbody>{''.join(frows)}</tbody>
       </table>
     </div>
@@ -1176,7 +1217,9 @@ def render(scan: Scan) -> str:
 
     # --- 参考资料（随工程入库的说明文档）
     doc_files = sorted(f for f in scan.tracked
-                       if f.startswith('skills/') and f.endswith('.md'))
+                       if f.endswith('.md')
+                       and (f.startswith('skills/') or f.startswith('docs/'))
+                       and f != Scan.SELF)
     doc_cards = ''.join(
         f'<div class="doc-card" data-file="{esc(f)}" role="button" tabindex="0">'
         f'<span class="dc-head"><span class="dc-name">{esc(skill_of(f))} · {esc(Path(f).name)}</span>'
@@ -1269,9 +1312,10 @@ def render(scan: Scan) -> str:
     <p class="caption"><b>图 1</b> · 数据自上而下流动：profile 声明真相，工作流层据此核对并录制素材，
       镜头层把素材画成画面，引擎层逐帧渲染，产物层落出成片。
       <b>可点击的小标签</b>会滑出该文件的源码。</p>
-    <p class="caption caliber">口径：代码按 <code>.py</code>／<code>.js</code> 计，
-      共 <b>{code_n}</b> 个文件、<b>{fmt_int(code_l)}</b> 行；文档按 <code>.md</code> 计，共 <b>{doc_n}</b> 篇。
-      数字由 <code>build_architecture.py</code> 扫文件系统得出，另用 <code>find … | wc -l</code> 独立复核，两者{agree_text}。</p>
+    <p class="caption caliber">口径：文件清单以 <code>git ls-files video</code> 为准，共 <b>{len(scan.tracked)}</b> 个入库文件；
+      其中代码（<code>.py</code>／<code>.js</code>）<b>{code_n}</b> 个，文档（<code>.md</code>）<b>{doc_n}</b> 篇。
+      数字由 <code>build_architecture.py</code> 扫文件系统得出，另用 <code>find … | wc -l</code> 独立复核，两者{agree_text}。
+      本页不统计代码行数。</p>
     <figure>{svg_layers(scan)}</figure>
   </section>
 
@@ -1309,10 +1353,10 @@ def render(scan: Scan) -> str:
 
   <section id="modules">
     <h2>五、模块清单</h2>
-    <p class="caption">十四个模块按层排列，每一项都能展开。
-      展开后是这个模块包含的文件、行数与职责，点文件名会滑出抽屉看源码
+    <p class="caption">{len(MODULES)} 个模块按层排列，每一项都能展开。
+      展开后是这个模块包含的文件、大小与职责，点文件名会滑出抽屉看源码
       （16 KB 以内给全文，更大的只给前 100 行并附 GitHub 链接）。
-      按 <kbd>Esc</kbd>、点关闭按钮或点抽屉外任意处都能关。</p>
+      抽屉可以拖左边缘调宽；按 <kbd>Esc</kbd>、点关闭按钮或点抽屉外任意处都能关。</p>
     {''.join(details)}
   </section>
 
@@ -1332,6 +1376,9 @@ def render(scan: Scan) -> str:
 <div class="dw-backdrop" id="dw-backdrop"></div>
 <aside class="dw" id="dw" role="dialog" aria-modal="true" aria-hidden="true"
        aria-labelledby="dw-title">
+  <div class="dw-resize" id="dw-resize" role="separator" aria-orientation="vertical"
+       tabindex="0" aria-label="调整抽屉宽度，拖动或用左右方向键"
+       aria-valuemin="360" aria-valuemax="100" aria-valuenow="880"></div>
   <header class="dw-head">
     <div>
       <p class="dw-eyebrow" id="dw-eyebrow">—</p>
@@ -1349,7 +1396,7 @@ def render(scan: Scan) -> str:
   <div class="dw-body"><pre id="dw-code"></pre></div>
   <footer class="dw-foot">
     <a id="dw-gh" href="#" target="_blank" rel="noopener">在 GitHub 上看这个文件 ↗</a>
-    <span class="dw-hint">Esc 关闭</span>
+    <span class="dw-hint">Esc 关闭 · 拖左边缘调宽</span>
   </footer>
 </aside>
 
@@ -1367,14 +1414,14 @@ def main():
     a = ap.parse_args()
 
     scan = Scan()
-    code_n, code_l = len(scan.code_files()), scan.code_lines()
-    chk_n, chk_l = scan.cross_check()
+    code_n = len(scan.code_files())
+    chk_n = scan.cross_check()
     print(f'入库文件 {len(scan.tracked)} 个')
-    print(f'代码（.py/.js）{code_n} 个文件 / {code_l} 行')
-    print(f'独立复核 find+wc -l：{chk_n} 个文件 / {chk_l} 行')
-    if (chk_n, chk_l) != (code_n, code_l):
-        sys.exit('❌ 两种口径的数字不一致，先把统计口径修好再出图')
-    print(f'文档（.md）{len(scan.doc_files())} 篇 / {scan.doc_lines()} 行')
+    print(f'代码（.py/.js）{code_n} 个文件')
+    print(f'独立复核 find：{chk_n} 个文件')
+    if chk_n != code_n:
+        sys.exit('❌ 两种口径的文件数不一致，先把统计口径修好再出图')
+    print(f'文档（.md）{len(scan.doc_files())} 篇')
 
     page = render(scan)
     if a.check:
