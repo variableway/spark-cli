@@ -132,6 +132,37 @@ project/.venv/bin/python skills/cli-intro-video/scripts/pipeline.py \
 单步重跑：`--only facts,crop`、`--only render` 等。
 草稿档（默认，半尺寸快速）用来迭代，正式档加 `--final`。
 
+## 改片子：CLI 变了、读音错了
+
+CLI 重构或文案调整之后，片子不会自己跟上——它会变成一支说假话的片子。
+按**数据源 → 表现**的顺序改，别反：
+profile（声明）→ facts（断言）→ 镜头（表现）→ 配音（节奏）→ 素材（画面）→ 渲染。
+顺序反了会让 `ph()` 指向一个还不存在的短句。
+
+两篇手册：
+
+- [`docs/film-refresh-playbook.md`](docs/film-refresh-playbook.md)——改片的**顺序**与**坑**：
+  六环各自改什么、实测踩过的六个坑。
+- [`docs/film-refresh-io.md`](docs/film-refresh-io.md)——改片的**结构**：
+  每个文件谁产出谁消费、输入输出长什么样、S01 这些编号是什么、素材已存在时怎么手动处理、
+  配音怎么生成、多音字错了怎么办、跑之前检查什么。
+
+两个脚本把上面写死：
+
+```bash
+# 按改动范围重跑：check / voice / shots / assets / all
+project/.venv/bin/python skills/cli-intro-video/scripts/refresh.py \
+  --project project --profile profile --stage check
+
+# 读音自检：扫出配音稿里的多音字，和期望读音表比对（--ask 会切音频问实际读音）
+project/.venv/bin/python skills/cli-intro-video/scripts/check_pron.py \
+  --project project --profile profile
+```
+
+配音里的多音字（TTS 会把「一行」读成 xíng）**靠换词解决**，不要动 `tts_fix`：
+字幕取自 `vo.json`，只改 `tts_fix` 会变成「声音说一条、字幕写一行」。
+期望读音表是数据，写在 `profile/spark-cli.json` 的 `pronunciation.rules`。
+
 ## 改了画面上的事实，要同时改 facts.json
 
 画面上写了「v0.4.0」，观众会当真。改了版本号、改了命令列表、改了 URL，
