@@ -1486,7 +1486,7 @@ def main():
         print(f'页面 {len(page):,} 字节，校验通过（未写入）')
         return
     OUT.write_text(page, encoding='utf-8')
-    print(f'✅ 已写出 {OUT.relative_to(REPO)}（{len(page):,} 字节）')
+    print(f'✅ 已写出 {OUT.relative_to(REPO)}（{len(page.encode("utf-8")):,} 字节）')
 
 
 if __name__ == '__main__':
