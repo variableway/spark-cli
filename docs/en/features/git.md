@@ -2,7 +2,7 @@
 
 ## Overview
 
-`spark git` provides multi-repository Git management capabilities: batch updates, repo initialization, submodule management, Gitcode remote configuration, and organization-wide cloning.
+`spark git` provides multi-repository Git management: batch updates, Gitcode remotes, and organization-wide cloning. A directory of repositories is managed with `spark hub registry`.
 
 ## Core Capabilities
 
@@ -15,58 +15,12 @@ spark git update -p ~/workspace
 spark git update -p ~/workspace --ssh
 ```
 
-### Submodule Management
-
-Add local GitHub repositories or remote URLs as submodules. Supports initialization, status display, URL rewriting, and batch sync.
-
-```bash
-# Add existing local repos as submodules
-spark git submodule add ./path/to/repos
-
-# Add a remote repo as a submodule
-spark git submodule add https://github.com/user/repo
-spark git submodule add https://github.com/user/repo --name custom-folder
-
-# Initialize all un-cloned submodules
-spark git submodule init
-spark git submodule init -j 4             # 4-way parallel init
-spark git submodule init --recursive      # Include nested submodules
-spark git submodule init --name spark-cli # Only the named submodule
-
-# Show submodule status
-spark git submodule status
-
-# HTTPS -> SSH URL conversion
-spark git submodule ensure-ssh
-
-# Sync every submodule to the latest
-spark git sync ./my-mono
-spark git sync --recursive
-```
-
-**Highlights**:
-
-- `init` decouples initialization from remote update — it no longer force-merges. `-j` enables parallel clones.
-- `status` renders a table with per-submodule init state, commit, and branch.
-- `ensure-ssh` rewrites every HTTPS URL in `.gitmodules` to SSH with one command.
-- `git init` recursively scans nested directories (e.g. `projects/innate-ai-art`) up to 3 levels deep.
-
 ### Gitcode Remote Integration
 
 Automatically adds a Gitcode (https://gitcode.com) remote to each repo, enabling GitHub ↔ Gitcode two-way sync.
 
 ```bash
 spark git gitcode -p ~/workspace
-```
-
-### Repository Initialization
-
-One-shot init: `git init` → configure user → recursively scan subdirectories (3 levels) and add as submodules → generate `.gitignore` → initial commit → `gh repo create --push`.
-
-```bash
-spark git init --owner variableway              # Initialize and create the remote
-spark git init --owner variableway --private    # Create a private repo
-spark git init --skip-gh --owner variableway    # Local init only
 ```
 
 ### Batch Cloning
@@ -145,12 +99,8 @@ spark git scan . --skip-api --db ~/.innate/feeds.db
 | Parameter | Description |
 |-----------|-------------|
 | `-p, --path` | Directory containing Git repositories (repeatable), default `["."]` |
-| `-n, --name` | Submodule path name (remote mode), default: repo name |
 | `-o, --output` | Output path |
 | `--ssh` | Use SSH for cloning (`batch-clone`) |
-| `--owner` | GitHub owner (`init`), default: from config |
-| `--private` | Create a private repo (`init`) |
-| `--skip-gh` | Skip GitHub remote creation (`init`) |
 | `--include` / `--exclude` | Include/exclude match patterns (`batch-clone`) |
 | `--include-forks` | Include forked repos (`batch-clone`) |
 | `--token` | GitLab private token (`batch-clone`); also via `GITLAB_TOKEN` / `GITLAB_PRIVATE_TOKEN` or `gitlab.token` |

@@ -10,20 +10,17 @@
 
 1. **多仓库更新** — 批量更新多个 Git 仓库到最新版本（支持 SSH）
 2. **仓库克隆** — 通过 `gh repo clone` 克隆 GitHub 仓库（默认 SSH）；`batch-clone` 支持 GitHub 组织/用户与 GitLab 群组/用户
-3. **Submodule 管理** — `submodule add`（URL 或本地目录）、`submodule init`、`submodule status`、`submodule ensure-ssh`、`git sync`
-4. **Git 用户配置** — `spark git config` 配置仓库的 Git 用户信息
-5. **Gitcode 远程管理** — `spark git gitcode` 添加 Gitcode 远程地址
-6. **账号状态** — `spark git update-org-status` 将账号（组织/用户）仓库列表写入 README
-7. **仓库扫描** — `spark git scan` 扫描目录中的仓库并保存到 SQLite
-8. **仓库推送** — `spark git push-all` 批量提交推送所有更改
-9. **Issue 创建** — `spark git issues` 从 Markdown/任务文件创建 GitHub Issue
-10. **脚本管理** — 从 `~/.spark.yaml` 或 `scripts/` 目录发现并执行脚本
-11. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
-12. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
-13. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
-14. **仓库管理** — `spark repo` 通过 registry 文件管理目录下的多个 GitHub 仓库（`scan`/`clone`/`list`），替代 submodule；`scan` 输出分类格式（version 2：`分类/子分类/others`），无分类目录的目录自动回退旧扁平格式
-15. **Skill 管理** — `spark skill` 发现并同步 AI agent skills（`SKILL.md` 目录），支持 `list`/`sync`
-16. **项目 Hub** — `spark hub scan` 扫描本地 Git 仓库并生成 innate-apps registry（`registry/apps.json`）注册信息
+3. **Git 用户配置** — `spark git config` 配置仓库的 Git 用户信息
+4. **Gitcode 远程管理** — `spark git gitcode` 添加 Gitcode 远程地址
+5. **账号状态** — `spark git update-org-status` 将账号（组织/用户）仓库列表写入 README
+6. **仓库扫描** — `spark git scan` 扫描目录中的仓库并保存到 SQLite
+7. **仓库推送** — `spark git push-all` 批量提交推送所有更改
+8. **Issue 创建** — `spark git issues` 从 Markdown/任务文件创建 GitHub Issue
+9. **脚本管理** — 从 `~/.spark.yaml` 或 `scripts/` 目录发现并执行脚本
+10. **系统工具** — `spark magic` 提供 DNS 缓存刷新、`node_modules`/`.venv` 清理、pip/npm/go 镜像源切换、Neovim/Ghostty 模板部署
+11. **文档管理** — `spark docs init`/`spark docs site`（docmd 站点初始化）
+12. **进程诊断** — `spark witr`（Why Is This Running），检查进程或端口为何在运行
+13. **项目 Hub** — `spark hub registry` 管理 references 目录（scan / list / clone / clone-registry）；`spark hub collections` 登记自己开发的 app（`registry/apps.json`）。不用 submodule
 
 ## 技术栈
 
@@ -44,11 +41,8 @@ spark-cli/
 │   ├── witr.go              # 桥接到 internal/witr/app.Root()
 │   ├── git/                 # Git 仓库管理命令
 │   │   ├── git.go           # GitCmd 父命令
-│   │   ├── init.go          # spark git init
 │   │   ├── clone.go         # spark git clone
 │   │   ├── update.go        # spark git update（--ssh）
-│   │   ├── submodule.go     # spark git submodule {add,init,status,ensure-ssh}
-│   │   ├── sync.go          # spark git sync（--recursive）
 │   │   ├── gitcode.go       # spark git gitcode（--url）
 │   │   ├── config.go        # spark git config（--username, --email）
 │   │   ├── url.go           # spark git url
@@ -57,12 +51,6 @@ spark-cli/
 │   │   ├── update_org_status.go  # spark git update-org-status（账号类型自动识别）
 │   │   ├── push_all.go      # spark git push-all
 │   │   └── scan.go          # spark git scan（-d/--db, --skip-api）
-│   ├── repo/                # 仓库 registry 管理命令
-│   │   ├── repo.go          # RepoCmd 父命令
-│   │   ├── scan.go          # spark repo scan [folder-name]
-│   │   ├── clone.go         # spark repo clone（-r, -f）
-│   │   ├── clone_registry.go # spark repo clone-registry（--out, --dry-run）
-│   │   └── list.go          # spark repo list（-f）
 │   ├── magic/               # 系统实用命令
 │   │   ├── magic.go         # MagicCmd 父命令
 │   │   ├── clean.go         # spark magic clean（-m node|python）
@@ -75,27 +63,26 @@ spark-cli/
 │   │   ├── script.go        # ScriptCmd 父命令
 │   │   ├── list.go          # spark script list
 │   │   └── run.go           # spark script run <name> [args...]
-│   ├── skill/               # AI Skill 管理
-│   │   ├── skill.go         # SkillCmd 父命令
-│   │   ├── list.go          # spark skill list [--json]
-│   │   └── sync.go          # spark skill sync <dir> [--clear]
-│   ├── hub/                 # 项目 Hub（collections 注册）
-│   │   ├── hub.go           # HubCmd 父命令
-│   │   └── scan.go          # spark hub scan [path] [-o, --merge, --skip-api, --deep]
+│   ├── hub/                 # registry（references）与 collections（自研 app）
+│   │   ├── hub.go           # HubCmd
+│   │   ├── scan.go          # spark hub registry scan
+│   │   ├── list.go          # spark hub registry list
+│   │   ├── clone.go         # spark hub registry clone
+│   │   ├── clone_registry.go # spark hub registry clone-registry
+│   │   └── register.go      # spark hub collections scan
 │   └── docs/                # 文档管理
 │       ├── docs.go          # DocsCmd 父命令
 │       ├── init.go          # spark docs init（--root）
 │       └── site.go          # spark docs site（--root）
 ├── internal/
 │   ├── config/              # 配置加载
-│   ├── git/                 # Git 操作封装（finder/updater/init/submodule/pusher + scanner 子包）
+│   ├── git/                 # Git 操作封装（finder/updater/pusher + scanner 子包）
 │   │   └── scanner/         # git scan 使用的扫描与 SQLite 持久化
 │   ├── github/              # GitHub API（org / markdown issue）
 │   ├── gitlab/              # GitLab API（batch-clone：URL 解析、token 来源、嵌套群组）
-│   ├── registry/            # repo 命令的扫描/读写/merge 逻辑
-│   ├── collection/          # hub 命令的 registry/apps.json 模型、扫描与 merge
+│   ├── registry/            # hub registry 的扫描/读写/merge
+│   ├── collection/          # hub collections 的 apps.json 模型、扫描与 merge
 │   ├── script/              # 脚本发现（配置 + scripts/ 目录）与执行
-│   ├── skill/               # skill 发现（SKILL.md 目录扫描）与同步
 │   ├── templates/           # 嵌入的 dotfiles（nvim + ghostty）
 │   ├── testreport/          # Ginkgo JSON 报告 → 自包含 HTML 渲染器（含 BDD 测试）
 │   └── witr/                # Why-Is-This-Running 进程诊断引擎
@@ -114,8 +101,6 @@ spark-cli/
 │   │   └── navigation.json  # 侧边栏导航
 │   ├── en/                  # 英文镜像（渲染于 /en/），层级与 zh/ 完全平行
 │   └── ...
-├── skills/                  # 可安装的 Agent Skill（spark-cli 使用说明）
-│   └── spark-cli/SKILL.md
 ├── scripts/                 # 默认脚本目录（spark script 使用）+ 安装/校验脚本
 ├── .vscode/                 # VS Code 配置（tasks/launch/settings）
 ├── Makefile                 # 构建脚本（build/build-linux/build-darwin/test/lint/clean）
@@ -131,15 +116,8 @@ spark-cli/
 spark
 ├── version                 (显示 spark version / commit / build date)
 ├── git
-│   ├── init                 (--owner, -r/--repo, --private, --skip-gh)
 │   ├── clone                (<url-or-slug> [directory] [-- <git-args>])
 │   ├── update               (-p, --ssh)
-│   ├── submodule
-│   │   ├── add              (<path-or-url>, -n, --name)
-│   │   ├── init             (-r, --recursive, -j, --parallel, --name)
-│   │   ├── status           (-r, --recursive)
-│   │   └── ensure-ssh
-│   ├── sync                 ([repo-path], -r, --recursive)
 │   ├── gitcode              (-p, --url)
 │   ├── config               ([repo-path], --username, --email)
 │   ├── url                  ([repo-path])
@@ -150,19 +128,17 @@ spark
 │   │                         --section, --skip-push)
 │   ├── push-all             (-p)
 │   └── scan                 ([folder-path], -d, --db, --skip-api)
-├── repo
-│   ├── scan                 ([folder-name], --json, --flatten)
-│   ├── clone                (-r, --repo, -f, --file, --depth)
-│   ├── clone-registry       (<registry-file>, --out, --dry-run, --depth)
-│   └── list                 (-f, --file)
+├── hub
+│   ├── registry
+│   │   ├── scan                 ([folder-name], --json, --flatten)
+│   │   ├── list                 (-f, --file)
+│   │   ├── clone                (-r, --repo, -f, --file, --depth)
+│   │   └── clone-registry       (<registry-file>, --out, --dry-run, --depth)
+│   └── collections
+│       └── scan                 ([path], -o/--output, --merge, --skip-api, --deep, --category)
 ├── script
 │   ├── list
 │   └── run
-├── skill
-│   ├── list                 (--json)
-│   └── sync                 (<target-dir>, --clear)
-├── hub
-│   └── scan                 ([path], -o/--output, --merge, --skip-api, --deep, --category)
 ├── magic
 │   ├── clean                (-m, --mode)
 │   ├── copy-config          ([<user@host:path>])
@@ -171,7 +147,6 @@ spark
 │   ├── go {list,use,current}
 │   └── node {list,use,current}
 ├── docs
-│   ├── init                 (--root)
 │   └── site                 (--root)
 └── witr                     (--pid, --port/-o, --file/-f, --container/-c, --tree/-t,
                               --env, --json, --short/-s, --warnings,
@@ -183,7 +158,7 @@ spark
 ### 1. BDD 测试集成 (2026-02-26)
 - **任务**: 为 `internal` 包添加 BDD 风格的单元测试。
 - **工具**: 引入了 `Ginkgo` 和 `Gomega` 框架。
-- **覆盖范围**: `internal/config`、`internal/git`（含 finder/updater/submodule）、`internal/script`、`internal/github`（issue/markdown_issue/org）、`internal/gitlab`、`internal/witr/output`。
+- **覆盖范围**: `internal/config`、`internal/git`（含 finder/updater）、`internal/script`、`internal/github`（issue/markdown_issue/org）、`internal/gitlab`、`internal/witr/output`。
 - **验证**: 所有测试已通过 `make test-bdd` 验证。
 
 ### 2. 跨平台 Makefile 构建 (2026-02-26)
@@ -225,8 +200,7 @@ spark
   `cmd/git/batch_clone_test.go`（`resolveGitLabToken` 的 host 作用域表驱动用例）。
 
 ### 6. repo registry 与 magic/docs 命令
-- `spark repo`（`cmd/repo/` + `internal/registry`）以 `registry_<folder>.yaml` 取代 submodule
-  管理目录下的多个仓库：`scan` / `clone` / `list`。
+- `spark hub registry`（`cmd/hub/` + `internal/registry`）管理 references 目录：`scan` / `list` / `clone` / `clone-registry`。`spark hub collections`（`internal/collection`）登记自研 app。不再提供 `spark repo`、`spark skill`、`spark git submodule`。
 - `spark magic`（`cmd/magic/`）提供 `clean` / `copy-config` / `flush-dns` / `pip|go|node {list,use,current}`。
 - `spark docs`（`cmd/docs/`）提供 `init` / `site`，用于 docmd 站点脚手架。
 - `spark version`（`cmd/version.go`）打印 version / commit / build date。
@@ -298,14 +272,8 @@ spark
 父命令 `GitCmd` 在 `cmd/git/git.go` 中定义，包含以下子命令（在 `init()` 函数中按文件注册）：
 
 ```bash
-spark git init                   # 初始化仓库并创建 GitHub 远程
 spark git clone <url-or-slug>    # 通过 gh repo clone（默认 SSH）
 spark git update [-p ...]        # 扫描并更新所有仓库（--ssh 强制走 SSH）
-spark git submodule add ...      # 添加子模块
-spark git submodule init ...     # 初始化所有/指定子模块
-spark git submodule status       # 查看子模块状态
-spark git submodule ensure-ssh   # 将 .gitmodules 中 HTTPS 重写为 SSH
-spark git sync [path]            # 同步当前仓库的所有子模块
 spark git gitcode [-p ...]       # 添加 gitcode 远程
 spark git config [path]          # 配置 Git 用户信息
 spark git url [path]             # 打印当前仓库的远程 URL
@@ -346,77 +314,6 @@ spark git clone https://github.com/owner/repo.git my-dir -- --branch main --dept
 - `owner/repo`
 
 `--` 之后的额外参数会透传给 `git clone`。
-
-#### `spark git init`
-初始化当前目录为 Git 仓库并创建 GitHub 远程仓库。
-
-```bash
-spark git init --owner variableway              # 初始化并创建远程仓库
-spark git init --owner variableway --private    # 创建私有仓库
-spark git init --skip-gh --owner variableway    # 仅本地初始化，跳过 GitHub
-```
-
-| 选项 | 说明 |
-|------|------|
-| `--owner` | GitHub owner（默认：`github-owner` 配置） |
-| `-r, --repo` | 仓库名（默认：当前目录名） |
-| `--private` | 创建私有仓库 |
-| `--skip-gh` | 跳过 `gh repo create --push` |
-
-执行步骤（已存在 GitHub 仓库时仅步骤 2-3）：
-1. `git init`
-2. 配置 `git user.name` / `user.email`（来自 `git.username` / `git.email`）
-3. 扫描子目录中的 GitHub 仓库并以子模块加入
-4. 生成 `.gitignore`
-5. `chore: initial commit via spark git init`
-6. `gh repo create --push`（除非 `--skip-gh`）
-
-#### `spark git submodule`
-子模块管理父命令。
-
-##### `submodule add <path-or-url>`
-- URL 模式：`spark git submodule add https://github.com/owner/repo`
-- 文件夹模式：`spark git submodule add ./path/to/folder`（扫描目录中所有 GitHub 仓库作为子模块加入）
-
-| 选项 | 说明 |
-|------|------|
-| `-n, --name` | 自定义子模块路径名（URL 模式默认取仓库名） |
-
-##### `submodule init`
-执行 `git submodule update --init`：
-
-```bash
-spark git submodule init                          # 串行初始化所有未初始化的子模块
-spark git submodule init -j 4                     # 并行，4 workers
-spark git submodule init --recursive              # 递归初始化嵌套子模块
-spark git submodule init --name spark-cli         # 仅初始化指定子模块
-```
-
-| 选项 | 说明 |
-|------|------|
-| `-r, --recursive` | 递归初始化嵌套子模块 |
-| `-j, --parallel` | 并行 worker 数（默认 1） |
-| `--name` | 仅初始化指定名称的子模块 |
-
-##### `submodule status`
-显示每个子模块的路径、是否已初始化、提交哈希、分支。
-
-| 选项 | 说明 |
-|------|------|
-| `-r, --recursive` | 显示嵌套子模块 |
-| `-j, --parallel` | 在 status 命令中未使用 |
-
-##### `submodule ensure-ssh`
-将 `.gitmodules` 中所有 HTTPS GitHub URL 重写为 SSH 形式（`git@github.com:...`）。
-
-#### `spark git sync [path]`
-拉取父仓库远端并把所有子模块更新到远端最新 commit。
-
-```bash
-spark git sync .
-spark git sync --recursive        # 嵌套子模块
-spark git sync /path/to/repo
-```
 
 #### `spark git gitcode`
 为 GitHub 仓库批量添加 `gitcode` 远程（自动将 `github.com` → `gitcode.com`）。
@@ -579,97 +476,75 @@ spark git scan . --db ~/.innate/feeds.db
 
 ---
 
-### `spark repo` — 仓库管理
+### `spark hub` — 项目 Hub
 
-父命令 `RepoCmd` 在 `cmd/repo/repo.go` 中定义，通过 registry 文件管理目录下的多个 GitHub 仓库（替代 submodule）。
+`spark hub` 有两条互不替代的路径：
+
+- **registry**：管理 references 目录。`scan` 写入 `registry_<folder>.yaml`，`list` / `clone` / `clone-registry` 按这份 registry 查看和克隆。不用 submodule。
+- **collections**：登记自己开发的 app。`scan` 写入 innate-apps collections 目录（`registry/apps.json`）。
+
+父命令 `HubCmd` 在 `cmd/hub/hub.go`。registry 读写在 `internal/registry`，collections 在 `internal/collection`。
 
 ```bash
-spark repo scan [folder-name]                       # 扫描分类目录并写入 registry_<folder>.yaml
-spark repo scan [folder-name] --json                # 同时写出格式化 registry_<folder>.json
-spark repo scan [folder-name] --flatten             # （仅旧两层布局）拍平为 category/repo 再扫描
-spark repo clone -f registry_<folder>.yaml          # 克隆 registry 中全部仓库（按 path 还原）
-spark repo clone -r <name> -f registry_<folder>.yaml # 仅克隆指定仓库
-spark repo list -f registry_<folder>.yaml           # 列出 registry 中的仓库（分类格式按分组输出）
+spark hub registry scan [folder-name]                 # 扫描 references 目录，写入 registry_<folder>.yaml
+spark hub registry scan [folder-name] --json          # 同时写出 registry_<folder>.json
+spark hub registry list -f registry_<folder>.yaml
+spark hub registry clone -f registry_<folder>.yaml
+spark hub registry clone -r <name> -f registry_<folder>.yaml
+spark hub registry clone-registry <registry-file> [--out <folder>] [--dry-run] [--depth <n>]
+spark hub collections scan [path] -o registry/apps.json --merge registry/apps.json
 ```
 
-registry 文件格式（分类版，三分层目录扫描的默认输出；无一级分类目录时仍是旧扁平 `projects:` 格式）：
+registry 文件头是 `# Synced by spark hub registry scan`。三分层目录写成 version 2（`<分类>/<子分类>/others`）；没有一级分类目录时回退扁平 `projects:`。重复扫描按 `path`、其次按 URL 合并，保留 `name`/`desc`，本地缺失的旧条目原样保留。根目录上的仓库打印 WARNING 且不入册。
 
-```yaml
-# Project registry
-# Synced by spark repo scan
-
-version: 2
-categories:
-    - name: skills
-      subcategories:
-        - name: agent
-          projects:
-            - name: taste-skill
-              repo: https://github.com/Leonxlnx/taste-skill.git
-              path: skills/agent/taste-skill
-        - name: others
-          projects: []
-    - name: products
-      subcategories:
-        - name: others
-          projects: []
-    - name: plugins
-      subcategories:
-        - name: others
-          projects: []
-```
-
-旧扁平格式：
-
-```yaml
-# Project registry
-# Synced by spark repo scan
-
-projects:
-    - name: spark-cli
-      repo: https://github.com/variableway/spark-cli.git
-      path: tooling/spark-cli
-      desc: Spark CLI 工具
-```
-
-#### `spark repo scan [folder-name]`
-
-递归扫描目录，发现带 `origin` 远程的 Git 仓库，写入当前目录下的 `registry_<folder>.yaml`。目录约定为**三层分类**：`<分类>/<子分类>/<项目>`——分类取自一级子目录（即使为空也入册），每个分类恒有 `others` 子分类，直接放在分类下的项目（无子分类）归入 `others`，项目内部更深的嵌套仓保全完整 path 但仍归入其前两段的 `分类/子分类`，直接放在扫描根目录的仓库打印 `WARNING` 且不入册（需先移入分类）；没有任何一级分类目录时回退旧扁平格式。扫描时跳过隐藏目录与 `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build`；SSH URL 归一化为 HTTPS 形式存储；重复扫描与已有 registry 合并（按 `path` 优先、其次按 `repo` URL 匹配，保留旧 `name`/`desc`，本地缺失的旧条目原样保留——registry 兼作恢复记录，删除条目需手工编辑，追加新发现仓库）。`--flatten` 只服务于旧两层布局——**禁止**在三分层分类树上使用（会把项目移出子分类）。
+#### `spark hub registry scan [folder-name]`
 
 | 选项 | 说明 |
 |------|------|
-| `--json` | 在 YAML 之外额外写出格式化（2 空格缩进）的 `registry_<folder>.json`，内容一致 |
-| `--flatten` | 扫描前把超过两层（`category/repo`）的仓库上移到两层布局（破坏性操作，显式开启） |
+| `--json` | 额外写出格式化 `registry_<folder>.json` |
+| `--flatten` | 仅旧两层布局：扫描前把超过两层的仓库上移。三分层目录禁用 |
 
-`--flatten` 由 `internal/registry.Flatten` 实现：深层仓库移动到 `<category>/<仓库名>`，目标已存在或本次运行中被占用时跳过并打印 `Skipped ...` 告警（不覆盖任何文件），移动后清理空的中间目录；按深度从深到浅处理，避免父目录先移动导致子路径失效。
+#### `spark hub registry clone`
 
-#### `spark repo clone`
-
-从 registry 文件克隆仓库到 folder 目录（目录名由 `registry_<folder>.yaml` 推导为 `<folder>`）。已存在 `.git` 或目录已存在时跳过；逐个执行 `git clone <repo> <target>`；结束打印 `cloned / skipped / failed` 统计，`failed > 0` 时返回错误。
+目标目录名由 `registry_<folder>.yaml` 推导为 `<folder>`。已存在的目录 SKIP。按 path 从浅到深执行 `git clone`。
 
 | 选项 | 说明 |
 |------|------|
-| `-r, --repo` | 仅克隆指定名称的仓库（省略则克隆全部） |
+| `-r, --repo` | 只克隆指定名称 |
 | `-f, --file` | registry 文件（必填） |
-| `--depth` | 浅克隆深度（`git clone --depth=N`；默认 0 = 完整历史） |
+| `--depth` | 浅克隆深度，默认 0（完整历史） |
 
-#### `spark repo clone-registry`
+#### `spark hub registry clone-registry`
 
-从 registry 文件**只克隆本地缺失**的仓库——`repo scan` 保留未 checkout 条目后的对应恢复操作。registry 文件是位置参数；目标目录默认由 registry 文件位置与名称推导（`path/to/registry_<folder>.yaml` → `path/to/<folder>/`），与当前目录无关。执行前先打印「总数 / 在盘 / 缺失」计划，已在盘条目 `SKIP` 并计数、绝不重克隆；缺失条目按 path 深度从浅到深克隆；`--dry-run` 只打印 `WOULD CLONE` 清单。
+只克隆本地缺失的条目。registry 文件是位置参数。目标目录默认由文件位置和名称推导。
 
 | 选项 | 说明 |
 |------|------|
-| `--out` | 目标目录（默认由 registry 文件位置与名称推导） |
-| `--dry-run` | 只打印计划，不执行克隆 |
-| `--depth` | 浅克隆深度（`git clone --depth=N`；默认 0 = 完整历史） |
+| `--out` | 目标目录 |
+| `--dry-run` | 只打印计划 |
+| `--depth` | 浅克隆深度，默认 0 |
 
-#### `spark repo list`
+#### `spark hub registry list`
 
-列出 registry 文件中的仓库，每行输出 `name<TAB>repo<TAB>path`；registry 为空时打印 `No repositories in registry.`。
+每行 `name<TAB>repo<TAB>path`。分类格式先打印 `# <分类> / <子分类> (n)`。
 
 | 选项 | 说明 |
 |------|------|
 | `-f, --file` | registry 文件（必填） |
+
+#### `spark hub collections scan [path]`
+
+扫描自己开发的 app，默认只扫顶层。`--merge` 保留 `title`/`category`/`status`/`url`/`description`，刷新 `repo`/`local_path`/`visibility`/`language`，未扫到的旧条目原样保留。
+
+| 选项 | 说明 |
+|------|------|
+| `-o, --output` | 输出文件（默认 stdout；只给 `--merge` 时写回该文件） |
+| `--merge` | 与已有 collections 文件合并 |
+| `--skip-api` | 跳过 GitHub API |
+| `--deep` | 包含嵌套仓库 |
+| `--category` | 新条目分类（`base`/`app`/`reference`） |
+
+设置 `GITHUB_TOKEN` 可提升 API 速率限制。
 
 ---
 
@@ -693,53 +568,6 @@ spark script run <script-name> [args...]
 仓库内置脚本示例：
 - `copy-template.sh`
 - `list-dirs.sh`
-
----
-
-### `spark skill` — AI Skill 管理
-
-查找并同步 AI agent skills（`SKILL.md` 目录）。
-
-```bash
-spark skill list                    # 列出所有发现的 skill
-spark skill list --json             # JSON 输出
-spark skill sync <target-dir>       # 复制所有 skill 到目标目录
-spark skill sync <target-dir> --clear  # 清空目标目录后复制
-```
-
-发现位置（按 skill 名称去重，project > global > builtin）：
-
-- `<cwd>/.mimocode/skills/`、`.mimocode/skill/`、`.agents/skills/`
-- `~/.claude/skills/`、`~/.agents/skills/`、`~/.mimocode/skills/`
-- `~/.local/share/mimocode/builtin_skills/<version>/skills/`（多版本取最新）
-
-SKILL.md 的 YAML frontmatter 中 `name`/`description` 会被解析，缺省回退目录名。
-
----
-
-### `spark hub` — 项目 Hub（Collections 注册）
-
-扫描本地 Git 仓库并生成 innate-apps registry 格式（`registry/apps.json`）的注册信息。
-
-```bash
-spark hub scan <path>                              # 扫描目录，输出 JSON
-spark hub scan <path> -o registry/apps.json        # 输出到文件
-spark hub scan <path> --merge registry/apps.json   # 合并已有注册文件
-spark hub scan <path> --skip-api                   # 跳过 GitHub API
-spark hub scan <path> --deep                       # 包含嵌套仓库
-```
-
-| 选项 | 说明 |
-|------|------|
-| `-o, --output` | 输出文件路径（默认 stdout） |
-| `--merge` | 与已有注册文件合并，保留手工字段（`title`/`category`/`status`/`url`/`description`） |
-| `--skip-api` | 跳过 GitHub API，仅用本地 git 信息 |
-| `--deep` | 包含嵌套仓库（默认仅顶层目录） |
-| `--category` | 为新发现条目设置分类（`base`/`app`/`reference`） |
-
-合并行为：保留手工字段、刷新自动字段（`repo`/`local_path`/`visibility`/`language`）、
-保留扫描中未出现的已有条目（如 `../base/` 基础框架）、追加新发现仓库。
-设置 `GITHUB_TOKEN` 可提升 API 速率限制。
 
 ---
 
@@ -949,7 +777,7 @@ repo-path:
   - ./repos
 
 git:
-  username: your-name              # spark git config / init 默认值
+  username: your-name              # spark git config 默认值
   email: your-email@example.com
   scanner:
     db: ~/.innate/feeds.db         # spark git scan 默认 SQLite 路径
@@ -960,7 +788,6 @@ gitlab:
                                    # 需 read_api 权限，克隆私有仓库还需 read_repository
                                    # 优先级高于环境变量，残留的失效 token 会盖住 GITLAB_TOKEN
 
-github-owner: your-github-username # spark git init --owner 默认值
 
 default_branch: main
 auto_commit: true
@@ -971,10 +798,9 @@ auto_commit: true
 | 配置键 | 读取处 |
 |--------|--------|
 | `repo-path`（全局 `-p, --path`） | `cmd/git/update.go`、`push_all.go`、`magic/clean.go`、`gitcode.go` |
-| `git.username` / `git.email` | `cmd/git/config.go`、`cmd/git/init.go` |
+| `git.username` / `git.email` | `cmd/git/config.go` |
 | `git.scanner.db`（`--db`） | `cmd/git/scan.go` |
 | `gitlab.host` / `gitlab.token`（`--token`） | `cmd/git/batch_clone.go` |
-| `github-owner` | `cmd/git/init.go` |
 | `spark.scripts_dir` | `cmd/script/list.go`、`cmd/script/run.go` |
 
 GitLab Token 的环境变量为何用 `os.Getenv` 而非 `viper.AutomaticEnv()`：viper 会把 `gitlab.token`

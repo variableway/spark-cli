@@ -136,10 +136,7 @@ PASS  (32 packages, 18 with tests, 14 without tests, 0 failed)
 |---------|-------------|
 | `spark git update [--ssh]` | Update all repos to latest version |
 | `spark git clone <url-or-slug> [dir]` | Clone a GitHub repo via `gh` (default SSH) |
-| `spark git submodule add/init/status/ensure-ssh` | Submodule management |
-| `spark git sync [--recursive]` | Sync all submodules to latest |
 | `spark git gitcode` | Add Gitcode remote to repos |
-| `spark git init [--owner] [--skip-gh]` | Initialize repo and create GitHub remote |
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
 | `spark git batch-clone <account-or-url> [--ssh] [--token] [-o <dir>]` | Clone all repos from GitHub or GitLab |
@@ -161,17 +158,6 @@ PASS  (32 packages, 18 with tests, 14 without tests, 0 failed)
 
 ---
 
-### spark repo — Multi-repo Registry
-
-| Command | Description |
-|---------|-------------|
-| `spark repo scan [folder-name]` | Scan directory, write `registry_<folder>.yaml` |
-| `spark repo clone -f <registry> [-r <name>]` | Clone all (or one) repos from a registry |
-| `spark repo clone-registry <registry> [--out <folder>] [--dry-run]` | Clone only the registry entries missing on disk |
-| `spark repo list -f <registry>` | List repos in a registry |
-
----
-
 ### spark script — Custom Scripts
 
 | Command | Description |
@@ -183,26 +169,18 @@ Scripts sourced from `~/.spark.yaml` (`spark.scripts`) and `scripts/` directory.
 
 ---
 
-### spark skill — AI Skill Management
+### spark hub — References and app collections
+
+Two catalogs, used differently. `registry` tracks a references directory. `collections` registers apps you develop.
 
 | Command | Description |
 |---------|-------------|
-| `spark skill list [--json]` | Discover and list agent skills (`SKILL.md` dirs) |
-| `spark skill sync <dir> [--clear]` | Copy all discovered skills to a target directory |
-
-Skills discovered from `.mimocode/skills/`, `.agents/skills/`, `~/.claude/skills/`, `~/.mimocode/skills/`, and builtin skill packs.
-
----
-
-### spark hub — Project Hub (Collections Registration)
-
-| Command | Description |
-|---------|-------------|
-| `spark hub scan [path] [-o <file>]` | Scan git repos, emit innate-apps registry JSON |
-| `spark hub scan --merge <registry>` | Merge with existing registry, keep curated fields |
-| `spark hub scan --skip-api [--deep] [--category <c>]` | Offline / nested / category options |
-
-Output matches `registry/apps.json` (see `registry/schema.json`).
+| `spark hub registry scan [folder]` | Scan references into `registry_<folder>.yaml` |
+| `spark hub registry list -f <registry>` | List repositories in a registry |
+| `spark hub registry clone -f <registry> [-r <name>]` | Clone repositories from a registry |
+| `spark hub registry clone-registry <registry> [--out <folder>] [--dry-run]` | Clone only entries missing on disk |
+| `spark hub collections scan [path] [-o <file>]` | Register apps you develop as `registry/apps.json` |
+| `spark hub collections scan --merge <file> [--skip-api] [--deep] [--category <c>]` | Merge the app catalog and keep curated fields |
 
 ---
 
@@ -240,17 +218,6 @@ git:
 
 - [golang-cli-app skill](https://github.com/variableway/fire-skills/tree/main/dev/golang-cli-app) - Go CLI app code templates and best practices (Cobra/Viper/PTerm/Bubble Tea)
 
-## AI Skill
-
-`skills/spark-cli/SKILL.md` is a ready-to-install skill that teaches an AI
-assistant how to drive this CLI — command map, common workflows, and the three
-ways to fetch a GitHub repository list.
-
-```bash
-spark skill list                 # see every discovered skill
-spark skill sync ~/.claude/skills # install into your agent's skill directory
-```
-
 ## Documentation
 
 Online docs: https://variableway.github.io/spark-cli/
@@ -263,6 +230,5 @@ Online docs: https://variableway.github.io/spark-cli/
 | [docs/zh/quick-start/golang-cli-101.md](docs/zh/quick-start/golang-cli-101.md) | Go CLI essentials, lesson 1 |
 | [docs/zh/quick-start/nodejs-typescript-101.md](docs/zh/quick-start/nodejs-typescript-101.md) | Node + TypeScript essentials, lesson 1 |
 | [docs/zh/analysis/](docs/zh/analysis/) | Architecture & RFC documents |
-| [skills/spark-cli/SKILL.md](skills/spark-cli/SKILL.md) | spark-cli skill (AI assistant usage guide) |
 | [AGENTS.md](AGENTS.md) | AI integration guide |
 | [CHANGELOG.md](CHANGELOG.md) | Release history |

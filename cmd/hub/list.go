@@ -1,4 +1,4 @@
-package repo
+package hub
 
 import (
 	"fmt"
@@ -11,10 +11,10 @@ import (
 var listFile string
 
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List repositories declared in a registry file",
-	Long:  `List repositories declared in a registry file (name, remote URL and path).`,
-	Example: `  spark repo list -f registry_innate-apps.yaml`,
+	Use:     "list",
+	Short:   "List repositories declared in a registry file",
+	Long:    `List repositories declared in a registry file (name, remote URL and path).`,
+	Example: `  spark hub registry list -f registry_references.yaml`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if listFile == "" {
 			return fmt.Errorf("registry file is required: use -f registry_<folder>.yaml")
@@ -26,9 +26,6 @@ var listCmd = &cobra.Command{
 		}
 
 		if reg.IsCategorized() {
-			// Categorized (v2) registry: print one "# category / subcategory (n)"
-			// header per bucket, then the same name<TAB>repo<TAB>path rows as the
-			// legacy format (rows stay machine-readable, headers start with '#').
 			for _, c := range reg.Categories {
 				for _, s := range c.Subcategories {
 					fmt.Printf("# %s / %s (%d)\n", c.Name, s.Name, len(s.Projects))
@@ -54,5 +51,4 @@ var listCmd = &cobra.Command{
 
 func init() {
 	listCmd.Flags().StringVarP(&listFile, "file", "f", "", "Registry file (registry_<folder>.yaml)")
-	RepoCmd.AddCommand(listCmd)
 }

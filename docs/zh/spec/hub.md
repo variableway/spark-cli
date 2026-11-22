@@ -1,6 +1,6 @@
 # spark hub — 命令规格
 
-项目 Hub 命令组。扫描本地 Git 仓库并输出 innate-apps registry 格式的注册信息。
+项目 Hub。`registry` 管理 references 目录，`collections` 登记自己开发的 app。两者产物不同，不能互相替代。
 
 ## 父命令
 
@@ -8,101 +8,104 @@
 spark hub
 ```
 
+```
+spark hub registry
+spark hub collections
+```
+
 无参数，无标志。
 
 ---
 
-## spark hub scan
+## spark hub registry scan
 
-扫描目录中的 Git 仓库（**默认只扫顶层**），转换为 registry 条目。
+递归扫描目录中带 `origin` 的 Git 仓库，写入当前目录的 `registry_<folder>.yaml`。
 
 ```
-spark hub scan [path] [-o <file>] [--merge <file>] [--skip-api] [--deep] [--category <name>]
+spark hub registry scan [folder-name] [--json] [--flatten]
 ```
 
-| 标志 | 简写 | 类型 | 默认值 | 必填 | 说明 |
-|------|------|------|--------|------|------|
-| `--output` | `-o` | string | stdout | 否 | 输出文件路径 |
-| `--merge` | | string | | 否 | 与已有注册文件合并，保留手工字段 |
-| `--skip-api` | | bool | `false` | 否 | 跳过 GitHub API，只用本地 git 信息 |
-| `--deep` | | bool | `false` | 否 | 包含嵌套仓库（默认只扫顶层） |
-| `--category` | | string | | 否 | 为新发现条目设置分类 |
+| 参数 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `folder-name` | string | `.` | 否 | 要扫描的目录 |
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `--json` | bool | `false` | 否 | 额外写出 `registry_<folder>.json` |
+| `--flatten` | bool | `false` | 否 | 仅旧两层布局：扫描前上移超过两层的仓库。三分层目录禁用 |
+
+**行为**：跳过隐藏目录和 `node_modules` / `venv` / `.venv` / `__pycache__` / `dist` / `build`。SSH URL 存成 HTTPS。与已有 registry 按 `path`、其次按 URL 合并，保留 `name` / `desc`，本地缺失的旧条目原样保留。有一级分类目录时写成 version 2（`<分类>/<子分类>/others`）；没有则写成扁平 `projects:`。根目录上的仓库打印 WARNING 且不入册。
+
+---
+
+## spark hub registry list
+
+```
+spark hub registry list -f <registry-file>
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-f, --file` | string | | 是 | registry 文件 |
+
+分类格式先打印 `# <分类> / <子分类> (n)`，然后每行 `name<TAB>repo<TAB>path`。空 registry 打印 `No repositories in registry.`
+
+---
+
+## spark hub registry clone
+
+```
+spark hub registry clone [-r <name>] -f <registry-file> [--depth <n>]
+```
+
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-f, --file` | string | | 是 | registry 文件 |
+| `-r, --repo` | string | | 否 | 只克隆该名称 |
+| `--depth` | int | `0` | 否 | `git clone --depth=N`；0 为完整历史 |
+
+目标目录名由 `registry_<folder>.yaml` 推导为 `<folder>`。已有 `.git` 或目录已存在则 SKIP。按 path 从浅到深克隆。`failed > 0` 时返回错误。
+
+---
+
+## spark hub registry clone-registry
+
+```
+spark hub registry clone-registry <registry-file> [--out <folder>] [--dry-run] [--depth <n>]
+```
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `path` | string | 否 | 扫描根目录，默认 `.` |
+| `registry-file` | string | 是 | registry 文件 |
 
-### 扫描行为
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `--out` | string | 由文件位置与名称推导 | 否 | 目标目录 |
+| `--dry-run` | bool | `false` | 否 | 只打印 `WOULD CLONE` |
+| `--depth` | int | `0` | 否 | 浅克隆深度 |
 
-- 查找带 `origin` 远程的 Git 仓库（含 `.git` 目录与 `.git` 文件两种形态）；默认只取顶层，`--deep` 改为不限深度
-- 默认**只取顶层**的仓库；`--deep` 改为不限深度
-- 跳过隐藏目录以及 `node_modules` / `venv` / `.venv` / `__pycache__` / `dist` / `build`
-- 远程 URL 需为 GitHub 形式（`https://github.com/<owner>/<repo>.git` 或
-  `git@github.com:<owner>/<repo>.git`）才会进入注册表
-- `--skip-api` 为真时不调用 GitHub API，条目只含本地可推断的字段
-- API 调用失败时**自动回退**到本地信息：该条目没有 `language` 与 `description`，
-  `visibility` 仍为 `public`
+先打印总数 / 在盘 / 缺失。已在盘的条目 SKIP，不重新克隆。
 
-设置 `GITHUB_TOKEN` 可提高 API 速率限制。
+---
 
-### 输出格式
+## spark hub collections scan
 
-```json
-{
-  "$schema": "./schema.json",
-  "version": 1,
-  "updated_at": "2026-11-01",
-  "collections": [
-    {
-      "name": "spark-cli",
-      "title": "Spark CLI",
-      "repo": "variableway/spark-cli",
-      "url": "https://github.com/variableway/spark-cli",
-      "local_path": "spark-cli",
-      "category": "app",
-      "status": "maintained",
-      "visibility": "public",
-      "language": "Go",
-      "description": "Daily Cli command ideas fired by spark"
-    }
-  ]
-}
+扫描自己开发的 app，写出 innate-apps collections 目录。默认只扫顶层。
+
+```
+spark hub collections scan [path] [-o <file>] [--merge <file>] [--skip-api] [--deep] [--category <name>]
 ```
 
-| 字段 | 来源 |
-|------|------|
-| `$schema` | 固定 `./schema.json` |
-| `version` | 固定 `1` |
-| `updated_at` | 写入日期，格式 `2006-01-02` |
-| `name` | GitHub 仓库名（远程 URL 里的 slug） |
-| `title` | GitHub description；为空时由目录名人性化得到（`my-app` → `My App`） |
-| `repo` | `origin` 解析出的 `owner/repo` |
-| `url` | GitHub homepage；为空时用仓库 URL |
-| `local_path` | 相对扫描根目录的路径（统一为 `/` 分隔） |
-| `category` | 默认 `app`；`--category` 可覆盖 |
-| `status` | 默认 `maintained` |
-| `visibility` | GitHub API：`private` → `private`，否则 `public` |
-| `language` | GitHub API 主语言 |
-| `description` | GitHub API 描述 |
+| 参数 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `path` | string | `.` | 否 | 扫描根目录 |
 
-分类取值：`base` / `app` / `reference`。
-状态取值：`maintained` / `archived` / `experimental`。
+| 标志 | 类型 | 默认值 | 必填 | 说明 |
+|------|------|--------|------|------|
+| `-o, --output` | string | stdout | 否 | 输出文件。只给 `--merge` 时写回该文件 |
+| `--merge` | string | | 否 | 合并已有目录，保留手工字段 |
+| `--skip-api` | bool | `false` | 否 | 不调用 GitHub API |
+| `--deep` | bool | `false` | 否 | 包含嵌套仓库 |
+| `--category` | string | | 否 | 新条目分类：`base` / `app` / `reference` |
 
-### 合并行为
-
-`--merge <file>` 指定已有注册文件时：
-
-- **保留手工字段**：`title`、`category`、`status`、`url`、`description`
-- **刷新自动字段**：`repo`、`local_path`、`visibility`、`language`
-- **保留未匹配条目**：扫描中没发现的已有条目原样保留（例如 `../base/` 下的基础框架）
-- **追加新发现**：新扫到的仓库自动加入
-
-匹配顺序：先按 `name`，再按 `repo`。
-
-### 输出位置
-
-- 同时给 `-o` 和 `--merge` 时，写入 `-o` 指定的文件
-- 只给 `--merge` 时，写回该文件本身
-- 都不给时输出到 stdout
-
-写入文件时打印 `Wrote N collection(s) to <path>`。
+远程 URL 需为 GitHub 形式才会进入目录。API 失败时回退到本地信息。`--merge` 按 `name`、其次 `repo` 匹配；保留 `title` / `category` / `status` / `url` / `description`，刷新 `repo` / `local_path` / `visibility` / `language`，未扫到的旧条目原样保留。

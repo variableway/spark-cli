@@ -2,15 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"spark/cmd/docs"
 	"spark/cmd/git"
 	"spark/cmd/hub"
 	"spark/cmd/magic"
-	"spark/cmd/repo"
 	"spark/cmd/script"
-	"spark/cmd/skill"
-	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -23,9 +21,8 @@ var rootCmd = &cobra.Command{
 	Short: "A CLI tool to manage multiple git repositories and scripts",
 	Long: `Spark is a CLI application that helps you:
 1. Update multiple git repositories to the latest version
-2. Initialize a git repo and create a GitHub remote
-3. Add local repos or URLs as submodules
-4. Execute custom scripts for automation`,
+2. Scan, register, and clone projects with spark hub
+3. Execute custom scripts for automation`,
 }
 
 func Execute() {
@@ -41,11 +38,9 @@ func init() {
 	rootCmd.PersistentFlags().StringSliceP("path", "p", []string{"."}, "Path to the directory containing git repositories")
 	viper.BindPFlag("repo-path", rootCmd.PersistentFlags().Lookup("path"))
 	rootCmd.AddCommand(git.GitCmd)
-	rootCmd.AddCommand(repo.RepoCmd)
+	rootCmd.AddCommand(hub.HubCmd)
 	rootCmd.AddCommand(magic.MagicCmd)
 	rootCmd.AddCommand(script.ScriptCmd)
-	rootCmd.AddCommand(skill.SkillCmd)
-	rootCmd.AddCommand(hub.HubCmd)
 	rootCmd.AddCommand(docs.DocsCmd)
 }
 

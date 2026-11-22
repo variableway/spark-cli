@@ -67,8 +67,8 @@
     },
     "repo": {
       "command": ["repo", "--help"],
-      "prompt": "$ spark repo --help",
-      "title": "spark repo --help",
+      "prompt": "$ spark hub registry --help",
+      "title": "spark hub registry --help",
       "capture": {
         "cols": 92, "rows": 29, "out_width": 1250, "still": true, "seq": false
       },
@@ -80,8 +80,8 @@
     },
     "skill": {
       "command": ["skill", "--help"],
-      "prompt": "$ spark skill --help",
-      "title": "spark skill --help",
+      "prompt": "$ spark hub collections --help",
+      "title": "spark hub collections --help",
       "capture": {
         "cols": 92, "rows": 28, "out_width": 1250, "still": true, "seq": false
       },

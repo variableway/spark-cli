@@ -1,20 +1,13 @@
 # spark git — Git Repository Management
 
-Manage multiple Git repositories, initialize projects, sync submodules.
+Manage multiple Git repositories. A directory of repositories uses `spark hub registry`, not submodules.
 
 ## Quick Reference
 
 ```bash
 spark git update                              # Update all repositories
 spark git clone <url-or-slug> [dir] [-- <git-args>] # Clone a GitHub repo (SSH by default)
-spark git submodule add <path>                    # Scan a folder, add existing repos as submodules
-spark git submodule add <repo-url> [-n <name>]     # Add a remote repo as a submodule (-n sets the name)
-spark git submodule init [-j <n>] [-r]             # Initialize (clone) all submodules
-spark git submodule status                         # Show submodule status
-spark git submodule ensure-ssh                     # Convert HTTPS URLs to SSH
-spark git sync [./repo]                   # Sync submodules
 spark git gitcode                             # Add the Gitcode remote
-spark git init [--owner <owner>] [--skip-gh]   # Initialize a repo and create its GitHub remote
 spark git config [--username --email]         # Configure git user
 spark git url [repo-path]                     # Show the remote URL
 spark git batch-clone <account-or-url> [-o <dir>] # Clone every repo from a GitHub/GitLab account
@@ -73,133 +66,6 @@ spark git update --ssh                        # Force SSH for the update
 
 ---
 
-## spark git submodule add
-
-Add a local Git repository as a submodule, or clone a remote repository as a submodule.
-
-### Mode 1: Add a local repository as a submodule
-
-Scan a directory for Git repositories and add them as submodules without re-cloning.
-
-The directory to scan is the **positional argument**; this command has no flags
-of its own. The global `-p/--path` flag does not apply here — the parent
-repository is always the current directory.
-
-```bash
-spark git submodule add ./repos                       # Add every GitHub repo under the local folder as a submodule
-spark git submodule add ./spark-cli                  # Add a specific directory as a submodule
-```
-
-**Smart detection behavior**:
-
-| Scenario | Output |
-|----------|--------|
-| Target is already a submodule (160000) | `Skipping <name>: already as submodule` |
-| Target shares the parent repo URL (worktree) | `Skipping <name>: already as submodule` |
-| Directory exists but is not a submodule | `Adding existing repo as submodule: <name> (<url>)` (writes `.gitmodules` and stages the gitlink, no re-clone) |
-| Normal add | `Adding submodule: <name> (<url>)` |
-
-### Mode 2: Add a remote repository as a submodule
-
-Clone a remote Git repository and add it as a submodule.
-
-| Flag | Short | Default | Description |
-|------|-------|---------|-------------|
-| `-n, --name` | string | repo name | Submodule path name (remote mode) |
-
-```bash
-# Add a remote repo (default path)
-spark git submodule add https://github.com/user/repo
-
-# Add a remote repo and specify a path name
-spark git submodule add https://github.com/user/repo --name my-submodule
-
-# SSH URL
-spark git submodule add git@github.com:user/repo.git
-
-# owner/repo shorthand (GitHub)
-spark git submodule add user/repo
-```
-
----
-
-## spark git submodule init
-
-Initialize (clone) every registered submodule that has not been checked out yet.
-
-| Flag | Short | Default | Description |
-|------|-------|---------|-------------|
-| `-j, --parallel` | | `1` | Number of parallel clone workers |
-| `-r, --recursive` | | `false` | Also initialize nested submodules |
-| `--name` | | | Initialize only the named submodule |
-
-```bash
-spark git submodule init                         # Initialize every submodule
-spark git submodule init -j 4                    # 4-way parallel init
-spark git submodule init --recursive             # Include nested submodules
-spark git submodule init --name spark-cli        # Only the named submodule
-```
-
-**Note**: `init` only clones — it does not merge or switch branches. To bring submodules up to date, use `spark git sync`.
-
----
-
-## spark git submodule status
-
-Prints the status of every submodule in a table.
-
-```bash
-spark git submodule status
-```
-
-**Example output**:
-```
-PATH                           INIT       COMMIT       BRANCH
----------------------------------------------------------------------------
-fire-skills-base               ✅         945082af     heads/main
-innate-websites                ❌         119324a8         
-spark-cli                      ✅         43568d24     heads/main
-```
-
----
-
-## spark git submodule ensure-ssh
-
-Replace every HTTPS GitHub URL in `.gitmodules` with the SSH form. Useful when HTTPS is unreliable.
-
-```bash
-spark git submodule ensure-ssh
-```
-
-**Effect**:
-- `https://github.com/owner/repo.git` → `git@github.com:owner/repo.git`
-- The parent repo's `origin` remote URL is also updated
-- `.gitmodules` is modified — you still need to commit the change
-
----
-
-## spark git sync
-
-Sync every submodule in a Mono repo to the latest commit.
-
-| Flag | Short | Default | Description |
-|------|-------|---------|-------------|
-| `-r, --recursive` | | `false` | Recursively sync nested submodules |
-
-```bash
-spark git sync ./my-repo                       # Sync a specific repo
-spark git sync --recursive                     # Include nested submodules
-```
-
-**Flow**:
-1. `git fetch --all` — fetch the latest from every remote
-2. `git submodule update --init` — initialize missing submodules (read from `.gitmodules`)
-3. `git submodule update --remote --merge` — update and merge every submodule to latest
-
-**Note**: step 2 uses a parallel init (serial mode); failures do not stop the rest of the run.
-
----
-
 ## spark git gitcode
 
 Add a Gitcode remote to every GitHub repository.
@@ -239,43 +105,6 @@ Print the remote URL of a repository.
 ```bash
 spark git url                                 # Current directory
 spark git url /path/to/repo                   # Specific repo
-```
-
----
-
-## spark git init
-
-Initialize the current directory as a Git repository and create the GitHub remote.
-
-**Flow**:
-1. `git init` — initialize the local repo
-2. `git config user.name/email` — read from `~/.spark.yaml` and apply
-3. Scan subdirectories for GitHub repositories, add them automatically as `git submodule`
-4. Generate `.gitignore` with common ignore rules
-5. `git commit` — create the initial commit (required for `gh repo create --push`)
-6. `gh repo create` — create the GitHub remote and push
-
-```bash
-spark git init --owner variableway              # Initialize and create the remote
-spark git init --owner variableway --private    # Create a private repo
-spark git init --skip-gh --owner variableway    # Local init only
-```
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--owner` | `github-owner` from config | GitHub owner |
-| `-r, --repo` | current directory name | Repository name |
-| `--private` | `false` | Create a private repo |
-| `--skip-gh` | `false` | Skip `gh repo create` |
-
-**Config file** (`~/.spark.yaml`):
-
-```yaml
-github-owner: your-username
-
-git:
-  username: Your Name
-  email: your@email.com
 ```
 
 ---
@@ -474,13 +303,13 @@ gh api users/qdriven/repos --jq '.[] | {name, stargazers_count}'
 gh api --paginate users/qdriven/repos --jq '.[].name'
 ```
 
-### Path C: `spark hub scan` — generate a project registry
+### Path C: `spark hub collections scan` — register apps you develop
 
 For a project registry (JSON) carrying **category / status / visibility /
-language**, scan the local repositories with `spark hub scan`:
+language**, scan the local repositories with `spark hub collections scan`:
 
 ```bash
-spark hub scan . -o registry/apps.json --merge registry/apps.json
+spark hub collections scan . -o registry/apps.json --merge registry/apps.json
 ```
 
 See [Project Hub usage](./hub.md).

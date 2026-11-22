@@ -1,4 +1,4 @@
-package repo
+package hub
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ var cloneRegistryCmd = &cobra.Command{
 	Use:   "clone-registry <registry-file>",
 	Short: "Clone only the registry entries missing on disk",
 	Long: `Clone the repositories declared in a registry file whose target directory does
-not exist yet — the restore counterpart of repo scan, which keeps entries that
+not exist yet — the restore counterpart of hub registry scan, which keeps entries that
 are not checked out locally.
 
 The registry file is a positional argument. The destination folder is derived
@@ -29,10 +29,10 @@ path/to/<folder>/), so the registry restores the tree it sits next to no matter
 the current directory; override with --out. Entries already on disk are skipped
 and counted, never re-cloned. --dry-run prints the plan without cloning, and
 --depth N clones shallowly (git clone --depth=N; 0 = full history).`,
-	Example: `  spark repo clone-registry registry_references.yaml
-  spark repo clone-registry /path/to/registry_references.yaml --dry-run
-  spark repo clone-registry registry_references.yaml --depth 1
-  spark repo clone-registry registry_references.yaml --out ~/innate/base/innate-skills/references`,
+	Example: `  spark hub registry clone-registry registry_references.yaml
+  spark hub registry clone-registry /path/to/registry_references.yaml --dry-run
+  spark hub registry clone-registry registry_references.yaml --depth 1
+  spark hub registry clone-registry registry_references.yaml --out ~/innate/base/innate-skills/references`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		regFile := args[0]
@@ -53,8 +53,6 @@ and counted, never re-cloned. --dry-run prints the plan without cloning, and
 			root = filepath.Join(filepath.Dir(regFile), folderFromRegistryFile(regFile))
 		}
 
-		// Split present/missing up front so the plan is visible before any
-		// network traffic; --dry-run stops right there.
 		sortByDepth(projects)
 		var missing, present []registry.Project
 		for _, p := range projects {
@@ -92,5 +90,4 @@ func init() {
 	cloneRegistryCmd.Flags().StringVar(&cloneRegistryOut, "out", "", "Destination folder (default: next to the registry file, derived from its name)")
 	cloneRegistryCmd.Flags().BoolVar(&cloneRegistryDryRun, "dry-run", false, "Print what would be cloned without cloning")
 	cloneRegistryCmd.Flags().IntVar(&cloneRegistryDepth, "depth", 0, "Shallow clone depth (0 = full history)")
-	RepoCmd.AddCommand(cloneRegistryCmd)
 }

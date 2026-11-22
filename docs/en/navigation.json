@@ -50,20 +50,12 @@
         "path": "/usage/git"
       },
       {
-        "title": "Repo Management",
-        "path": "/usage/repo"
-      },
-      {
         "title": "System Utilities",
         "path": "/usage/magic"
       },
       {
         "title": "Script Management",
         "path": "/usage/script"
-      },
-      {
-        "title": "Skill Management",
-        "path": "/usage/skill"
       },
       {
         "title": "Project Hub",
@@ -104,14 +96,6 @@
         "path": "/features/git"
       },
       {
-        "title": "Repo Management",
-        "path": "/features/repo"
-      },
-      {
-        "title": "Skill Management",
-        "path": "/features/skill"
-      },
-      {
         "title": "Project Hub",
         "path": "/features/hub"
       },
@@ -141,14 +125,6 @@
       {
         "title": "Git",
         "path": "/spec/git"
-      },
-      {
-        "title": "Repo",
-        "path": "/spec/repo"
-      },
-      {
-        "title": "Skill",
-        "path": "/spec/skill"
       },
       {
         "title": "Hub",

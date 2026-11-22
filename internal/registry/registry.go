@@ -121,7 +121,7 @@ func Write(path string, reg *Registry) error {
 		return fmt.Errorf("encode registry: %w", err)
 	}
 
-	header := "# Project registry\n# Synced by spark repo scan\n\n"
+	header := "# Project registry\n# Synced by spark hub registry scan\n\n"
 	return os.WriteFile(path, append([]byte(header), data...), 0644)
 }
 
@@ -183,7 +183,7 @@ func Merge(existing, discovered []Project) []Project {
 		}
 		if !ok {
 			// No local clone matched: keep the entry verbatim so repos that are
-			// not checked out in this folder stay restorable via repo clone -f.
+			// not checked out in this folder stay restorable via hub registry clone -f.
 			final = append(final, old)
 			continue
 		}

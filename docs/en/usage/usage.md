@@ -1,16 +1,14 @@
 # Spark CLI Usage Guide
 
-Spark is a CLI tool for daily dev automation and AI skill integration.
+Spark is a CLI tool for daily development automation.
 
 ## Command Overview
 
 | Group | Description |
 |-------|-------------|
-| `spark git` | Git repository management (clone, update, submodules, Gitcode, batch-clone, issues, push, scan) |
-| `spark repo` | Repository management (registry-file driven scan / clone / list) |
+| `spark git` | Git repository management (clone, update, Gitcode, batch-clone, issues, push, scan) |
+| `spark hub` | Registry for references; collections for apps you develop |
 | `spark script` | Custom script management |
-| `spark skill` | AI skill management (discover, list, sync `SKILL.md` directories) |
-| `spark hub` | Project hub (scan git repos, emit innate-apps registry info) |
 | `spark magic` | System utilities (DNS flush, directory cleaning, dotfile deploy, mirror switching) |
 | `spark docs` | Documentation management (init structure, site config) |
 | `spark witr` | Process diagnostics (Why Is This Running) |
@@ -39,14 +37,11 @@ git:
 gitlab:
   host: gitlab.example.com   # optional: scope the token to this instance
   token: glpat-xxxx
-github-owner: your-username  # default for spark git init --owner
 ```
 
 ## Detailed Usage
 
 - [Git Repository Management](./git.md)
-- [Repository Management](./repo.md)
-- [Skill Management](./skill.md)
 - [Project Hub](./hub.md)
 - [System Utilities](./magic.md)
 - [Script Management](./script.md)

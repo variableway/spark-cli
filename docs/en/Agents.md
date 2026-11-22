@@ -11,20 +11,17 @@ Core capabilities:
 
 1. **Multi-repo update** — batch-update multiple Git repositories to the latest version (SSH supported)
 2. **Repo cloning** — clone GitHub repositories via `gh repo clone` (SSH by default); `batch-clone` supports GitHub organizations/users and GitLab groups/users
-3. **Submodule management** — `submodule add` (URL or local directory), `submodule init`, `submodule status`, `submodule ensure-ssh`, `git sync`
-4. **Git user configuration** — `spark git config` configures the repository's Git user info
-5. **Gitcode remote management** — `spark git gitcode` adds a Gitcode remote address
-6. **Account status** — `spark git update-org-status` writes the account (organization/user) repository list into the README
-7. **Repo scanning** — `spark git scan` scans the repositories in a directory and saves them to SQLite
-8. **Repo pushing** — `spark git push-all` batch-commits and pushes all changes
-9. **Issue creation** — `spark git issues` creates GitHub Issues from Markdown/task files
-10. **Script management** — discover and run scripts from `~/.spark.yaml` or the `scripts/` directory
-11. **System utilities** — `spark magic` provides DNS cache flushing, `node_modules`/`.venv` cleanup, pip/npm/go mirror switching, and Neovim/Ghostty template deployment
-12. **Docs management** — `spark docs init`/`spark docs site` (docmd site initialization)
-13. **Process diagnostics** — `spark witr` (Why Is This Running), inspecting why a process or port is running
-14. **Repo management** — `spark repo` manages multiple GitHub repositories in a directory via a registry file (`scan`/`clone`/`list`), replacing submodules; `scan` emits the categorized format (version 2: `category/subcategory/others`) and falls back to the legacy flat format for directories without category subdirectories
-15. **Skill management** — `spark skill` discovers and syncs AI agent skills (`SKILL.md` directories), with `list`/`sync`
-16. **Project hub** — `spark hub scan` scans local Git repositories and generates innate-apps registry (`registry/apps.json`) registration info
+3. **Git user configuration** — `spark git config` configures the repository's Git user info
+4. **Gitcode remote management** — `spark git gitcode` adds a Gitcode remote address
+5. **Account status** — `spark git update-org-status` writes the account (organization/user) repository list into the README
+6. **Repo scanning** — `spark git scan` scans the repositories in a directory and saves them to SQLite
+7. **Repo pushing** — `spark git push-all` batch-commits and pushes all changes
+8. **Issue creation** — `spark git issues` creates GitHub Issues from Markdown/task files
+9. **Script management** — discover and run scripts from `~/.spark.yaml` or the `scripts/` directory
+10. **System utilities** — `spark magic` provides DNS cache flushing, `node_modules`/`.venv` cleanup, pip/npm/go mirror switching, and Neovim/Ghostty template deployment
+11. **Docs management** — `spark docs init`/`spark docs site` (docmd site initialization)
+12. **Process diagnostics** — `spark witr` (Why Is This Running), inspecting why a process or port is running
+13. **Project hub** — `spark hub registry` manages a references directory (scan / list / clone / clone-registry); `spark hub collections` registers apps you develop (`registry/apps.json`). Submodules are not used
 
 ## Tech Stack
 
@@ -45,11 +42,8 @@ spark-cli/
 │   ├── witr.go              # Bridge to internal/witr/app.Root()
 │   ├── git/                 # Git repository management commands
 │   │   ├── git.go           # GitCmd parent command
-│   │   ├── init.go          # spark git init
 │   │   ├── clone.go         # spark git clone
 │   │   ├── update.go        # spark git update (--ssh)
-│   │   ├── submodule.go     # spark git submodule {add,init,status,ensure-ssh}
-│   │   ├── sync.go          # spark git sync (--recursive)
 │   │   ├── gitcode.go       # spark git gitcode (--url)
 │   │   ├── config.go        # spark git config (--username, --email)
 │   │   ├── url.go           # spark git url
@@ -58,12 +52,6 @@ spark-cli/
 │   │   ├── update_org_status.go  # spark git update-org-status (account type auto-detection)
 │   │   ├── push_all.go      # spark git push-all
 │   │   └── scan.go          # spark git scan (-d/--db, --skip-api)
-│   ├── repo/                # Repository registry management commands
-│   │   ├── repo.go          # RepoCmd parent command
-│   │   ├── scan.go          # spark repo scan [folder-name]
-│   │   ├── clone.go         # spark repo clone (-r, -f, --depth)
-│   │   ├── clone_registry.go # spark repo clone-registry (--out, --dry-run, --depth)
-│   │   └── list.go          # spark repo list (-f)
 │   ├── magic/               # System utility commands
 │   │   ├── magic.go         # MagicCmd parent command
 │   │   ├── clean.go         # spark magic clean (-m node|python)
@@ -76,27 +64,26 @@ spark-cli/
 │   │   ├── script.go        # ScriptCmd parent command
 │   │   ├── list.go          # spark script list
 │   │   └── run.go           # spark script run <name> [args...]
-│   ├── skill/               # AI Skill management
-│   │   ├── skill.go         # SkillCmd parent command
-│   │   ├── list.go          # spark skill list [--json]
-│   │   └── sync.go          # spark skill sync <dir> [--clear]
-│   ├── hub/                 # Project Hub (collections registration)
-│   │   ├── hub.go           # HubCmd parent command
-│   │   └── scan.go          # spark hub scan [path] [-o, --merge, --skip-api, --deep]
+│   ├── hub/                 # registry (references) and collections (apps you develop)
+│   │   ├── hub.go           # HubCmd
+│   │   ├── scan.go          # spark hub registry scan
+│   │   ├── list.go          # spark hub registry list
+│   │   ├── clone.go         # spark hub registry clone
+│   │   ├── clone_registry.go # spark hub registry clone-registry
+│   │   └── register.go      # spark hub collections scan
 │   └── docs/                # Documentation management
 │       ├── docs.go          # DocsCmd parent command
 │       ├── init.go          # spark docs init (--root)
 │       └── site.go          # spark docs site (--root)
 ├── internal/
 │   ├── config/              # Config loading
-│   ├── git/                 # Git operation wrappers (finder/updater/init/submodule/pusher + scanner subpackage)
+│   ├── git/                 # Git operation wrappers (finder/updater/pusher + scanner subpackage)
 │   │   └── scanner/         # Scanning and SQLite persistence used by git scan
 │   ├── github/              # GitHub API (org / markdown issue)
 │   ├── gitlab/              # GitLab API (batch-clone: URL parsing, token sources, nested groups)
-│   ├── registry/            # Scan/read-write/merge logic for the repo command
-│   ├── collection/          # registry/apps.json model, scan and merge for the hub command
+│   ├── registry/            # hub registry scan/read/merge
+│   ├── collection/          # hub collections apps.json model, scan and merge
 │   ├── script/              # Script discovery (config + scripts/ directory) and execution
-│   ├── skill/               # Skill discovery (SKILL.md directory scanning) and sync
 │   ├── templates/           # Embedded dotfiles (nvim + ghostty)
 │   ├── testreport/          # Ginkgo JSON report → self-contained HTML renderer (incl. BDD tests)
 │   └── witr/                # Why-Is-This-Running process diagnostics engine
@@ -115,8 +102,6 @@ spark-cli/
 │   │   └── navigation.json  # Sidebar navigation
 │   ├── en/                  # English mirror (rendered at /en/, hierarchy exactly parallel to zh/)
 │   └── ...
-├── skills/                  # Installable Agent Skill (spark-cli usage notes)
-│   └── spark-cli/SKILL.md
 ├── scripts/                 # Default script directory (used by spark script) + install/verify scripts
 ├── .vscode/                 # VS Code configuration (tasks/launch/settings)
 ├── Makefile                 # Build scripts (build/build-linux/build-darwin/test/lint/clean)
@@ -132,15 +117,8 @@ spark-cli/
 spark
 ├── version                 (shows spark version / commit / build date)
 ├── git
-│   ├── init                 (--owner, -r/--repo, --private, --skip-gh)
 │   ├── clone                (<url-or-slug> [directory] [-- <git-args>])
 │   ├── update               (-p, --ssh)
-│   ├── submodule
-│   │   ├── add              (<path-or-url>, -n, --name)
-│   │   ├── init             (-r, --recursive, -j, --parallel, --name)
-│   │   ├── status           (-r, --recursive)
-│   │   └── ensure-ssh
-│   ├── sync                 ([repo-path], -r, --recursive)
 │   ├── gitcode              (-p, --url)
 │   ├── config               ([repo-path], --username, --email)
 │   ├── url                  ([repo-path])
@@ -151,18 +129,17 @@ spark
 │   │                         --section, --skip-push)
 │   ├── push-all             (-p)
 │   └── scan                 ([folder-path], -d, --db, --skip-api)
-├── repo
-│   ├── scan                 ([folder-name])
-│   ├── clone                (-r, --repo, -f, --file)
-│   └── list                 (-f, --file)
+├── hub
+│   ├── registry
+│   │   ├── scan                 ([folder-name], --json, --flatten)
+│   │   ├── list                 (-f, --file)
+│   │   ├── clone                (-r, --repo, -f, --file, --depth)
+│   │   └── clone-registry       (<registry-file>, --out, --dry-run, --depth)
+│   └── collections
+│       └── scan                 ([path], -o/--output, --merge, --skip-api, --deep, --category)
 ├── script
 │   ├── list
 │   └── run
-├── skill
-│   ├── list                 (--json)
-│   └── sync                 (<target-dir>, --clear)
-├── hub
-│   └── scan                 ([path], -o/--output, --merge, --skip-api, --deep, --category)
 ├── magic
 │   ├── clean                (-m, --mode)
 │   ├── copy-config          ([<user@host:path>])
@@ -171,7 +148,6 @@ spark
 │   ├── go {list,use,current}
 │   └── node {list,use,current}
 ├── docs
-│   ├── init                 (--root)
 │   └── site                 (--root)
 └── witr                     (--pid, --port/-o, --file/-f, --container/-c, --tree/-t,
                               --env, --json, --short/-s, --warnings,
@@ -183,7 +159,7 @@ spark
 ### 1. BDD Test Integration (2026-02-26)
 - **Task**: Add BDD-style unit tests for the `internal` packages.
 - **Tooling**: Introduced the `Ginkgo` and `Gomega` frameworks.
-- **Coverage**: `internal/config`, `internal/git` (incl. finder/updater/submodule), `internal/script`, `internal/github` (issue/markdown_issue/org), `internal/gitlab`, `internal/witr/output`.
+- **Coverage**: `internal/config`, `internal/git` (incl. finder/updater), `internal/script`, `internal/github` (issue/markdown_issue/org), `internal/gitlab`, `internal/witr/output`.
 - **Verification**: All tests pass, verified via `make test-bdd`.
 
 ### 2. Cross-platform Makefile Build (2026-02-26)
@@ -227,8 +203,7 @@ spark
   `cmd/git/batch_clone_test.go` (table-driven cases for the host scoping of `resolveGitLabToken`).
 
 ### 6. repo Registry and magic/docs Commands
-- `spark repo` (`cmd/repo/` + `internal/registry`) replaces submodules with `registry_<folder>.yaml` to manage
-  multiple repositories under a directory: `scan` / `clone` / `list`.
+- `spark hub registry` (`cmd/hub/` + `internal/registry`) manages a references directory: `scan` / `list` / `clone` / `clone-registry`. `spark hub collections` (`internal/collection`) registers apps you develop. `spark repo`, `spark skill`, and `spark git submodule` are removed.
 - `spark magic` (`cmd/magic/`) provides `clean` / `copy-config` / `flush-dns` / `pip|go|node {list,use,current}`.
 - `spark docs` (`cmd/docs/`) provides `init` / `site`, for scaffolding a docmd site.
 - `spark version` (`cmd/version.go`) prints version / commit / build date.
@@ -306,14 +281,8 @@ Config initialization flow (`initConfig` + `migrateOldConfig`):
 The parent command `GitCmd` is defined in `cmd/git/git.go` and contains the following subcommands (registered per file in the `init()` functions):
 
 ```bash
-spark git init                   # Initialize the repository and create the GitHub remote
 spark git clone <url-or-slug>    # Clone via gh repo clone (SSH by default)
 spark git update [-p ...]        # Scan and update all repositories (--ssh forces SSH)
-spark git submodule add ...      # Add a submodule
-spark git submodule init ...     # Initialize all/specified submodules
-spark git submodule status       # Show the submodule status
-spark git submodule ensure-ssh   # Rewrite HTTPS in .gitmodules to SSH
-spark git sync [path]            # Sync all submodules of the current repository
 spark git gitcode [-p ...]       # Add a gitcode remote
 spark git config [path]          # Configure the Git user info
 spark git url [path]             # Print the remote URL of the current repository
@@ -354,77 +323,6 @@ Supported input formats:
 - `owner/repo`
 
 Extra arguments after `--` are passed through to `git clone`.
-
-#### `spark git init`
-Initialize the current directory as a Git repository and create the GitHub remote repository.
-
-```bash
-spark git init --owner variableway              # Initialize and create the remote repository
-spark git init --owner variableway --private    # Create a private repository
-spark git init --skip-gh --owner variableway    # Local init only, skip GitHub
-```
-
-| Option | Description |
-|------|------|
-| `--owner` | GitHub owner (default: the `github-owner` config) |
-| `-r, --repo` | Repository name (default: the current directory name) |
-| `--private` | Create a private repository |
-| `--skip-gh` | Skip `gh repo create --push` |
-
-Execution steps (when the GitHub repository already exists, only steps 2-3 apply):
-1. `git init`
-2. Configure `git user.name` / `user.email` (from `git.username` / `git.email`)
-3. Scan the GitHub repositories in the subdirectories and add them as submodules
-4. Generate `.gitignore`
-5. `chore: initial commit via spark git init`
-6. `gh repo create --push` (unless `--skip-gh`)
-
-#### `spark git submodule`
-Parent command for submodule management.
-
-##### `submodule add <path-or-url>`
-- URL mode: `spark git submodule add https://github.com/owner/repo`
-- Folder mode: `spark git submodule add ./path/to/folder` (scans all GitHub repositories in the directory and adds them as submodules)
-
-| Option | Description |
-|------|------|
-| `-n, --name` | Custom submodule path name (in URL mode the repository name is used by default) |
-
-##### `submodule init`
-Runs `git submodule update --init`:
-
-```bash
-spark git submodule init                          # Initialize all uninitialized submodules serially
-spark git submodule init -j 4                     # Parallel, 4 workers
-spark git submodule init --recursive              # Recursively initialize nested submodules
-spark git submodule init --name spark-cli         # Initialize only the specified submodule
-```
-
-| Option | Description |
-|------|------|
-| `-r, --recursive` | Recursively initialize nested submodules |
-| `-j, --parallel` | Number of parallel workers (default 1) |
-| `--name` | Initialize only the submodule with the given name |
-
-##### `submodule status`
-Shows the path, initialization state, commit hash and branch of each submodule.
-
-| Option | Description |
-|------|------|
-| `-r, --recursive` | Show nested submodules |
-| `-j, --parallel` | Not used in the status command |
-
-##### `submodule ensure-ssh`
-Rewrites all HTTPS GitHub URLs in `.gitmodules` to their SSH form (`git@github.com:...`).
-
-#### `spark git sync [path]`
-Pulls the remote of the parent repository and updates all submodules to the latest remote commit.
-
-```bash
-spark git sync .
-spark git sync --recursive        # Nested submodules
-spark git sync /path/to/repo
-```
 
 #### `spark git gitcode`
 Batch-adds a `gitcode` remote to GitHub repositories (automatically converting `github.com` → `gitcode.com`).
@@ -594,82 +492,75 @@ The default database path can be set via `git.scanner.db` in `~/.spark.yaml`. Se
 
 ---
 
-### `spark repo` — Repository Management
+### `spark hub` — Project Hub
 
-The parent command `RepoCmd` is defined in `cmd/repo/repo.go` and manages multiple GitHub repositories under a directory via a registry file (replacing submodules). Scanning a three-level tree (`<category>/<subcategory>/<project>`) emits the categorized format (version 2, always with an `others` subcategory); directories without category subdirectories keep the legacy flat `projects:` format.
+`spark hub` has two paths, and they are not interchangeable:
+
+- **registry**: a references directory. `scan` writes `registry_<folder>.yaml`; `list` / `clone` / `clone-registry` read that registry and clone. Submodules are not used.
+- **collections**: apps you develop. `scan` writes an innate-apps collections catalog (`registry/apps.json`).
+
+The parent command `HubCmd` is `cmd/hub/hub.go`. Registry I/O is `internal/registry`. Collections are `internal/collection`.
 
 ```bash
-spark repo scan [folder-name]                       # Scan a categorized directory and write registry_<folder>.yaml
-spark repo clone -f registry_<folder>.yaml          # Clone every repo in the registry (to its recorded path)
-spark repo clone -r <name> -f registry_<folder>.yaml # Clone only the specified repository
-spark repo list -f registry_<folder>.yaml           # List the repositories in the registry (grouped when categorized)
+spark hub registry scan [folder-name]                 # scan a references directory into registry_<folder>.yaml
+spark hub registry scan [folder-name] --json          # also write registry_<folder>.json
+spark hub registry list -f registry_<folder>.yaml
+spark hub registry clone -f registry_<folder>.yaml
+spark hub registry clone -r <name> -f registry_<folder>.yaml
+spark hub registry clone-registry <registry-file> [--out <folder>] [--dry-run] [--depth <n>]
+spark hub collections scan [path] -o registry/apps.json --merge registry/apps.json
 ```
 
-Registry file format:
+The registry header is `# Synced by spark hub registry scan`. A three-level directory is written as version 2 (`<category>/<subcategory>/others`). A directory with no category folders keeps the flat `projects:` format. A rescan merges by `path`, then URL, keeps `name`/`desc`, and keeps old entries whose checkout is absent. A repository in the scan root prints WARNING and is omitted.
 
-```yaml
-# Project registry
-# Synced by spark repo scan
-
-projects:
-    - name: spark-cli
-      repo: https://github.com/variableway/spark-cli.git
-      path: tooling/spark-cli
-      desc: Spark CLI tool
-```
-
-Categorized format (version 2):
-
-```yaml
-version: 2
-categories:
-    - name: skills
-      subcategories:
-        - name: dev-tool
-          projects:
-            - name: spark-cli
-              repo: https://github.com/variableway/spark-cli.git
-              path: skills/dev-tool/spark-cli
-```
-
-#### `spark repo scan [folder-name]`
-
-Recursively scan the directory, discover Git repositories that have an `origin` remote, and write them to `registry_<folder>.yaml` in the current directory. Hidden directories and `node_modules`/`venv`/`.venv`/`__pycache__`/`dist`/`build` are skipped; SSH URLs are normalized to the HTTPS form for storage; repeated scans are merged with the existing registry (matched first by `path`, then by `repo` URL, keeping the old `name`/`desc`, preserving entries whose clone is absent locally verbatim — the registry doubles as a restore record, so removal is a manual registry edit — and appending newly discovered repositories).
-
-Grouping rules: a category is a first-level subdirectory (directories containing `.git` are treated as projects, never as categories/subcategories); projects without a subcategory go into that category's `others` subcategory (`others` is always present and sorted last); root-level repositories print a WARNING and are excluded; when no directory has category subdirectories the scanner falls back to the legacy flat format and prints a NOTE.
+#### `spark hub registry scan [folder-name]`
 
 | Option | Description |
 |------|------|
-| `--json` | Additionally write a formatted (2-space indent) `registry_<folder>.json` alongside the YAML |
-| `--flatten` | Legacy two-level layout only: move repositories deeper than two levels (`category/repo`) up before scanning; conflicts are skipped, never overwritten. Do not use it on a `category/subcategory/project` tree (it would move projects out of their subcategory) |
+| `--json` | Also write a formatted `registry_<folder>.json` |
+| `--flatten` | Legacy two-level layout only. Do not use on a three-level tree |
 
-#### `spark repo clone`
+#### `spark hub registry clone`
 
-Clone the repositories from the registry file into the folder directory (the directory name is derived from `registry_<folder>.yaml` as `<folder>`). It skips repositories that already have a `.git` or whose directory already exists; it runs `git clone <repo> <target>` one by one; at the end it prints the `cloned / skipped / failed` statistics and returns an error when `failed > 0`. Repositories are cloned in ascending path-depth order (parents before nested repositories); categorized registries are flattened via `AllProjects`.
+The destination folder is derived from `registry_<folder>.yaml` as `<folder>`. An existing directory is SKIP. `git clone` runs shallowest path first.
 
 | Option | Description |
 |------|------|
-| `-r, --repo` | Clone only the repository with the given name (omit to clone all) |
+| `-r, --repo` | Clone only this name |
 | `-f, --file` | Registry file (required) |
-| `--depth` | Shallow clone depth (`git clone --depth=N`; default 0 = full history) |
+| `--depth` | Shallow clone depth; default 0 keeps full history |
 
-#### `spark repo clone-registry`
+#### `spark hub registry clone-registry`
 
-Clone only the repositories from the registry file whose target directory is missing on disk — the restore counterpart of `repo scan` keeping entries that are not checked out. The registry file is a positional argument; the destination folder is derived from the registry file's location and name (`path/to/registry_<folder>.yaml` -> `path/to/<folder>/`), independent of the current directory. It prints an "entries / on disk / missing" plan first, SKIPs and counts entries already on disk (never re-clones), clones missing ones in ascending path-depth order (parents before nested repositories), and `--dry-run` only prints the `WOULD CLONE` list.
+Clone only entries missing on disk. The registry file is a positional argument. The destination defaults to a folder derived from the file location and name.
 
 | Option | Description |
 |------|------|
-| `--out` | Destination folder (default: derived from the registry file's location and name) |
-| `--dry-run` | Print the plan without cloning |
-| `--depth` | Shallow clone depth (`git clone --depth=N`; default 0 = full history) |
+| `--out` | Destination directory |
+| `--dry-run` | Print the plan only |
+| `--depth` | Shallow clone depth; default 0 |
 
-#### `spark repo list`
+#### `spark hub registry list`
 
-List the repositories in the registry file, printing `name<TAB>repo<TAB>path` per line; when the registry is empty it prints `No repositories in registry.`. For categorized registries a `# <category> / <subcategory> (n)` group header is printed before each group; the per-line format is unchanged.
+Each row is `name<TAB>repo<TAB>path`. Categorized files print `# <category> / <subcategory> (n)` first.
 
 | Option | Description |
 |------|------|
 | `-f, --file` | Registry file (required) |
+
+#### `spark hub collections scan [path]`
+
+Scan apps you develop. Top level only by default. `--merge` keeps `title`/`category`/`status`/`url`/`description`, refreshes `repo`/`local_path`/`visibility`/`language`, and keeps old entries that were not scanned.
+
+| Option | Description |
+|------|------|
+| `-o, --output` | Output file (stdout by default; with only `--merge`, that file is written back) |
+| `--merge` | Merge with an existing collections file |
+| `--skip-api` | Skip the GitHub API |
+| `--deep` | Include nested repositories |
+| `--category` | Category for new entries (`base`/`app`/`reference`) |
+
+`GITHUB_TOKEN` raises the API rate limit.
 
 ---
 
@@ -693,53 +584,6 @@ Supported script types (identified by extension): `.sh` `.bash` `.zsh` `.py` `.r
 Built-in script examples:
 - `copy-template.sh`
 - `list-dirs.sh`
-
----
-
-### `spark skill` — AI Skill Management
-
-Find and sync AI agent skills (`SKILL.md` directories).
-
-```bash
-spark skill list                    # List all discovered skills
-spark skill list --json             # JSON output
-spark skill sync <target-dir>       # Copy all skills to the target directory
-spark skill sync <target-dir> --clear  # Clear the target directory, then copy
-```
-
-Discovery locations (deduplicated by skill name, project > global > builtin):
-
-- `<cwd>/.mimocode/skills/`, `.mimocode/skill/`, `.agents/skills/`
-- `~/.claude/skills/`, `~/.agents/skills/`, `~/.mimocode/skills/`
-- `~/.local/share/mimocode/builtin_skills/<version>/skills/` (the newest version wins when several exist)
-
-The `name`/`description` in the YAML frontmatter of SKILL.md are parsed, falling back to the directory name when they are absent.
-
----
-
-### `spark hub` — Project Hub (Collections Registration)
-
-Scan local Git repositories and generate registration information in the innate-apps registry format (`registry/apps.json`).
-
-```bash
-spark hub scan <path>                              # Scan the directory, output JSON
-spark hub scan <path> -o registry/apps.json        # Write to a file
-spark hub scan <path> --merge registry/apps.json   # Merge with the existing registration file
-spark hub scan <path> --skip-api                   # Skip the GitHub API
-spark hub scan <path> --deep                       # Include nested repositories
-```
-
-| Option | Description |
-|------|------|
-| `-o, --output` | Output file path (default stdout) |
-| `--merge` | Merge with the existing registration file, keeping the manual fields (`title`/`category`/`status`/`url`/`description`) |
-| `--skip-api` | Skip the GitHub API, use only local git information |
-| `--deep` | Include nested repositories (default: top-level directories only) |
-| `--category` | Set the category for newly discovered entries (`base`/`app`/`reference`) |
-
-Merge behavior: manual fields are preserved, automatic fields are refreshed (`repo`/`local_path`/`visibility`/`language`),
-existing entries that did not appear in the scan are preserved (e.g. the `../base/` base framework), and newly
-discovered repositories are appended. Setting `GITHUB_TOKEN` raises the API rate limit.
 
 ---
 
@@ -952,7 +796,7 @@ repo-path:
   - ./repos
 
 git:
-  username: your-name              # Default for spark git config / init
+  username: your-name              # Default for spark git config
   email: your-email@example.com
   scanner:
     db: ~/.innate/feeds.db         # Default SQLite path for spark git scan
@@ -963,7 +807,6 @@ gitlab:
                                    # Requires the read_api scope; cloning private repositories also requires read_repository
                                    # Takes precedence over the environment variable; a stale invalid token takes precedence over GITLAB_TOKEN
 
-github-owner: your-github-username # Default for spark git init --owner
 
 default_branch: main
 auto_commit: true
@@ -974,10 +817,9 @@ Configuration keys and where they are actually read (`viper.GetString` / `viper.
 | Config key | Read by |
 |--------|--------|
 | `repo-path` (global `-p, --path`) | `cmd/git/update.go`, `push_all.go`, `magic/clean.go`, `gitcode.go` |
-| `git.username` / `git.email` | `cmd/git/config.go`, `cmd/git/init.go` |
+| `git.username` / `git.email` | `cmd/git/config.go` |
 | `git.scanner.db` (`--db`) | `cmd/git/scan.go` |
 | `gitlab.host` / `gitlab.token` (`--token`) | `cmd/git/batch_clone.go` |
-| `github-owner` | `cmd/git/init.go` |
 | `spark.scripts_dir` | `cmd/script/list.go`, `cmd/script/run.go` |
 
 Why the GitLab Token environment variable uses `os.Getenv` instead of `viper.AutomaticEnv()`: viper would map

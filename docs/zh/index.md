@@ -101,14 +101,7 @@ go test ./internal/git/... -v -run TestFunctionName
 |---------|-------------|
 | `spark git clone <url-or-slug> [dir] [-- <git-args>]` | Clone a GitHub repo via `gh repo clone` (SSH by default) |
 | `spark git update [--ssh]` | Update all repos to latest version (`--ssh` 强制 SSH) |
-| `spark git submodule add <path>` | Add existing repos under a local folder as submodules |
-| `spark git submodule add <repo-url> [-n <name>]` | Add a remote repo as a submodule (`-n` = custom submodule name, URL mode only) |
-| `spark git submodule init [-j <n>] [-r] [--name <name>]` | Initialize missing submodules |
-| `spark git submodule status` | Show submodule initialization status |
-| `spark git submodule ensure-ssh` | Rewrite HTTPS submodule URLs to SSH |
-| `spark git sync [repo] [-r]` | Sync all submodules to latest |
 | `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
-| `spark git init [--owner <owner>] [--skip-gh]` | Initialize git repo, create GitHub remote |
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
 | `spark git batch-clone <account-or-url> [--ssh] [--include] [--exclude] [--include-forks] [-o <dir>] [--token]` | Clone all repos from a GitHub org/user or a GitLab group/user |
@@ -117,43 +110,21 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git push-all [-p <path>]` | Commit and push all changes in repositories |
 | `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
 
-`spark git submodule add` 只接受一个位置参数：待扫描的本地目录，或远程仓库 URL。全局 `-p/--path` 对该命令无效。
 
 ---
 
-### spark repo — Repository Management
+### spark hub — references 与自研 app
 
-| Command | Description |
-|---------|-------------|
-| `spark repo scan [folder-name]` | Scan a directory and write `registry_<folder>.yaml` |
-| `spark repo clone -f <file> [-r <name>]` | Clone repos listed in a registry file |
-| `spark repo list -f <file>` | List repos in a registry file |
-
-Registry files (`registry_<folder>.yaml`) replace submodules for managing many repos in one directory.
-
----
-
-### spark skill — AI Skill 管理
+两份清单，用途不同。`registry` 管理 references 目录。`collections` 登记自己开发的 app。
 
 | 命令 | 说明 |
 |------|------|
-| `spark skill list [--json]` | 发现并列出 agent skill（`SKILL.md` 目录） |
-| `spark skill sync <dir> [--clear]` | 把发现的 skill 复制到目标目录 |
-
-发现位置：`.mimocode/skills/`、`.agents/skills/`、`~/.claude/skills/`、
-`~/.mimocode/skills/` 与内置 skill 包。
-
----
-
-### spark hub — 项目 Hub（Collections 注册）
-
-| 命令 | 说明 |
-|------|------|
-| `spark hub scan [path] [-o <file>]` | 扫描 git 仓库，输出 innate-apps registry JSON |
-| `spark hub scan --merge <registry>` | 与已有注册表合并，保留手工字段 |
-| `spark hub scan --skip-api [--deep] [--category <c>]` | 离线 / 嵌套 / 分类选项 |
-
-输出格式与 `registry/apps.json` 一致（字段定义见 `registry/schema.json`）。
+| `spark hub registry scan [folder]` | 扫描 references，写入 `registry_<folder>.yaml` |
+| `spark hub registry list -f <registry>` | 列出 registry 中的仓库 |
+| `spark hub registry clone -f <registry> [-r <name>]` | 按 registry 克隆 |
+| `spark hub registry clone-registry <registry> [--out <folder>] [--dry-run]` | 只克隆本地缺失的条目 |
+| `spark hub collections scan [path] [-o <file>]` | 把自研 app 登记为 `registry/apps.json` |
+| `spark hub collections scan --merge <file> [--skip-api] [--deep] [--category <c>]` | 合并 app 目录，保留手工字段 |
 
 ---
 
@@ -229,7 +200,6 @@ git:
 gitlab:
   host: gitlab.example.com   # 可选：把 token 限定到该实例
   token: glpat-xxxx          # batch-clone 的 GitLab Token
-github-owner: your-username  # spark git init --owner 默认值
 ```
 
 ## Documentation
@@ -240,8 +210,6 @@ Online docs: https://variableway.github.io/spark-cli/
 |------|---------|
 | [usage/usage.md](usage/usage.md) | 命令使用指南总览 |
 | [usage/git.md](usage/git.md) | Git 仓库管理 |
-| [usage/repo.md](usage/repo.md) | 仓库管理（registry） |
-| [usage/skill.md](usage/skill.md) | Skill 管理 |
 | [usage/hub.md](usage/hub.md) | 项目 Hub |
 | [usage/magic.md](usage/magic.md) | 系统工具 |
 | [usage/script.md](usage/script.md) | 脚本管理 |
@@ -254,4 +222,3 @@ Online docs: https://variableway.github.io/spark-cli/
 | [features/git.md](features/git.md) | 功能说明 |
 | [Agents.md](Agents.md) | 命令完整参考（站点镜像） |
 | [../../AGENTS.md](../../AGENTS.md) | 权威来源：AI 助手指令 |
-| [../../skills/spark-cli/SKILL.md](../../skills/spark-cli/SKILL.md) | spark-cli Skill（AI 助手使用说明） |

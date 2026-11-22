@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `spark repo` is now `spark hub registry` (`scan` / `list` / `clone` / `clone-registry`). It manages a references directory through `registry_<folder>.yaml`
+- The innate-apps app catalog previously written by `spark hub scan` is now `spark hub collections scan` (`registry/apps.json`). Registry and collections stay separate because a references tree and apps you develop are different lists
+
+### Removed
+
+- `spark git init` (and the `github-owner` config used only by it)
+- `spark repo` as its own command
+- `spark skill` (`cmd/skill`, `internal/skill`, and `skills/spark-cli`)
+- `spark git submodule` and `spark git sync`. A directory of repositories is restored with `spark hub registry`
+
 ### Added
 
 - `--depth N` on `spark repo clone` and `spark repo clone-registry` — shallow restore (`git clone --depth=N`; the default `0` keeps full history), useful for reference trees where only the latest commit matters

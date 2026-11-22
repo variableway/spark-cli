@@ -1,23 +1,106 @@
-# spark hub — 项目 Hub（Collections 注册）
+# spark hub — 项目 Hub
 
-扫描本地 Git 仓库并生成 innate-apps registry 格式（`registry/apps.json`）的项目注册信息。
+`spark hub` 有两条互不替代的路径：
+
+| 路径 | 管什么 | 产物 |
+|------|--------|------|
+| `registry` | references 目录里的仓库，按清单克隆回来 | `registry_<folder>.yaml` |
+| `collections` | 自己开发的 app 的注册信息 | `registry/apps.json` |
+
+多仓库目录用 registry，不用 git submodule。
 
 ## 命令速查
 
 ```bash
-spark hub scan <path>                              # 扫描目录，输出 JSON 到 stdout
-spark hub scan <path> -o registry/apps.json        # 输出到文件
-spark hub scan <path> --merge registry/apps.json   # 合并已有注册文件
-spark hub scan <path> --skip-api                   # 跳过 GitHub API，仅用本地信息
-spark hub scan <path> --deep                       # 包含嵌套仓库
-spark hub scan <path> --category reference          # 指定分类
+# references
+spark hub registry scan [folder-name]
+spark hub registry scan [folder-name] --json
+spark hub registry list -f registry_<folder>.yaml
+spark hub registry clone -f registry_<folder>.yaml
+spark hub registry clone -r <name> -f registry_<folder>.yaml
+spark hub registry clone-registry <registry-file>
+
+# 自己开发的 app
+spark hub collections scan [path]
+spark hub collections scan . -o registry/apps.json --merge registry/apps.json
 ```
 
 ---
 
-## 输出格式
+## spark hub registry
 
-输出为 innate-apps registry 格式，字段定义见 innate-apps 仓库里的 `registry/schema.json`：
+管理一个 references 目录。扫描把带 `origin` 的 Git 仓库写入当前目录的 `registry_<folder>.yaml`；`list` 查看；`clone` / `clone-registry` 按记录的 `path` 克隆。
+
+目录约定为三层：`<分类>/<子分类>/<项目>`。分类取自一级子目录（空目录也会入册），每个分类恒有 `others` 子分类。直接放在分类下的项目归入 `others`。没有任何一级分类目录时回退旧的扁平 `projects:` 格式。直接放在扫描根目录的仓库会打印 `WARNING`，不写入 registry。
+
+```bash
+spark hub registry scan ~/workspace/innate-references
+spark hub registry scan ~/workspace/innate-references --json
+spark hub registry list -f registry_innate-references.yaml
+spark hub registry clone -f registry_innate-references.yaml
+spark hub registry clone-registry ~/innate/base/innate-skills/registry_references.yaml --dry-run
+```
+
+| 命令 | 标志 | 说明 |
+|------|------|------|
+| `scan` | `--json` | 额外写出格式化的 `registry_<folder>.json` |
+| `scan` | `--flatten` | 仅旧两层布局：扫描前把超过两层的仓库上移。三分层目录不要用 |
+| `list` | `-f, --file` | registry 文件（必填） |
+| `clone` | `-f, --file` | registry 文件（必填） |
+| `clone` | `-r, --repo` | 只克隆指定名称 |
+| `clone` | `--depth` | 浅克隆深度，`0` 为完整历史 |
+| `clone-registry` | `--out` | 目标目录，默认由 registry 文件位置和名称推导 |
+| `clone-registry` | `--dry-run` | 只打印计划 |
+| `clone-registry` | `--depth` | 浅克隆深度，`0` 为完整历史 |
+
+重复扫描会合并已有 registry：按 `path`、其次按仓库 URL 匹配，保留 `name` / `desc`。本地没有检出的旧条目原样保留，registry 同时是恢复记录。删除条目要手工改文件。
+
+`clone` 的目标目录名由文件名推导（`registry_<folder>.yaml` → `<folder>`），已存在的目录跳过。`clone-registry` 只克隆磁盘上还没有的条目，目标默认在 registry 文件旁边。
+
+扫描跳过隐藏目录以及 `node_modules` / `venv` / `.venv` / `__pycache__` / `dist` / `build`。SSH URL 存成 HTTPS。
+
+### registry 文件
+
+```yaml
+# Project registry
+# Synced by spark hub registry scan
+
+version: 2
+categories:
+  - name: skills
+    subcategories:
+      - name: agent
+        projects:
+          - name: taste-skill
+            repo: https://github.com/Leonxlnx/taste-skill.git
+            path: skills/agent/taste-skill
+      - name: others
+        projects: []
+```
+
+---
+
+## spark hub collections scan
+
+登记自己开发的 app。扫描本地 Git 仓库，用 GitHub API 补上 description、language、visibility，写成 innate-apps collections 目录。
+
+默认只扫顶层。`--deep` 包含嵌套仓库。
+
+```bash
+spark hub collections scan /path/to/innate-apps
+spark hub collections scan . -o registry/apps.json --merge registry/apps.json
+spark hub collections scan . --skip-api --category app
+```
+
+| 标志 | 说明 |
+|------|------|
+| `-o, --output` | 输出文件。默认 stdout；只给 `--merge` 时写回该文件 |
+| `--merge` | 与已有目录合并，保留手工字段 |
+| `--skip-api` | 不调用 GitHub API |
+| `--deep` | 包含嵌套仓库 |
+| `--category` | 新条目的分类：`base` / `app` / `reference` |
+
+`--merge` 保留 `title`、`category`、`status`、`url`、`description`，刷新 `repo`、`local_path`、`visibility`、`language`。这次扫描没看到的旧条目原样保留。设置 `GITHUB_TOKEN` 可提高 API 速率限制。
 
 ```json
 {
@@ -41,83 +124,4 @@ spark hub scan <path> --category reference          # 指定分类
 }
 ```
 
-| 字段 | 来源 |
-|------|------|
-| `name` | GitHub 仓库名（远程 URL 里的 slug） |
-| `title` | GitHub description（为空时用仓库名人名化，如 `my-app` → `My App`） |
-| `repo` | git origin 解析出的 `owner/repo` |
-| `url` | GitHub homepage（或仓库 URL） |
-| `local_path` | 相对扫描根的路径 |
-| `category` | 默认 `app`（可用 `--category` 覆盖） |
-| `status` | 默认 `maintained` |
-| `visibility` | GitHub API（`private` → `private`，否则 `public`） |
-| `language` | GitHub API 主语言 |
-| `description` | GitHub API 描述 |
-
----
-
-## spark hub scan
-
-扫描目录中的 Git 仓库（带 `origin` 远程），调用 GitHub API 获取元数据，转化为注册信息。
-
-**默认只扫描顶层目录**；要包含嵌套仓库请加 `--deep`。
-
-```bash
-spark hub scan /path/to/innate-apps
-spark hub scan . -o registry/apps.json --merge registry/apps.json
-```
-
-| 选项 | 说明 |
-|------|------|
-| `-o, --output` | 输出文件路径（默认 stdout；配合 `--merge` 且不给 `-o` 时，写回合并的那个文件） |
-| `--merge` | 与已有注册文件合并，保留手工字段 |
-| `--skip-api` | 跳过 GitHub API，仅用本地 git 信息 |
-| `--deep` | 包含嵌套仓库（默认仅扫描顶层目录） |
-| `--category` | 为新发现条目设置分类（`base`/`app`/`reference`） |
-
-### 合并行为
-
-使用 `--merge` 时：
-
-- **保留手工字段**：`title`、`category`、`status`、`url`、`description`
-- **刷新自动字段**：`repo`、`local_path`、`visibility`、`language`
-- **保留未匹配条目**：扫描中未发现的已有条目（如 `../base/` 下的基础框架）原样保留
-- **追加新发现**：扫描到的新仓库自动加入
-
-### GitHub API
-
-设置 `GITHUB_TOKEN` 环境变量可提升 API 速率限制。API 调用失败时自动回退到本地 git 信息：此时 `language` 与 `description` 为空，`visibility` 仍为 `public`。
-
----
-
-## 与「获取 GitHub 仓库项目」的关系
-
-同样是「拿到 GitHub 上的项目列表」，有三条路径，产物不同：
-
-| 路径 | 产物 | 适用 |
-|------|------|------|
-| `spark git update-org-status <account>` | README 里的项目清单段落 | 直接贴到 README / profile 仓库 |
-| `gh repo list` / `gh api` | 原始仓库列表 | 自己渲染成任意格式 |
-| `spark hub scan` | 带分类与状态的注册表 JSON | 维护项目聚合站 |
-
-详见 [Git 管理 · 如何获取 GitHub 仓库项目列表](./git.md)。
-
----
-
-## 典型用法：维护 innate-apps 注册表
-
-`registry/apps.json` 是 innate-apps 项目的**数据源**，README 与 profile 仓库里的
-项目段落是它的**渲染产物**。改完数据源要同步刷新渲染产物：
-
-```bash
-# 1. 在 innate-apps 目录里扫描，合并回注册表（保留手工维护的 title/category/status）
-spark hub scan . -o registry/apps.json --merge registry/apps.json
-
-# 2. 提交后刷新下游渲染产物
-#    - innate-apps 自身的 README 项目清单
-#    - 用户 profile 仓库 qdriven/qdriven 里的项目段落
-#    - 组织 profile 仓库 variableway/.github 里的项目清单
-spark git update-org-status variableway --update-dot-github
-```
-
-字段定义见 `registry/schema.json`，约定见 `registry/README.md`。
+改完 `registry/apps.json` 后，README 和 profile 里的项目清单要用 `spark git update-org-status` 另行刷新。字段定义见 `registry/schema.json`。

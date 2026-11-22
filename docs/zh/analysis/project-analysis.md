@@ -22,12 +22,10 @@ Spark CLI 是一个 Go 语言编写的命令行工具，定位为日常开发自
 
 | 模块 | 命令 | 功能 |
 |------|------|------|
-| Git 管理 | `spark git` | 多仓库更新、克隆、仓库初始化、子模块管理、Gitcode 远程、批量克隆（GitHub/GitLab）、Issue、扫描、推送 |
-| 仓库管理 | `spark repo` | registry 文件驱动的 scan / clone / list，用于替代 submodule |
+| Git 管理 | `spark git` | 多仓库更新、克隆、子模块管理、Gitcode 远程、批量克隆（GitHub/GitLab）、Issue、扫描、推送 |
+| 项目 Hub | `spark hub` | registry 管理 references；collections 登记自研 app |
 | 系统工具 | `spark magic` | DNS 刷新、pip/go/node 镜像源切换、目录清理、dotfiles 部署 |
 | 脚本管理 | `spark script` | 自定义脚本发现与执行 |
-| Skill 管理 | `spark skill` | 发现、列出与同步 AI agent skill（`SKILL.md` 目录） |
-| 项目 Hub | `spark hub` | 扫描本地 Git 仓库，生成 innate-apps 注册表 |
 | 文档管理 | `spark docs` | 文档结构初始化、docmd 站点配置 |
 | 进程诊断 | `spark witr` | Why-Is-This-Running 进程排查 |
 
@@ -38,11 +36,9 @@ main.go → cmd.Execute()
 │
 ├── cmd/                    # Cobra 命令定义层
 │   ├── git/                # Git 操作命令组
-│   ├── repo/               # registry 仓库管理命令组
+│   ├── hub/                # registry 与 collections
 │   ├── magic/              # 系统工具命令组
 │   ├── script/             # 脚本管理命令组
-│   ├── skill/              # AI Skill 管理命令组
-│   ├── hub/                # 项目 Hub 命令组
 │   ├── docs/               # 文档管理命令组
 │   ├── version.go          # 版本信息
 │   └── witr.go             # 进程诊断桥接
@@ -55,7 +51,6 @@ main.go → cmd.Execute()
     ├── registry/           # registry 文件扫描/读写/合并
     ├── collection/         # hub 命令的注册表模型、扫描与合并
     ├── script/             # 脚本发现与执行
-    ├── skill/              # skill 发现（SKILL.md 目录扫描）与同步
     ├── templates/          # 内嵌 nvim/ghostty dotfiles
     ├── testreport/         # Ginkgo JSON 报告 → 自包含 HTML 渲染器
     └── witr/               # 进程诊断引擎

@@ -23,11 +23,9 @@ Spark CLI is a Go-based command-line tool that positions itself as a CLI backend
 | Module | Command | Capability |
 |--------|---------|------------|
 | Git management | `spark git` | Multi-repo update, clone, repo init, submodule management, Gitcode remote, batch clone (GitHub/GitLab), issues, scan, push |
-| Repo management | `spark repo` | Registry-file driven scan / clone / list, an alternative to submodules |
+| Project hub | `spark hub` | Registry for references; collections for apps you develop |
 | System utilities | `spark magic` | DNS flush, pip/go/node mirror switching, directory cleanup, dotfiles deploy |
 | Script management | `spark script` | Custom script discovery and execution |
-| Skill management | `spark skill` | Discover, list and sync AI agent skills (`SKILL.md` directories) |
-| Project hub | `spark hub` | Scan local git repositories into the innate-apps registry |
 | Docs management | `spark docs` | Docs structure init, docmd site config |
 | Process diagnostics | `spark witr` | Why-Is-This-Running process inspection |
 
@@ -38,11 +36,9 @@ main.go → cmd.Execute()
 │
 ├── cmd/                    # Cobra command definitions
 │   ├── git/                # Git commands
-│   ├── repo/               # Registry-based repo management
+│   ├── hub/                # registry and collections
 │   ├── magic/              # System utilities
 │   ├── script/             # Script management
-│   ├── skill/              # AI skill management
-│   ├── hub/                # Project hub
 │   ├── docs/               # Docs management
 │   ├── version.go          # Version info
 │   └── witr.go             # Process diagnostics bridge
@@ -55,7 +51,6 @@ main.go → cmd.Execute()
     ├── registry/           # Registry file scan/read/merge
     ├── collection/         # hub command: registry model, scan & merge
     ├── script/             # Script discovery & execution
-    ├── skill/              # Skill discovery (SKILL.md dirs) & sync
     ├── templates/          # Embedded nvim/ghostty dotfiles
     ├── testreport/         # Ginkgo JSON report → self-contained HTML
     └── witr/               # Process diagnostics engine

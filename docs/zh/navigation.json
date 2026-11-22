@@ -50,20 +50,12 @@
         "path": "/usage/git"
       },
       {
-        "title": "仓库管理",
-        "path": "/usage/repo"
-      },
-      {
         "title": "系统工具",
         "path": "/usage/magic"
       },
       {
         "title": "脚本管理",
         "path": "/usage/script"
-      },
-      {
-        "title": "Skill 管理",
-        "path": "/usage/skill"
       },
       {
         "title": "项目 Hub",
@@ -104,14 +96,6 @@
         "path": "/features/git"
       },
       {
-        "title": "仓库管理",
-        "path": "/features/repo"
-      },
-      {
-        "title": "Skill 管理",
-        "path": "/features/skill"
-      },
-      {
         "title": "项目 Hub",
         "path": "/features/hub"
       },
@@ -141,14 +125,6 @@
       {
         "title": "Git",
         "path": "/spec/git"
-      },
-      {
-        "title": "Repo",
-        "path": "/spec/repo"
-      },
-      {
-        "title": "Skill",
-        "path": "/spec/skill"
       },
       {
         "title": "Hub",

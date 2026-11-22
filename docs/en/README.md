@@ -96,14 +96,7 @@ go test ./internal/git/... -v -run TestFunctionName
 |---------|-------------|
 | `spark git clone <url-or-slug> [dir] [-- <git-args>]` | Clone a GitHub repo via `gh repo clone` (SSH by default) |
 | `spark git update [--ssh]` | Update all repos to latest version (`--ssh` forces SSH) |
-| `spark git submodule add <path>` | Add existing repos under a local folder as submodules |
-| `spark git submodule add <repo-url> [-n <name>]` | Add a remote repo as a submodule (`-n` = custom submodule name, URL mode only) |
-| `spark git submodule init [-j <n>] [-r] [--name <name>]` | Initialize missing submodules |
-| `spark git submodule status` | Show submodule initialization status |
-| `spark git submodule ensure-ssh` | Rewrite HTTPS submodule URLs to SSH |
-| `spark git sync [repo] [-r]` | Sync all submodules to latest |
 | `spark git gitcode [-p <path>]` | Add Gitcode remote to repos |
-| `spark git init [--owner <owner>] [--skip-gh]` | Initialize git repo, create GitHub remote |
 | `spark git config [--username --email]` | Configure git user for repo |
 | `spark git url [repo-path]` | Get remote URL of repository |
 | `spark git batch-clone <account-or-url> [--ssh] [--include] [--exclude] [--include-forks] [-o <dir>] [--token]` | Clone all repos from a GitHub org/user or a GitLab group/user |
@@ -112,44 +105,21 @@ go test ./internal/git/... -v -run TestFunctionName
 | `spark git push-all [-p <path>]` | Commit and push all changes in repositories |
 | `spark git scan [folder-path] [-d <db>] [--skip-api]` | Scan git repos and save to SQLite |
 
-`spark git submodule add` takes exactly one positional argument: a local folder to scan, or a remote repo URL. The global `-p/--path` flag does not apply to this command.
 
 ---
 
-### spark repo — Repository Management
+### spark hub — References and app collections
+
+Two catalogs, used differently. `registry` tracks a references directory. `collections` registers apps you develop.
 
 | Command | Description |
 |---------|-------------|
-| `spark repo scan [folder-name]` | Scan a directory and write `registry_<folder>.yaml` |
-| `spark repo clone -f <file> [-r <name>]` | Clone repos listed in a registry file |
-| `spark repo clone-registry <file> [--out <folder>] [--dry-run]` | Clone only the registry entries missing on disk |
-| `spark repo list -f <file>` | List repos in a registry file |
-
-Registry files (`registry_<folder>.yaml`) replace submodules for managing many repos in one directory.
-
----
-
-### spark skill — AI Skill Management
-
-| Command | Description |
-|---------|-------------|
-| `spark skill list [--json]` | Discover and list agent skills (`SKILL.md` directories) |
-| `spark skill sync <dir> [--clear]` | Copy all discovered skills to a target directory |
-
-Discovered in `.mimocode/skills/`, `.agents/skills/`, `~/.claude/skills/`,
-`~/.mimocode/skills/` and the builtin skill packs.
-
----
-
-### spark hub — Project Hub (Collections Registration)
-
-| Command | Description |
-|---------|-------------|
-| `spark hub scan [path] [-o <file>]` | Scan git repos, emit innate-apps registry JSON |
-| `spark hub scan --merge <registry>` | Merge with an existing registry, keep curated fields |
-| `spark hub scan --skip-api [--deep] [--category <c>]` | Offline / nested / category options |
-
-The output matches `registry/apps.json` (see `registry/schema.json`).
+| `spark hub registry scan [folder]` | Scan references into `registry_<folder>.yaml` |
+| `spark hub registry list -f <registry>` | List repositories in a registry |
+| `spark hub registry clone -f <registry> [-r <name>]` | Clone repositories from a registry |
+| `spark hub registry clone-registry <registry> [--out <folder>] [--dry-run]` | Clone only entries missing on disk |
+| `spark hub collections scan [path] [-o <file>]` | Register apps you develop as `registry/apps.json` |
+| `spark hub collections scan --merge <file> [--skip-api] [--deep] [--category <c>]` | Merge the app catalog and keep curated fields |
 
 ---
 
@@ -225,7 +195,6 @@ git:
 gitlab:
   host: gitlab.example.com   # optional: scope the token to this instance
   token: glpat-xxxx          # GitLab token for batch-clone
-github-owner: your-username  # default for spark git init --owner
 ```
 
 ## Documentation
@@ -236,8 +205,6 @@ Online docs: https://variableway.github.io/spark-cli/
 |------|---------|
 | [usage/usage.md](usage/usage.md) | Command usage guide overview |
 | [usage/git.md](usage/git.md) | Git repository management |
-| [usage/repo.md](usage/repo.md) | Repository management (registry) |
-| [usage/skill.md](usage/skill.md) | Skill management |
 | [usage/hub.md](usage/hub.md) | Project hub |
 | [usage/magic.md](usage/magic.md) | System utilities |
 | [usage/script.md](usage/script.md) | Script management |
@@ -250,4 +217,3 @@ Online docs: https://variableway.github.io/spark-cli/
 | [features/git.md](features/git.md) | Feature guides |
 | [Agents.md](Agents.md) | Full command reference (site mirror) |
 | [../../AGENTS.md](../../AGENTS.md) | Authoritative source: AI assistant instructions |
-| [../../skills/spark-cli/SKILL.md](../../skills/spark-cli/SKILL.md) | spark-cli Skill (usage guide for AI assistants) |

@@ -22,22 +22,21 @@
     },
     {
       "id": "capabilities",
-      "on_screen": "批量更新仓库 / 初始化仓库与远程 / 本地仓库加成子模块 / 执行自定义脚本",
-      "where": "S02 四条能力编号标注",
+      "on_screen": "批量更新仓库 / hub 扫描注册与克隆 / 执行自定义脚本",
+      "where": "S02 能力编号标注",
       "check": {
         "type": "command",
         "command": ["--help"],
         "expect_all": [
           "1. Update multiple git repositories to the latest version",
-          "2. Initialize a git repo and create a GitHub remote",
-          "3. Add local repos or URLs as submodules",
-          "4. Execute custom scripts for automation"
+          "2. Scan, register, and clone projects with spark hub",
+          "3. Execute custom scripts for automation"
         ]
       }
     },
     {
       "id": "command_families",
-      "on_screen": "十个命令族：git/repo/hub/skill/script/magic/docs/witr/version/completion",
+      "on_screen": "命令族：git/hub/script/magic/docs/witr/version/completion",
       "where": "S05 架构图",
       "check": {
         "type": "command",
@@ -45,13 +44,13 @@
         "expect_all": [
           "Available Commands:",
           "  completion", "  docs", "  git", "  hub",
-          "  magic", "  repo", "  script", "  skill", "  witr", "  version"
+          "  magic", "  script", "  witr", "  version"
         ]
       }
     },
     {
       "id": "command_tree_depth",
-      "on_screen": "「一棵命令树，十个命令族」",
+      "on_screen": "「一棵命令树」",
       "where": "S02 树标注",
       "check": {
         "type": "command",
@@ -103,7 +102,7 @@
     },
     {
       "id": "quick_commands",
-      "on_screen": "spark git update / spark repo scan / spark skill list / spark script run hello / spark witr nginx",
+      "on_screen": "spark git update / spark hub registry scan / spark hub collections scan / spark script run hello / spark witr nginx",
       "where": "S06 速查卡",
       "check": {
         "type": "quick_commands",

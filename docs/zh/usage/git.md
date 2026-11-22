@@ -1,20 +1,13 @@
 # spark git — Git 仓库管理
 
-管理多个 Git 仓库、初始化项目、同步子模块。
+管理多个 Git 仓库。多仓库目录用 `spark hub registry`，不用 submodule。
 
 ## 命令速查
 
 ```bash
 spark git update                              # 更新所有仓库
 spark git clone <url-or-slug> [dir] [-- <git-args>] # 克隆 GitHub 仓库（默认 SSH）
-spark git submodule add <path>                    # 扫描目录，把已有仓库添加为子模块
-spark git submodule add <repo-url> [-n <name>]     # 添加远程仓库为子模块（-n 自定义名称）
-spark git submodule init [-j <n>] [-r]             # 初始化（克隆）所有子模块
-spark git submodule status                         # 查看子模块状态
-spark git submodule ensure-ssh                     # HTTPS → SSH URL 转换
-spark git sync [./repo]                   # 同步子模块
 spark git gitcode                             # 添加 Gitcode 远程
-spark git init [--owner <owner>] [--skip-gh]   # 初始化仓库并创建 GitHub 远程
 spark git config [--username --email]         # 配置 Git 用户
 spark git url [repo-path]                     # 查看远程 URL
 spark git batch-clone <account-or-url> [-o <dir>] # 克隆 GitHub/GitLab 账号下所有仓库
@@ -73,132 +66,6 @@ spark git update --ssh                        # 强制通过 SSH 更新
 
 ---
 
-## spark git submodule add
-
-将本地 Git 仓库添加为子模块，或将远程仓库克隆为子模块。
-
-### 模式 1：添加本地仓库为子模块
-
-扫描指定目录中的 Git 仓库，将它们添加为子模块，无需重新克隆。
-
-要扫描的目录是**位置参数**，本命令没有自己的标志；全局 `-p/--path` 不生效，
-父仓库路径固定为当前目录。
-
-```bash
-spark git submodule add ./repos                       # 将本地文件夹中所有 GitHub 仓库添加为 submodule
-spark git submodule add ./spark-cli                  # 将指定目录作为子模块添加
-```
-
-**智能检测行为**：
-
-| 场景 | 输出 |
-|------|------|
-| 目标已是 submodule（160000） | `Skipping <name>: already as submodule` |
-| 目标与父仓库 URL 相同（worktree） | `Skipping <name>: already as submodule` |
-| 目录已存在但非 submodule | `Adding existing repo as submodule: <name> (<url>)`（写入 `.gitmodules` 并暂存 gitlink，无需重新克隆） |
-| 正常添加 | `Adding submodule: <name> (<url>)` |
-
-### 模式 2：添加远程仓库为子模块
-
-克隆远程 Git 仓库并将其添加为子模块。
-
-| 标志 | 简写 | 默认值 | 说明 |
-|------|------|--------|------|
-| `-n, --name` | string | repo 名 | 子模块路径名称（远程模式） |
-
-```bash
-# 添加远程仓库（使用默认路径名）
-spark git submodule add https://github.com/user/repo
-
-# 添加远程仓库并指定路径名
-spark git submodule add https://github.com/user/repo --name my-submodule
-
-# 使用 SSH URL
-spark git submodule add git@github.com:user/repo.git
-
-# 使用简写格式（GitHub）
-spark git submodule add user/repo
-```
-
----
-
-## spark git submodule init
-
-初始化（克隆）所有已注册但尚未检出的子模块。
-
-| 标志 | 简写 | 默认值 | 说明 |
-|------|------|--------|------|
-| `-j, --parallel` | | `1` | 并行克隆 worker 数 |
-| `-r, --recursive` | | `false` | 同时初始化嵌套子模块 |
-| `--name` | | | 仅初始化指定名称的子模块 |
-
-```bash
-spark git submodule init                         # 初始化所有子模块
-spark git submodule init -j 4                    # 4 路并行初始化
-spark git submodule init --recursive             # 含嵌套子模块
-spark git submodule init --name spark-cli        # 仅初始化指定子模块
-```
-
-**注意**：`init` 仅负责克隆，不会执行 merge 或分支切换。需要同步到最新用 `spark git sync`。
-
----
-
-## spark git submodule status
-
-以表格形式展示所有子模块的状态。
-
-```bash
-spark git submodule status
-```
-
-**输出示例**：
-```
-PATH                           INIT       COMMIT       BRANCH
----------------------------------------------------------------------------
-fire-skills-base               ✅         945082af     heads/main
-innate-websites                ❌         119324a8         
-spark-cli                      ✅         43568d24     heads/main
-```
-
----
-
-## spark git submodule ensure-ssh
-
-将 `.gitmodules` 中所有 HTTPS GitHub URL 替换为 SSH 格式。适用于 HTTPS 连接不稳定的环境。
-
-```bash
-spark git submodule ensure-ssh
-```
-
-**效果**：
-- `https://github.com/owner/repo.git` → `git@github.com:owner/repo.git`
-- 同时更新父仓库的 `origin` remote URL
-- 修改 `.gitmodules` 文件，需 commit 保存
-
----
-
-## spark git sync
-
-同步 Mono 仓库中所有子模块到最新版本。
-
-| 标志 | 简写 | 默认值 | 说明 |
-|------|------|--------|------|
-| `-r, --recursive` | | `false` | 递归同步嵌套子模块 |
-
-```bash
-spark git sync ./my-repo                       # 同步指定仓库
-spark git sync --recursive                     # 含嵌套子模块
-```
-
-**流程**：
-1. `git fetch --all` — 获取所有远程最新代码
-2. `git submodule update --init` — 初始化缺失的子模块（从 `.gitmodules` 中读取）
-3. `git submodule update --remote --merge` — 更新所有子模块到最新版本并合并
-
-**注意**：步骤 2 使用并行初始化逻辑（串行模式），失败不中断后续步骤。
-
----
-
 ## spark git gitcode
 
 为 GitHub 仓库自动添加 Gitcode 远程地址。
@@ -238,43 +105,6 @@ spark git config /path/to/repo                # 配置指定仓库
 ```bash
 spark git url                                 # 当前目录
 spark git url /path/to/repo                   # 指定仓库
-```
-
----
-
-## spark git init
-
-初始化当前目录为 Git 仓库并创建 GitHub 远程。
-
-**流程**:
-1. `git init` — 初始化本地仓库
-2. `git config user.name/email` — 从 `~/.spark.yaml` 读取并配置
-3. 扫描子目录中的 GitHub 仓库，自动添加为 `git submodule`
-4. 生成 `.gitignore` — 包含常见忽略规则
-5. `git commit` — 创建初始提交（`gh repo create --push` 需要）
-6. `gh repo create` — 创建 GitHub 远程仓库并推送
-
-```bash
-spark git init --owner variableway              # 初始化并创建远程仓库
-spark git init --owner variableway --private    # 创建私有仓库
-spark git init --skip-gh --owner variableway    # 仅本地初始化
-```
-
-| 标志 | 默认值 | 说明 |
-|------|--------|------|
-| `--owner` | 配置文件中的 `github-owner` | GitHub 所有者 |
-| `-r, --repo` | 当前目录名 | 仓库名称 |
-| `--private` | `false` | 创建私有仓库 |
-| `--skip-gh` | `false` | 跳过 `gh repo create` |
-
-**配置文件** (`~/.spark.yaml`):
-
-```yaml
-github-owner: your-username
-
-git:
-  username: Your Name
-  email: your@email.com
 ```
 
 ---
@@ -461,13 +291,13 @@ gh api users/qdriven/repos --jq '.[] | {name, stargazers_count}'
 gh api --paginate users/qdriven/repos --jq '.[].name'
 ```
 
-### 路径 C：`spark hub scan` —— 生成项目注册表
+### 路径 C：`spark hub collections scan` —— 登记自研 app
 
-要带**分类 / 状态 / 可见性 / 主语言**的项目注册表（JSON），用 `spark hub scan`
+要带**分类 / 状态 / 可见性 / 主语言**的项目注册表（JSON），用 `spark hub collections scan`
 扫本地仓库：
 
 ```bash
-spark hub scan . -o registry/apps.json --merge registry/apps.json
+spark hub collections scan . -o registry/apps.json --merge registry/apps.json
 ```
 
 详见 [项目 Hub 使用说明](./hub.md)。
