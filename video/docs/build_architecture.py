@@ -720,7 +720,7 @@ body{
   font-family:var(--sans);font-size:17px;line-height:1.62;font-weight:300;
   -webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:1120px;margin:0 auto;padding:0 28px 140px}
+.wrap{max-width:1376px;margin:0 auto;padding:0 28px 140px}
 a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(168,67,31,.28)}
 a:hover{border-bottom-color:var(--accent)}
 code,kbd,pre{font-family:var(--mono)}
@@ -731,21 +731,13 @@ h3{font-size:20px;line-height:1.4;margin:0 0 6px}
 p{margin:0 0 14px}
 .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--accent);margin:0 0 18px}
-.lede{font-size:19px;line-height:1.62;color:var(--ink2);max-width:66ch;margin:0 0 26px}
-.masthead{padding:64px 0 40px;margin-bottom:46px;position:relative}
-/* 页眉下的分隔线跟图形栏同宽，和上面的流程卡、下面的图落在同一条竖线上 */
-.masthead::after{content:'';position:absolute;left:50%;bottom:0;
-  transform:translateX(-50%);width:min(1320px,calc(100vw - 48px));
-  height:1px;background:var(--rule)}
+.lede{font-size:19px;line-height:1.62;color:var(--ink2);margin:0 0 26px}
+.masthead{padding:64px 0 40px;border-bottom:1px solid var(--rule);margin-bottom:46px}
 section{margin-bottom:54px}
-.caption{font-size:14.5px;line-height:1.58;color:var(--ink2);max-width:74ch;margin:0 0 20px}
+.caption{font-size:14.5px;line-height:1.58;color:var(--ink2);margin:0 0 20px}
 .caption b{color:var(--ink);font-weight:500}
 figure{margin:0 0 22px}
-/* 突破正文栏宽：按视口居中，画得比正文宽，图和图里的字才看得清。
-   宽度取视口宽与 1320 的较小值，两侧至少留 24px，不会横向溢出。
-   思路卡与图共用这一套宽度，两排的左右边缘就对齐了。 */
-.bleed{width:min(1320px,calc(100vw - 48px));margin-left:50%;
-  transform:translateX(-50%)}
+/* 整页一栏：文字、卡片、图都用同一个 1320px 的栏宽，左右边缘天然对齐 */
 figure.fig-wide{margin-bottom:26px}
 .diagram{width:100%;height:auto;display:block;overflow:visible}
 .diagram text{font-family:var(--sans);fill:var(--ink)}
@@ -808,7 +800,7 @@ figure.fig-wide{margin-bottom:26px}
 .id-body{font-size:13px;line-height:1.55;color:var(--ink2);margin:0 0 9px}
 .id-mech{margin-top:auto;font-family:var(--mono);font-size:11px;line-height:1.55;
   color:var(--ink);padding-left:9px;border-left:2px solid var(--accent)}
-pre.snippet{margin:0 0 14px;max-width:520px;font-size:13.5px;color:var(--ink)}
+pre.snippet{margin:0 0 14px;font-size:13.5px;color:var(--ink)}
 .en-t{font-family:var(--sans);font-size:18px;font-weight:500;fill:var(--ink)}
 .en-l{font-family:var(--mono);font-size:13.5px;fill:var(--ink2)}
 /* ---- 参考资料 ---- */
@@ -1134,7 +1126,7 @@ def hero_cards() -> str:
       <div class="fc-io"><span class="k">出</span>{esc(outp)}</div>
       <div class="fc-gate {'fail' if fail else 'pass'}">{esc(gate)}</div>
     </div>''')
-    return ('<div class="flow bleed">' + arrow.join(cards) + '</div>')
+    return ('<div class="flow">' + arrow.join(cards) + '</div>')
 
 
 def file_module_map(scan: Scan) -> dict[str, str]:
@@ -1323,7 +1315,7 @@ def render(scan: Scan) -> str:
     <pre class="snippet">SHOT.S03 = function (ctx, t, S) {{ … }}</pre>
     <p class="caption">引擎负责逐帧渲染、拼片、混音、体检和交付核对；
       片子好不好看，取决于写镜头的人。下面五条是它的总体思路。</p>
-    <div class="ideas bleed">
+    <div class="ideas">
       <div class="idea">
         <div class="id-top"><span class="id-no">1</span><span class="id-title">画面只由时间算出</span></div>
         <p class="id-body">镜头只依赖 t，不存状态、不用随机数——所以能逐帧渲染、分段并行、只重渲改过的镜头。</p>
@@ -1350,12 +1342,12 @@ def render(scan: Scan) -> str:
         <p class="id-mech">lint.py → 页面预检 → layout.py；checkup.py 体检</p>
       </div>
     </div>
-    <figure class="fig-wide bleed">{svg_engine()}</figure>
+    <figure class="fig-wide">{svg_engine()}</figure>
   </section>
 
   <section id="layers">
     <h2>二、分层架构</h2>
-    <figure class="fig-wide bleed">{svg_layers(scan)}</figure>
+    <figure class="fig-wide">{svg_layers(scan)}</figure>
   </section>
 
   <section id="assets">
@@ -1364,7 +1356,7 @@ def render(scan: Scan) -> str:
       profile 声明要录哪条命令，录制器把它执行一遍、按参数渲染成无损 PNG 帧序列，
       帧序列旁边的 <code>meta.json</code> 写下最终分辨率下的真实网格，镜头代码再把这四个数抄过去。
       {total_frames} 帧，全部来自 {len(metas)} 条真实命令。</p>
-    <figure class="fig-wide bleed">{svg_assets(metas)}</figure>
+    <figure class="fig-wide">{svg_assets(metas)}</figure>
     <table>
       <thead><tr><th>素材</th><th>实际执行的命令</th><th class="num">帧数</th><th class="num">时长</th><th class="num">尺寸</th></tr></thead>
       <tbody>{asset_rows}</tbody>
@@ -1383,7 +1375,7 @@ def render(scan: Scan) -> str:
   <section id="diff">
     <h2>四、原件与工作副本</h2>
 {caption3}
-    <figure class="fig-wide bleed">{svg_diff(diff)}</figure>
+    <figure class="fig-wide">{svg_diff(diff)}</figure>
     <table>
       <thead><tr><th>文件</th><th>类别</th><th>说明</th></tr></thead>
       <tbody>{diff_rows}</tbody>
