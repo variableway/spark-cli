@@ -27,7 +27,7 @@ video/skills/cli-intro-video/
 video/skills/lucid/
 ├── SKILL.md              引擎入口（25 行）
 ├── PROVENANCE.md         来源与授权说明，务必保留
-├── references/           12 篇：引擎接口、素材、配音、工艺、评审、片型指南、踩坑
+├── references/           11 篇：引擎接口、素材、配音、工艺、片型指南、踩坑
 ├── capabilities/         宿主能力说明（配音、转写等）与退路
 └── template/             框架模板原件（21 个工具脚本 + web 引擎 + 示例工程）
 ```
@@ -50,7 +50,8 @@ video/
 │   └── facts.json        画面上出现的事实 → 它的来源和校验方式
 ├── skills/           用到的两个 Skill 的完整副本（改脚本先改原件再同步回来）
 │   ├── cli-intro-video/  工作流层：录素材 / 事实核对 / 裁剪自检 / 流水线
-│   └── lucid/            引擎层：框架模板原件 + 12 篇参考 + 宿主能力说明
+│   └── lucid/            引擎层：框架模板原件 + 11 篇参考 + 宿主能力说明
+├── docs/             架构图与模块图（自包含单页，点文件名可看源码）
 ├── project/          lucid 框架的工作副本（保持原样，框架升级时可整体覆盖）
 │   ├── project.json      片型、画幅、主题、配音
 │   ├── script/vo.json    配音稿 + 逐句英译
@@ -60,13 +61,28 @@ video/
 └── out/              成片与交付核对（不进版本库）
 ```
 
-`skills/lucid/template/` 是框架原件，`project/` 是它的工作副本——
-两者只差 4 个文件（`project.json`、`script/vo.json`、`web/index.html`，
-加上自己写的 `web/shots_spark.js`）。要升级框架，从 `template/` 重新铺一遍 `project/`，
-再把这 4 个文件搬回去；也可以直接 diff 看看上游改了什么：
+`skills/lucid/template/` 是框架原件，`project/` 是它的工作副本。
+两边同名文件里 44 个逐字节相同，只有 3 个不同（`project.json`、`script/vo.json`、
+`web/index.html`——最后一个是 `timeline.py` 自动补的 script 标签）；
+工作副本另有 177 个独有文件，其中只有 `web/shots_spark.js` 是手写的，其余都是
+录制、时间线、配音这些工具的产物。
+
+所以升级框架时**要保住的是 3 个手写文件**：`project.json`、`script/vo.json`、
+`web/shots_spark.js`。从 `template/` 重新铺一遍 `project/`，把这 3 个搬回去，
+再跑一次 `sync` 让 `timeline.py` 重新生成 `index.html`、`web/project.js`、
+`web/timeline.js` 和 `timeline.json` 即可。也可以直接 diff 看看上游改了什么：
 
 ```bash
 diff -rq skills/lucid/template project
+```
+
+**架构图**：整个工程的分层结构、六步流水线、模块与文件的对应关系，见
+[`docs/architecture.html`](docs/architecture.html)——一个自包含的单页，
+点任意文件名可以直接看源码。那一页由 `docs/build_architecture.py` 扫描工程生成，
+工程改了重跑一次脚本就同步：
+
+```bash
+python3 video/docs/build_architecture.py
 ```
 
 ## 一条命令跑完
