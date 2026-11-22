@@ -5,13 +5,13 @@
   "language": "zh",
 
   "binary": {
-    "path": "/tmp/spark-new",
+    "path": "/Users/patrick/innate/innate-apps/spark-cli/bin/spark",
     "build": "make build",
     "build_env": {
       "GOPROXY": "https://goproxy.cn,direct",
       "GOSUMDB": "off"
     },
-    "note": "构建产物。/tmp 会被系统清理，没了按 build 重来一遍。录制素材和事实核对都用它。"
+    "note": "仓库内的构建产物（bin/ 不进版本库）。改完源码跑 `make build` 重建，录制素材和事实核对都用它。路径跟着仓库走，仓库挪了要改这里。"
   },
 
   "links": {
@@ -25,15 +25,15 @@
   "card_order": ["16x9", "1x1", "9x16"],
 
   "command_families": [
-    "git", "repo", "hub", "skill", "script", "magic", "docs", "witr", "version", "completion"
+    "git", "hub", "magic", "script", "docs", "witr", "version", "completion"
   ],
 
   "quick_commands": [
-    ["git", "update"],
-    ["repo", "scan"],
-    ["skill", "list"],
-    ["script", "run", "hello"],
-    ["witr", "nginx"]
+    ["git", "batch-clone"],
+    ["hub", "registry"],
+    ["hub", "collections"],
+    ["magic", "clean"],
+    ["magic", "flush-dns"]
   ],
 
   "assets": {
@@ -47,7 +47,7 @@
       },
       "crop": {
         "16x9": { "rows": [0, 11], "cols": [0, 92] },
-        "9x16": { "rows": [0, 10], "cols": [0, 58] },
+        "9x16": { "rows": [0, 9], "cols": [0, 58] },
         "1x1":  { "rows": [0, 5],  "cols": [0, 58] }
       }
     },
@@ -65,8 +65,8 @@
         "1x1":  { "rows": [0, 4], "cols": [0, 56] }
       }
     },
-    "repo": {
-      "command": ["repo", "--help"],
+    "hub_registry": {
+      "command": ["hub", "registry", "--help"],
       "prompt": "$ spark hub registry --help",
       "title": "spark hub registry --help",
       "capture": {
@@ -78,8 +78,8 @@
         "1x1":  { "rows": [0, 11], "cols": [0, 82] }
       }
     },
-    "skill": {
-      "command": ["skill", "--help"],
+    "hub_collections": {
+      "command": ["hub", "collections", "--help"],
       "prompt": "$ spark hub collections --help",
       "title": "spark hub collections --help",
       "capture": {
@@ -87,8 +87,8 @@
       },
       "crop": {
         "16x9": { "rows": [0, 11], "cols": [0, 84] },
-        "9x16": { "rows": [0, 11], "cols": [0, 74] },
-        "1x1":  { "rows": [0, 11], "cols": [0, 74] }
+        "9x16": { "rows": [0, 11], "cols": [0, 78] },
+        "1x1":  { "rows": [0, 11], "cols": [0, 78] }
       }
     }
   }

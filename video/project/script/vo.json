@@ -1,24 +1,65 @@
 {
   "scenes": [
-    { "id": "S01", "text": "重复十遍的命令，交给一个工具。",
-      "en": ["The command you repeat ten times a day,", "handed to one tool."] },
-    { "id": "S02", "text": "spark 是给多仓库工作准备的命令行工具。更新仓库、初始化远程、加子模块、跑脚本，都在一棵命令树里。",
-      "en": ["spark is a command-line tool built for multi-repo work.",
-             "Update repos,", "init remotes,", "add submodules,", "run scripts —",
-             "all in one command tree."] },
-    { "id": "S03", "text": "版本号、提交号、构建时间，一行命令就问出来。",
-      "en": ["Version,", "commit,", "build time —", "one command asks, one command tells you."] },
-    { "id": "S04", "text": "仓库用注册表文件管，不用子模块。技能会自动发现本地已经装好的那些。还能一键同步过去。",
-      "en": ["Repos are managed by a registry file,", "not submodules.",
-             "Skills are discovered wherever they're already installed.",
-             "And synced in one command."] },
-    { "id": "S05", "text": "十个命令族，共享同一份配置。同一条命令，在每个项目里都一样。装一次，到处都能用。",
-      "en": ["Ten command families,", "one shared config.",
-             "The same command,", "the same behavior in every project.",
-             "Install it once,", "use it everywhere."] },
-    { "id": "S06", "text": "装上它，剩下的交给 spark。完整文档在 variableway.github.io/spark-cli。",
-      "en": ["Install it,", "and let spark take it from there.",
-             "Full docs: variableway.github.io/spark-cli."] }
+    {
+      "id": "S01",
+      "text": "重复十遍的命令，交给一个工具。",
+      "en": [
+        "The command you repeat ten times a day,",
+        "handed to one tool."
+      ]
+    },
+    {
+      "id": "S02",
+      "text": "spark 是给多仓库工作准备的命令行工具。批量更新仓库。扫描登记与克隆项目。执行自定义脚本。都在一棵命令树里。",
+      "en": [
+        "spark is a command-line tool built for multi-repo work.",
+        "Update all your repos in one command.",
+        "Scan, register, and clone projects.",
+        "Run your own scripts —",
+        "all in one command tree."
+      ]
+    },
+    {
+      "id": "S03",
+      "text": "版本号、提交号、构建时间，一行命令就问出来。",
+      "en": [
+        "Version,",
+        "commit,",
+        "build time —",
+        "one command asks, one command tells you."
+      ]
+    },
+    {
+      "id": "S04",
+      "text": "参考项目用注册表文件管。一份清单就能还原整个目录。自己开发的应用登记进目录。和参考项目分开管。",
+      "en": [
+        "Reference projects live in a registry file.",
+        "One list restores the whole directory.",
+        "Apps you develop go into a catalog.",
+        "Kept apart from the references."
+      ]
+    },
+    {
+      "id": "S05",
+      "text": "八个命令族，共享同一份配置。同一条命令，在每个项目里都一样。装一次，到处都能用。",
+      "en": [
+        "Eight command families,",
+        "one shared config.",
+        "The same command,",
+        "the same behavior in every project.",
+        "Install it once,",
+        "use it everywhere."
+      ]
+    },
+    {
+      "id": "S06",
+      "text": "装上它，剩下的交给 spark。完整文档在 variableway.github.io/spark-cli。",
+      "en": [
+        "Install it,",
+        "and let spark take it from there.",
+        "Full docs: variableway.github.io/spark-cli."
+      ]
+    }
   ],
   "tts_fix": {}
 }

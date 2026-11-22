@@ -8,16 +8,21 @@
       "manual": "机器核不了，必须人工确认；reason 里写清为什么核不了"
     }
   },
-
   "facts": [
     {
       "id": "version",
-      "on_screen": "v0.4.0 / commit 745cd48 / build 2026-11-15",
+      "on_screen": "v0.4.0 / commit 28d3f41 / build 2026-11-22",
       "where": "S03 版本卡",
       "check": {
         "type": "command",
-        "command": ["version"],
-        "expect_all": ["spark v0.4.0", "commit:     745cd48", "build date: 2026-11-15T10:40:20Z"]
+        "command": [
+          "version"
+        ],
+        "expect_all": [
+          "spark v0.4.0",
+          "commit:     28d3f41",
+          "build date: 2026-11-22T03:43:11Z"
+        ]
       }
     },
     {
@@ -26,7 +31,9 @@
       "where": "S02 能力编号标注",
       "check": {
         "type": "command",
-        "command": ["--help"],
+        "command": [
+          "--help"
+        ],
         "expect_all": [
           "1. Update multiple git repositories to the latest version",
           "2. Scan, register, and clone projects with spark hub",
@@ -36,15 +43,17 @@
     },
     {
       "id": "command_families",
-      "on_screen": "命令族：git/hub/script/magic/docs/witr/version/completion",
+      "on_screen": "命令族：git/hub/magic/script/docs/witr/version/completion",
       "where": "S05 架构图",
       "check": {
         "type": "command",
-        "command": ["--help"],
+        "command": [
+          "--help"
+        ],
+        "note": "整段连续的 Available Commands 一起比：多一个或少一个族（比如 repo、skill 又冒出来）这段就对不上，比逐个名字查更严",
         "expect_all": [
           "Available Commands:",
-          "  completion", "  docs", "  git", "  hub",
-          "  magic", "  script", "  witr", "  version"
+          "  completion  Generate the autocompletion script for the specified shell\n  docs        Documentation management commands\n  git         Git repository management commands\n  help        Help about any command\n  hub         Registry for references, collections for apps you develop\n  magic       System utility commands\n  script      Manage and execute custom scripts\n  version     Print spark version information\n  witr        Why is this running?"
         ]
       }
     },
@@ -54,8 +63,12 @@
       "where": "S02 树标注",
       "check": {
         "type": "command",
-        "command": ["--help"],
-        "expect_all": ["Available Commands:"]
+        "command": [
+          "--help"
+        ],
+        "expect_all": [
+          "Available Commands:"
+        ]
       }
     },
     {
@@ -65,7 +78,9 @@
       "check": {
         "type": "file",
         "path": "docmd.config.js",
-        "expect_all": ["https://variableway.github.io/spark-cli"]
+        "expect_all": [
+          "https://variableway.github.io/spark-cli"
+        ]
       }
     },
     {
@@ -74,9 +89,16 @@
       "where": "S06 落版",
       "check": {
         "type": "command",
-        "command": ["git", "remote", "get-url", "origin"],
+        "command": [
+          "git",
+          "remote",
+          "get-url",
+          "origin"
+        ],
         "binary": false,
-        "expect_all": ["variableway/spark-cli"],
+        "expect_all": [
+          "variableway/spark-cli"
+        ],
         "cwd": "repo"
       }
     },
@@ -87,7 +109,10 @@
       "check": {
         "type": "file",
         "path": "README.md",
-        "expect_all": ["make build", "~/.local/bin/spark"]
+        "expect_all": [
+          "make build",
+          "~/.local/bin/spark"
+        ]
       }
     },
     {
@@ -97,12 +122,14 @@
       "check": {
         "type": "file",
         "path": "README.md",
-        "expect_all": ["~/.spark.yaml"]
+        "expect_all": [
+          "~/.spark.yaml"
+        ]
       }
     },
     {
       "id": "quick_commands",
-      "on_screen": "spark git update / spark hub registry scan / spark hub collections scan / spark script run hello / spark witr nginx",
+      "on_screen": "spark git batch-clone / spark hub registry / spark hub collections / spark magic clean / spark magic flush-dns",
       "where": "S06 速查卡",
       "check": {
         "type": "quick_commands",
@@ -110,12 +137,56 @@
       }
     },
     {
-      "id": "skill_count",
-      "on_screen": "（画面里没有出现技能条数）",
-      "where": "—",
+      "id": "hub_two_catalogs",
+      "on_screen": "参考项目用注册表文件管 / 自己开发的应用登记进目录",
+      "where": "S04 两张终端卡",
       "check": {
-        "type": "manual",
-        "reason": "技能条数随本机环境变（装了哪些 skill 就多少个），写进片子会变成一条随时会过期的事实，所以故意不写"
+        "type": "command",
+        "command": [
+          "hub",
+          "registry",
+          "--help"
+        ],
+        "expect_all": [
+          "Registry tracks reference repositories in registry_<folder>.yaml",
+          "This is not the collections catalog.",
+          "Available Commands:",
+          "  scan           Scan a folder for git repositories and save to registry_<folder>.yaml"
+        ]
+      }
+    },
+    {
+      "id": "hub_collections_catalog",
+      "on_screen": "自己开发的应用登记进目录",
+      "where": "S04 第二张终端卡",
+      "check": {
+        "type": "command",
+        "command": [
+          "hub",
+          "collections",
+          "--help"
+        ],
+        "expect_all": [
+          "Collections scans local app repositories and writes registry/apps.json.",
+          "This catalog is separate from the references registry used by hub registry."
+        ]
+      }
+    },
+    {
+      "id": "readme_priority",
+      "on_screen": "S06 速查卡这 5 条命令",
+      "where": "S06 速查卡",
+      "check": {
+        "type": "file",
+        "path": "README.md",
+        "note": "片子里推的命令，README 必须也写着一份——README 改了优先级，这条事实会红",
+        "expect_all": [
+          "spark git batch-clone",
+          "spark hub registry",
+          "spark hub collections",
+          "spark magic clean",
+          "spark magic flush-dns"
+        ]
       }
     }
   ]
