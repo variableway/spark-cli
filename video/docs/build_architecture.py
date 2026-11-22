@@ -776,19 +776,48 @@ details.mod>summary:hover .m-name{color:var(--accent)}
 .filebtn:hover{color:var(--accent);border-bottom-color:rgba(168,67,31,.4)}
 .filebtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .bin{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
-.preview{margin-top:26px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);
-  padding:22px 24px 26px;scroll-margin-top:24px}
-.pv-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:4px}
-.pv-path{font-family:var(--mono);font-size:13px;color:var(--ink);word-break:break-all}
-.pv-meta{font-family:var(--mono);font-size:11px;color:var(--ink2)}
-.pv-note{font-size:13px;color:var(--ink2);line-height:1.55;margin:8px 0 14px}
-.pv-note b{color:var(--ink);font-weight:500}
-.pv-warn{font-size:12px;color:var(--accent);margin:0 0 12px}
-.pv-warn a{color:var(--accent)}
 pre{margin:0;padding:16px 18px;background:#faf8f4;border:1px solid var(--rule);
   border-radius:8px;overflow:auto;max-height:620px;font-size:11.5px;line-height:1.62;
   white-space:pre;tab-size:4}
-.pv-empty{font-size:13.5px;color:var(--ink2);margin:0}
+/* ---- 文件抽屉 ---- */
+/* 遮罩只做视觉压暗，不拦截指针：抽屉开着时页面照样能点、能选文件 */
+.dw-backdrop{position:fixed;inset:0;background:rgba(29,27,24,.20);opacity:0;
+  pointer-events:none;transition:opacity .24s ease;z-index:40}
+.dw-backdrop.open{opacity:1}
+.dw{position:fixed;top:0;right:0;height:100vh;width:min(600px,52vw);
+  background:var(--panel);border-left:1px solid var(--rule);
+  box-shadow:-20px 0 50px rgba(29,27,24,.10);
+  transform:translateX(101%);transition:transform .28s cubic-bezier(.22,.61,.36,1);
+  z-index:50;display:flex;flex-direction:column;visibility:hidden;
+  transition:transform .28s cubic-bezier(.22,.61,.36,1),visibility 0s linear .28s}
+.dw.open{transform:translateX(0);visibility:visible;
+  transition:transform .28s cubic-bezier(.22,.61,.36,1),visibility 0s}
+.dw-head{display:flex;align-items:flex-start;gap:14px;padding:22px 24px 14px;
+  border-bottom:1px solid var(--rule)}
+.dw-eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+  color:var(--accent);margin:0 0 5px}
+.dw-title{font-family:var(--serif);font-size:21px;line-height:1.3;margin:0;
+  word-break:break-all;color:var(--ink)}
+.dw-close{flex:none;width:30px;height:30px;border-radius:6px;border:1px solid var(--rule);
+  background:transparent;color:var(--ink2);font-size:18px;line-height:1;cursor:pointer;
+  margin-left:auto;padding:0}
+.dw-close:hover{border-color:var(--accent);color:var(--accent)}
+.dw-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dw-meta{display:grid;grid-template-columns:74px 1fr;gap:7px 16px;margin:0;
+  padding:16px 24px 4px}
+.dw-meta dt{font-family:var(--mono);font-size:10.5px;color:var(--ink2);letter-spacing:.04em}
+.dw-meta dd{margin:0;font-size:12.5px;line-height:1.5;color:var(--ink);word-break:break-all}
+.dw-meta dd.mono{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+.dw-note{font-size:13px;color:var(--ink2);line-height:1.55;margin:12px 24px 10px;padding:0}
+.dw-note b{color:var(--ink);font-weight:500}
+.dw-warn{font-size:12px;color:var(--accent);margin:0 24px 10px}
+.dw-warn a{color:var(--accent)}
+.dw-body{flex:1 1 auto;min-height:0;overflow:auto;padding:0 24px 4px}
+.dw-body pre{max-height:none;border-radius:8px}
+.dw-foot{display:flex;align-items:center;gap:14px;padding:13px 24px;
+  border-top:1px solid var(--rule);font-size:12px}
+.dw-foot a{font-size:12.5px}
+.dw-hint{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink2)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:26px}
 .note{border-left:2px solid var(--accent);padding:2px 0 2px 16px;
   font-size:13.5px;line-height:1.6;color:var(--ink2);margin:22px 0}
@@ -802,6 +831,10 @@ footer code{font-size:11px}
   details.mod>summary{grid-template-columns:1fr;gap:4px}
   .m-path,.m-role,.flist{padding-left:18px;margin-left:0}
   dl.facts{grid-template-columns:1fr}
+  .dw{top:auto;bottom:0;right:0;left:0;width:100%;height:86vh;
+    border-left:none;border-top:1px solid var(--rule);border-radius:12px 12px 0 0;
+    transform:translateY(101%);box-shadow:0 -20px 50px rgba(29,27,24,.12)}
+  .dw.open{transform:translateY(0)}
 }
 """
 
@@ -809,64 +842,119 @@ JS = """
 (function () {
   var data = JSON.parse(document.getElementById('preview-data').textContent);
   var blobs = data.blobs, items = data.items, repo = data.repo, branch = data.branch;
-  var maxInline = data.max_inline, headLines = data.head_lines;
-  var panel = document.getElementById('preview');
-  var pathEl = document.getElementById('pv-path');
-  var metaEl = document.getElementById('pv-meta');
-  var noteEl = document.getElementById('pv-note');
-  var warnEl = document.getElementById('pv-warn');
-  var codeEl = document.getElementById('pv-code');
+  var maxInline = data.max_inline;
 
-  function esc(s) {
-    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
+  var drawer = document.getElementById('dw');
+  var backdrop = document.getElementById('dw-backdrop');
+  var closeBtn = document.getElementById('dw-close');
+  var titleEl = document.getElementById('dw-title');
+  var eyebrowEl = document.getElementById('dw-eyebrow');
+  var pathEl = document.getElementById('dw-path');
+  var sizeEl = document.getElementById('dw-size');
+  var modEl = document.getElementById('dw-mod');
+  var noteEl = document.getElementById('dw-note');
+  var warnEl = document.getElementById('dw-warn');
+  var codeEl = document.getElementById('dw-code');
+  var ghEl = document.getElementById('dw-gh');
+  var lastFocus = null;
+
   function kb(n) {
     if (n < 1024) return n + ' B';
     if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
     return (n / 1048576).toFixed(2) + ' MB';
   }
-  function show(rel) {
+  function baseName(p) {
+    var i = p.lastIndexOf('/');
+    return i < 0 ? p : p.slice(i + 1);
+  }
+  function open(rel, trigger) {
     var it = items[rel];
     if (!it) return;
     var body = blobs[it.blob] || '';
-    pathEl.textContent = rel;
-    metaEl.textContent = it.total_lines + ' 行 · ' + kb(it.bytes) +
-      (it.truncated ? ' · 仅预览前 ' + body.split('\\n').length + ' 行' : ' · 全文');
+    var shown = body.split('\\n').length;
+
+    titleEl.textContent = baseName(rel);
+    eyebrowEl.textContent = it.module || '—';
+    pathEl.textContent = 'video/' + rel;
+    sizeEl.textContent = it.total_lines + ' 行 · ' + kb(it.bytes) +
+      (it.truncated ? ' · 预览前 ' + shown + ' 行' : ' · 全文');
+    modEl.textContent = it.module || '—';
+    noteEl.innerHTML = it.note ? it.note : '';
+    noteEl.style.display = it.note ? '' : 'none';
+
     var url = 'https://github.com/' + repo + '/blob/' + branch + '/video/' + rel;
-    noteEl.innerHTML = it.note ? it.note + ' ' : '';
-    var link = '<a href="' + url + '" target="_blank" rel="noopener">在 GitHub 上看这个文件 ↗</a>';
+    ghEl.href = url;
     if (it.truncated) {
-      warnEl.innerHTML = '文件超过 ' + (maxInline / 1024) + ' KB，此处只内嵌前 ' +
-        body.split('\\n').length + ' 行（共 ' + it.total_lines + ' 行）。' + link;
-      warnEl.style.display = '';
+      warnEl.innerHTML = '文件超过 ' + (maxInline / 1024) + ' KB，抽屉里只放前 ' +
+        shown + ' 行（共 ' + it.total_lines + ' 行）。完整内容见下方链接。';
     } else {
-      warnEl.innerHTML = link;
-      warnEl.style.display = '';
+      warnEl.innerHTML = '';
     }
+    warnEl.style.display = it.truncated ? '' : 'none';
     codeEl.textContent = body;
-    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if (!drawer.classList.contains('open')) {
+      lastFocus = trigger || document.activeElement;
+      drawer.classList.add('open');
+      backdrop.classList.add('open');
+      drawer.setAttribute('aria-hidden', 'false');
+      closeBtn.focus();
+    }
+    drawer.querySelector('.dw-body').scrollTop = 0;
   }
+  function close() {
+    if (!drawer.classList.contains('open')) return;
+    drawer.classList.remove('open');
+    backdrop.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
   document.addEventListener('click', function (e) {
+    // 点文件：抽屉开着就换内容，没开就弹出来
     var t = e.target.closest('[data-file]');
-    if (!t) return;
-    var rel = t.getAttribute('data-file');
-    if (rel) { e.preventDefault(); show(rel); }
+    if (t) {
+      var rel = t.getAttribute('data-file');
+      if (rel) { e.preventDefault(); open(rel, t); }
+      return;
+    }
+    if (e.target.closest('#dw-close')) { e.preventDefault(); close(); return; }
+    // 点抽屉以外的页面空白处：关掉抽屉
+    if (drawer.classList.contains('open') && !drawer.contains(e.target)) close();
   });
   document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { close(); return; }
     if (e.key !== 'Enter' && e.key !== ' ') return;
     var t = e.target.closest('[data-file]');
     if (!t) return;
     e.preventDefault();
     var rel = t.getAttribute('data-file');
-    if (rel) show(rel);
+    if (rel) open(rel, t);
   });
 })();
 """
 
 
+def file_module_map(scan: Scan) -> dict[str, str]:
+    """文件 → 所属模块（层 · 模块名），给抽屉里的「所属模块」用。"""
+    out: dict[str, str] = {}
+    for layer, name, paths, _role in MODULES:
+        for f in scan.tracked:
+            if f == Scan.SELF:
+                continue
+            if any(f == p or f.startswith(p.rstrip('/') + '/') for p in paths):
+                out.setdefault(f, f'{layer} · {name}')
+    for nm in ('help', 'version', 'repo', 'skill'):
+        out.setdefault(f'project/web/img/{nm}/meta.json', '素材层 · 终端素材')
+    return out
+
+
 def render(scan: Scan) -> str:
     blobs, items = build_preview(scan)
     diff = diff_summary()
+    fmods = file_module_map(scan)
+    for rel in items:
+        items[rel]['module'] = fmods.get(rel, '—')
 
     repo_url = git('remote', 'get-url', 'origin')
     repo = repo_url.rstrip('/').split('/')[-1]
@@ -1060,16 +1148,11 @@ def render(scan: Scan) -> str:
   </section>
 
   <section id="preview">
-    <h2>五、文件预览</h2>
-    <div class="preview" id="preview-box">
-      <div class="pv-h">
-        <span class="pv-path" id="pv-path">还没有选择文件</span>
-        <span class="pv-meta" id="pv-meta"></span>
-      </div>
-      <p class="pv-note" id="pv-note">在上面的模块里点任意文件名，这里会展开它的源码。</p>
-      <p class="pv-warn" id="pv-warn" style="display:none"></p>
-      <pre id="pv-code"></pre>
-    </div>
+    <h2>五、文件抽屉</h2>
+    <p class="caption">点上面任意文件名，或图 1 里的小标签，右侧会滑出一个抽屉：
+      文件路径、行数、大小、所属模块、职责说明和源码都在里面。
+      源码超过 16 KB 只放前 100 行，抽屉底部有到 GitHub 的完整链接。
+      按 <kbd>Esc</kbd>、点关闭按钮或点抽屉外任意处都能关。</p>
   </section>
 
   <footer>
@@ -1081,6 +1164,30 @@ def render(scan: Scan) -> str:
   </footer>
 
 </div>
+
+<div class="dw-backdrop" id="dw-backdrop"></div>
+<aside class="dw" id="dw" role="dialog" aria-modal="true" aria-hidden="true"
+       aria-labelledby="dw-title">
+  <header class="dw-head">
+    <div>
+      <p class="dw-eyebrow" id="dw-eyebrow">—</p>
+      <h2 class="dw-title" id="dw-title">文件</h2>
+    </div>
+    <button class="dw-close" id="dw-close" type="button" aria-label="关闭抽屉">✕</button>
+  </header>
+  <dl class="dw-meta">
+    <dt>路径</dt><dd class="mono" id="dw-path"></dd>
+    <dt>规模</dt><dd id="dw-size"></dd>
+    <dt>模块</dt><dd id="dw-mod"></dd>
+  </dl>
+  <p class="dw-note" id="dw-note"></p>
+  <p class="dw-warn" id="dw-warn" style="display:none"></p>
+  <div class="dw-body"><pre id="dw-code"></pre></div>
+  <footer class="dw-foot">
+    <a id="dw-gh" href="#" target="_blank" rel="noopener">在 GitHub 上看这个文件 ↗</a>
+    <span class="dw-hint">Esc 关闭</span>
+  </footer>
+</aside>
 
 <script type="application/json" id="preview-data">{payload}</script>
 <script>{JS}</script>

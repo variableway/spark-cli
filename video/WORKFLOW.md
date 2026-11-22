@@ -77,9 +77,12 @@ diff -rq skills/lucid/template project
 ```
 
 **架构图**：整个工程的分层结构、六步流水线、模块与文件的对应关系，见
-[`docs/architecture.html`](docs/architecture.html)——一个自包含的单页，
-点任意文件名可以直接看源码。那一页由 `docs/build_architecture.py` 扫描工程生成，
-工程改了重跑一次脚本就同步：
+[`docs/architecture.html`](docs/architecture.html)——一个自包含的单页。
+点任意文件名（模块清单里的，或分层图里的小标签），右侧会滑出一个抽屉，
+显示文件路径、行数、大小、所属模块和源码；抽屉开着时还能接着点下一个文件换内容，
+按 `Esc` 或点抽屉外任意处关闭。
+
+那一页由 `docs/build_architecture.py` 扫描工程生成，工程改了重跑一次脚本就同步：
 
 ```bash
 python3 video/docs/build_architecture.py
