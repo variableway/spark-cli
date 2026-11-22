@@ -206,7 +206,7 @@
 
     const [h1, h2] = split(HEAD, 'col', [1, 1], 8 * U);
     textBlock(ctx, '版本、提交、构建时间', h1, { role: 'title', valign: 'bottom', t, at: ph('S03', 0) - 0.1, color: COL.ink, max: 88 * U });
-    textBlock(ctx, '一行命令就问出来', h2, { role: 'title', valign: 'top', t, at: ph('S03', 3), color: COL.acc, max: 88 * U });
+    textBlock(ctx, '一条命令就问出来', h2, { role: 'title', valign: 'top', t, at: ph('S03', 3), color: COL.acc, max: 88 * U });
 
     // 竖版：卡片是又宽又矮的一条，下面补一个大号版本号撑住版面（方版高度不够，不加）
     if (PORTRAIT) {
