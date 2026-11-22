@@ -91,5 +91,65 @@
         "1x1":  { "rows": [0, 11], "cols": [0, 78] }
       }
     }
+  },
+  "pronunciation": {
+    "_note": "配音稿里多音字的**整词**期望读音（空格分音节）。check_pron.py 用它比对：静态查覆盖，--ask 时拿真实音频去问模型实际读音，音节连写后比对。model_unreliable:true 的词条是「AI 判断不可靠、人工听过是对的」，不参与 --ask 判定。",
+    "rules": [
+      {
+        "word": "重复",
+        "char": "重",
+        "pinyin": "chóng fù",
+        "note": "重复十遍读 chóng；zhòng 是「重量」那个"
+      },
+      {
+        "word": "命令行",
+        "char": "行",
+        "pinyin": "mìng lìng",
+        "note": "标准读法 mìng lìng（行读 xíng）。音频问答模型会把「命令行」按「命令+行」的语义拆成五个字，答成 mìng lìng háng gōng jù——实测它对**从文本合成**的同一段也这么答，是模型偏差不是录音问题，所以本条不参与 AI 核对",
+        "model_unreliable": true
+      },
+      {
+        "word": "一行",
+        "char": "行",
+        "pinyin": "yī háng",
+        "note": "一行命令/一行代码读 háng；TTS 会读成 xíng，所以稿里避开这个词"
+      },
+      {
+        "word": "批量",
+        "char": "量",
+        "pinyin": "pī liàng",
+        "note": "批量读 piliàng"
+      },
+      {
+        "word": "参考",
+        "char": "参",
+        "pinyin": "cān kǎo",
+        "note": "参考读 cānkǎo；shēn 是「人参」那个"
+      },
+      {
+        "word": "还原",
+        "char": "还",
+        "pinyin": "huán yuán",
+        "note": "还原读 huányuán"
+      },
+      {
+        "word": "开发",
+        "char": "发",
+        "pinyin": "kāi fā",
+        "note": "开发读 kāifā；fà 是「头发」那个"
+      },
+      {
+        "word": "分开",
+        "char": "分",
+        "pinyin": "fēn kāi",
+        "note": "分开读 fēnkāi；fèn 是「分外」那个"
+      },
+      {
+        "word": "应用",
+        "char": "应",
+        "pinyin": "yìng yòng",
+        "note": "应用读 yìngyòng；yīng 是「应该」那个"
+      }
+    ]
   }
 }

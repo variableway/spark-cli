@@ -172,7 +172,10 @@ MODULES = [
      '这套流程要变成能长期用的 Skill 还差什么：素材层怎么生成的、改文案为什么难、'
      '引擎层有没有硬编码、下一步先做哪一步。'),
     ('工作流层', '改片手册', ['docs/film-refresh-playbook.md'],
-     'CLI 变了以后怎么把片子跟上：九环的顺序、每环改什么怎么验、实测踩过的五个坑。'),
+     'CLI 变了以后怎么把片子跟上：六环的顺序、每环改什么怎么验、实测踩过的六个坑。'),
+    ('工作流层', '改片手册二', ['docs/film-refresh-io.md'],
+     '输入输出结构与手动流程：每个文件谁产出谁消费、改完按哪条路径重跑、'
+     '配音怎么生成、多音字错了怎么办、S01 这些编号是什么。'),
     ('素材层', '终端素材', ['project/web/img'],
      '命令真跑一遍录下的无损 PNG 帧序列；静帧入库，帧序列不入库。'),
     ('镜头层', '镜头与引擎', ['project/web'],
@@ -199,6 +202,21 @@ MODULES = [
      '三画幅成片与海报，供文档站嵌入；工程内的 out/ 另存交付核对表（不入库）。'),
 ]
 
+# 素材清单的唯一真源是 profile/spark-cli.json 的 assets 字段。
+# 生成器不写死素材名——CLI 重构删掉一个素材，页面跟着变，
+# 不会在表里留下 0 帧、0×0 的僵尸行（2026-11-22 那次就漏了 repo/skill）。
+def profile_assets() -> dict:
+    try:
+        pj = json.loads((VIDEO / 'profile' / 'spark-cli.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+    return pj.get('assets') or {}
+
+
+ASSETS = profile_assets()
+ASSET_NAMES = list(ASSETS)
+
+
 # 图 1 的层。目录规模全部由扫描结果算，不手写。
 # chip = (显示名, 文件路径, 模式)  模式：'name' 只显示文件名，'frames' 追加帧数，'fixed' 原样显示
 LAYERS = [
@@ -211,14 +229,13 @@ LAYERS = [
         ('facts.py', 'skills/cli-intro-video/scripts/facts.py', 'name'),
         ('check_crop.py', 'skills/cli-intro-video/scripts/check_crop.py', 'name'),
         ('record_terminal.py', 'skills/cli-intro-video/scripts/record_terminal.py', 'name'),
+        ('check_pron.py', 'skills/cli-intro-video/scripts/check_pron.py', 'name'),
+        ('refresh.py', 'skills/cli-intro-video/scripts/refresh.py', 'name'),
         ('scaffold.py', 'skills/cli-intro-video/scripts/scaffold.py', 'name'),
         ('_paths.py', 'skills/cli-intro-video/scripts/_paths.py', 'name'),
     ]),
     ('③', '素材层', 'project/web/img/', [
-        ('help/', 'project/web/img/help/meta.json', 'frames'),
-        ('version/', 'project/web/img/version/meta.json', 'frames'),
-        ('repo/', 'project/web/img/repo/meta.json', 'frames'),
-        ('skill/', 'project/web/img/skill/meta.json', 'frames'),
+        (f'{n}/', f'project/web/img/{n}/meta.json', 'frames') for n in ASSET_NAMES
     ]),
     ('④', '镜头层', 'project/web/', [
         ('shots_spark.js（自写）', 'project/web/shots_spark.js', 'name'),
@@ -282,6 +299,7 @@ DOC_NOTES = {
     'skills/cli-intro-video/SKILL.md': '这套流程的入口：什么时候用、怎么用。',
     'docs/cli-video-skill-plan.md': '演进计划：素材层怎么生成、改文案为什么难、引擎有无硬编码、下一步做什么。',
     'docs/film-refresh-playbook.md': '改片手册：CLI 变了以后，片子跟着改的顺序、每环改什么、踩过的坑。',
+    'docs/film-refresh-io.md': '改片手册（二）：输入输出结构、手动重跑路径、读音错读怎么办。',
     'skills/cli-intro-video/references/workflow.md': '工作流详解：六步各自在做什么。',
     'skills/cli-intro-video/references/profile-schema.md': 'profile 每个字段怎么写、哪些必填。',
     'skills/cli-intro-video/references/pitfalls.md': '踩过的坑：为什么不能手算列宽。',
@@ -310,12 +328,15 @@ NOTES = {
     'skills/cli-intro-video/scripts/pipeline.py': '流水线：把六步串成一条命令，任一步失败即停。',
     'skills/cli-intro-video/scripts/facts.py': '事实核对器：跑命令、读文件，逐条比对画面事实。',
     'skills/cli-intro-video/scripts/check_crop.py': '裁剪自检：截字、profile↔CARD、几何常量↔真实网格，三项。',
+    'skills/cli-intro-video/scripts/check_pron.py': '读音自检：扫出配音稿里的多音字，和期望读音表比对；--ask 会切音频去问实际读音。',
+    'skills/cli-intro-video/scripts/refresh.py': '按改动范围重跑：check / voice / shots / assets / all 五条路径，附带跑前检查清单。',
     'skills/cli-intro-video/scripts/record_terminal.py': '终端录制器：真跑命令，出无损 PNG 帧序列与网格 meta.json。',
     'skills/cli-intro-video/scripts/scaffold.py': '脚手架：按 profile 拉起一个新视频工程（只起骨架，数字留空）。',
     'skills/cli-intro-video/scripts/_paths.py': '定位工程、profile、仓库根与 python 解释器。',
     'skills/cli-intro-video/SKILL.md': '这套流程的入口：什么时候用、怎么用。',
     'docs/cli-video-skill-plan.md': '演进计划：素材层怎么生成、改文案为什么难、引擎有无硬编码、下一步做什么。',
     'docs/film-refresh-playbook.md': '改片手册：CLI 变了以后，片子跟着改的顺序、每环改什么、踩过的坑。',
+    'docs/film-refresh-io.md': '改片手册（二）：输入输出结构、手动重跑路径、读音错读怎么办。',
     'skills/lucid/SKILL.md': 'lucid 引擎入口。',
     'skills/lucid/PROVENANCE.md': '来源与授权说明。',
     'project/web/shots_spark.js': '自写镜头代码：六个镜头，几何常量抄自素材 meta.json。',
@@ -377,13 +398,13 @@ def layer_stat(path: str, scan: Scan) -> str:
     """一层的规模统计。"""
     if path.startswith('project/web/img'):
         total = 0
-        for name in ('help', 'version', 'repo', 'skill'):
+        for name in ASSET_NAMES:
             meta = VIDEO / f'project/web/img/{name}/meta.json'
             try:
                 total += json.loads(meta.read_text(encoding='utf-8')).get('total_frames', 0)
             except (OSError, ValueError):
                 pass
-        return f'4 个素材 · {fmt_int(total)} 帧'
+        return f'{len(ASSET_NAMES)} 个素材 · {fmt_int(total)} 帧'
     if path.startswith('project/out'):
         try:
             pj = json.loads((VIDEO / 'project' / 'project.json').read_text(encoding='utf-8'))
@@ -692,7 +713,7 @@ def build_preview(scan: Scan):
         }
 
     # 素材网格元数据不入库，但它是几何常量的唯一来源，单独特例收录
-    for name in ('help', 'version', 'repo', 'skill'):
+    for name in ASSET_NAMES:
         rel = f'project/web/img/{name}/meta.json'
         p = VIDEO / rel
         if p.exists() and rel not in items:
@@ -1142,7 +1163,7 @@ def file_module_map(scan: Scan) -> dict[str, str]:
                 continue
             if any(f == p or f.startswith(p.rstrip('/') + '/') for p in paths):
                 out.setdefault(f, f'{layer} · {name}')
-    for nm in ('help', 'version', 'repo', 'skill'):
+    for nm in ASSET_NAMES:
         out.setdefault(f'project/web/img/{nm}/meta.json', '素材层 · 终端素材')
     return out
 
@@ -1183,7 +1204,7 @@ def render(scan: Scan) -> str:
             stat += f' · {nbin} 个二进制'
         if 'project/web/img' in prefix:
             total = 0
-            for nm in ('help', 'version', 'repo', 'skill'):
+            for nm in ASSET_NAMES:
                 mp = VIDEO / f'project/web/img/{nm}/meta.json'
                 try:
                     total += json.loads(mp.read_text(encoding='utf-8')).get('total_frames', 0)
@@ -1209,7 +1230,7 @@ def render(scan: Scan) -> str:
                     f'<td class="bin">二进制，不预览</td></tr>')
         # 素材网格元数据：不在入库清单里，单独特例补上
         if 'project/web/img' in prefix:
-            for name2 in ('help', 'version', 'repo', 'skill'):
+            for name2 in ASSET_NAMES:
                 rel = f'project/web/img/{name2}/meta.json'
                 if rel in items:
                     frows.append(
@@ -1237,7 +1258,7 @@ def render(scan: Scan) -> str:
 
     # --- 终端素材：帧数、命令、名义 vs 真实列宽
     metas = {}
-    for nm in ('help', 'version', 'repo', 'skill'):
+    for nm in ASSET_NAMES:
         mp = VIDEO / f'project/web/img/{nm}/meta.json'
         try:
             metas[nm] = json.loads(mp.read_text(encoding='utf-8'))
@@ -1403,7 +1424,7 @@ def render(scan: Scan) -> str:
 
   <footer>
     <p>本页由 <code>video/docs/build_architecture.py</code> 生成，数字来自扫描基线
-      （父提交 <code>{commit}</code>）的真实文件系统扫描；
+      （基线提交 <code>{commit}</code>）的真实文件系统扫描；
       文件清单以 <code>git ls-files video</code> 为准（入库文件，工程内生成的产物不在其中）。
       工程改动后重跑脚本即可更新。</p>
   </footer>

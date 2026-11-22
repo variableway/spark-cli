@@ -8,6 +8,9 @@
 这份手册是 2026-11-22 那次实战改出来的（`4a7db1f` 把 `spark repo` 折进 `spark hub`、
 删掉 `spark skill` 与 `git submodule/sync/init`），每一步都是当时真跑过的。
 
+配套的第二篇讲**结构**——每个文件是什么、谁产出谁消费、改完之后按什么路径重跑：
+[改片手册（二）· 输入输出结构与手动流程](film-refresh-io.md)。
+
 ---
 
 ## 0. 先判断：这次要改哪几环
@@ -155,7 +158,7 @@ project/.venv/bin/python skills/cli-intro-video/scripts/pipeline.py \
 
 ---
 
-## 3. 五个坑（都实测踩过）
+## 3. 六个坑（都实测踩过）
 
 ### 坑一：短句索引平移是静默的
 
@@ -198,7 +201,20 @@ PY
 裁剪自检比对的是 profile 和 `CARD` 表，**不检查 `term()` 里的素材名**。
 名字写错，画面上那块就是空的，而所有自检都绿。
 
-### 坑五：别拿旧二进制的结果当结论
+### 坑五：配音的读音错了，ASR 查不出来
+
+「一行命令」该读 háng，TTS 读成 xíng——**画面上写着「一行命令」，声音说「一兴」，
+观众一听就发现不对**。但 `tts.py` 的自动读音核对完全无感：它拿 ASR 转写跟稿子比，
+而转写只会把字还原成「行」，háng 和 xíng 都写成「行」，**转写分辨不了读音**。
+
+改法是换一种没有歧义的同义说法（「一行命令」→「一条命令」），
+**不要用 `tts_fix` 硬掰**：字幕取自 `vo.json`，不套 `tts_fix`，
+只换 `tts_fix` 会变成「声音说一条、字幕写一行」。
+
+检查交给 `scripts/check_pron.py`（期望读音表在 `profile.pronunciation.rules`），
+详见[改片手册（二）](film-refresh-io.md#6-配音是怎么生成的)。
+
+### 坑六：别拿旧二进制的结果当结论
 
 2026-11-22 这次，`facts.py` 报 `capabilities` 不符，第一反应是「事实写错了」。
 实际是 `profile.binary.path` 指的二进制是前一天的，`spark --help` 还是重构前的三条能力。
@@ -250,5 +266,6 @@ project/.venv/bin/python project/tools/stills.py 竖版 --format 9x16 S02@0.6,S0
 改完的事实核对：**12 条通过，0 条不符**（`version` / `capabilities` / `command_families` /
 `quick_commands` / `hub_two_catalogs` / `hub_collections_catalog` / `readme_priority` 等）。
 
-三个画幅的版面预检也全过。片长从 52.5 秒变成 **55.0 秒**（配音变长，voice 模式时间轴跟着走），
-`project.json` 的 `target_sec` 没动——体检按 ±10% 判定，差 +4.8% 仍然通过。
+三个画幅的版面预检也全过。第一次改完片长从 52.5 秒变成 **55.0 秒**（配音变长，voice 模式时间轴跟着走），
+体检按 ±10% 判定，差 +4.8% 仍然通过。后来把「一行命令」改成「一条命令」重录配音，
+片长又回到 **52.5 秒**，正好等于 `project.json` 的 `target_sec`。
