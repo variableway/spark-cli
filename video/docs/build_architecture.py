@@ -399,9 +399,13 @@ def layer_stat(path: str, scan: Scan) -> str:
 
 
 def svg_layers(scan: Scan) -> str:
-    """图 1：分层架构图。压缩版——每层只画一行代表文件，其余归到「还有 N 个」。"""
+    """图 1：分层架构图。压缩版——每层只画一行代表文件，其余归到「还有 N 个」。
+
+    层框贴着 viewBox 的左右边界（0 与 1160），和同页的思路卡、引擎链路图落在
+    同一条竖线上。
+    """
     W = 1160
-    X, LW = 24, 1112
+    X, LW = 0, 1160
     LH, GAP = 64, 42
     TOP = 26
 
@@ -462,8 +466,8 @@ def svg_layers(scan: Scan) -> str:
 def svg_assets(meta: dict) -> str:
     """图 2：终端素材是怎么来的——四步链路。"""
     W = 1160
-    BW, GAP = 262, 30
-    X0, Y, BH = 18, 24, 212
+    BW, GAP = 260, 40
+    X0, Y, BH = 0, 24, 212
     H = Y + BH + 26
 
     steps = [
@@ -510,10 +514,14 @@ def svg_assets(meta: dict) -> str:
 
 
 def svg_engine() -> str:
-    """图：lucid 引擎怎么把代码变成一支片。"""
+    """图：lucid 引擎怎么把代码变成一支片。
+
+    盒子的左右外缘贴着 viewBox 边界（0 与 1160），这样整张图和上面那排思路卡
+    的左右边缘落在同一条线上——两排并排看是对齐的。
+    """
     W = 1160
-    BW, GAP = 206, 26
-    X0, Y, BH = 18, 26, 120
+    BW, GAP = 208, 30
+    X0, Y, BH = 0, 26, 120
     H = Y + BH + 30
 
     stages = [
@@ -609,10 +617,10 @@ def svg_diff(d: dict) -> str:
     return f'''<svg viewBox="0 0 {W} {H}" class="diagram" role="img"
      aria-label="框架原件与工作副本的差异：共同 {d['common']} 个文件，其中 {d['same']} 个逐字节相同">
   <g class="dp">
-    <rect x="30" y="24" width="500" height="72" rx="9" fill="{PANEL}" stroke="{RULE}"/>
-    <text x="50" y="50" class="d-head">原件 · skills/lucid/template/</text>
-    <text x="50" y="74" class="d-num2">{d['tpl_total']} 个文件</text>
-    <rect x="630" y="24" width="500" height="72" rx="9" fill="{PANEL}" stroke="{RULE}"/>
+    <rect x="0" y="24" width="530" height="72" rx="9" fill="{PANEL}" stroke="{RULE}"/>
+    <text x="20" y="50" class="d-head">原件 · skills/lucid/template/</text>
+    <text x="20" y="74" class="d-num2">{d['tpl_total']} 个文件</text>
+    <rect x="630" y="24" width="530" height="72" rx="9" fill="{PANEL}" stroke="{RULE}"/>
     <text x="650" y="50" class="d-head">工作副本 · project/</text>
     <text x="650" y="74" class="d-num2">{d['prj_total']} 个文件（{d['common']} ＋ {d['only_prj']}）</text>
     <path d="M 530 60 L 596 60" stroke="{RULE}" stroke-width="1.6"/>
@@ -624,28 +632,28 @@ def svg_diff(d: dict) -> str:
     <text x="580" y="44" class="d-status2" text-anchor="middle">共同 {d['common']}</text>
 
   <g class="dsec">
-    <text x="30" y="142" class="d-sech">共同 {d['common']} 个文件</text>
-    <path d="M 34 166 L 34 224" stroke="{RULE}" stroke-width="1.3"/>
-    <path d="M 34 176 L 46 176" stroke="{RULE}" stroke-width="1.3"/>
-    <text x="52" y="180" class="d-item">{d['same']} 个逐字节相同</text>
-    <text x="230" y="180" class="d-num3">{esc(bucket_text)}</text>
-    <path d="M 34 220 L 46 220" stroke="{ACCENT}" stroke-width="1.3"/>
-    <text x="52" y="224" class="d-item-a">{d['differ']} 个不同</text>
-    <text x="230" y="224" class="d-num3">{esc(differ_text)}</text>
+    <text x="0" y="142" class="d-sech">共同 {d['common']} 个文件</text>
+    <path d="M 4 166 L 4 224" stroke="{RULE}" stroke-width="1.3"/>
+    <path d="M 4 176 L 16 176" stroke="{RULE}" stroke-width="1.3"/>
+    <text x="22" y="180" class="d-item">{d['same']} 个逐字节相同</text>
+    <text x="200" y="180" class="d-num3">{esc(bucket_text)}</text>
+    <path d="M 4 220 L 16 220" stroke="{ACCENT}" stroke-width="1.3"/>
+    <text x="22" y="224" class="d-item-a">{d['differ']} 个不同</text>
+    <text x="200" y="224" class="d-num3">{esc(differ_text)}</text>
   </g>
 
   <g class="dsec">
-    <text x="30" y="276" class="d-sech">工作副本独有 {d['only_prj']} 个文件</text>
-    <path d="M 34 300 L 34 358" stroke="{RULE}" stroke-width="1.3"/>
-    <path d="M 34 310 L 46 310" stroke="{ACCENT}" stroke-width="1.3"/>
-    <text x="52" y="314" class="d-item-a">{len(d['hand'])} 个手写</text>
-    <text x="230" y="314" class="d-num3">{esc(' · '.join(d['hand']))}</text>
-    <path d="M 34 354 L 46 354" stroke="{RULE}" stroke-width="1.3"/>
-    <text x="52" y="358" class="d-item">{d['gen']} 个工具生成</text>
-    <text x="230" y="358" class="d-num3">web/project.js · web/timeline.js · timeline.json · web/img/** · audio/** · assets/**</text>
+    <text x="0" y="276" class="d-sech">工作副本独有 {d['only_prj']} 个文件</text>
+    <path d="M 4 300 L 4 358" stroke="{RULE}" stroke-width="1.3"/>
+    <path d="M 4 310 L 16 310" stroke="{ACCENT}" stroke-width="1.3"/>
+    <text x="22" y="314" class="d-item-a">{len(d['hand'])} 个手写</text>
+    <text x="200" y="314" class="d-num3">{esc(' · '.join(d['hand']))}</text>
+    <path d="M 4 354 L 16 354" stroke="{RULE}" stroke-width="1.3"/>
+    <text x="22" y="358" class="d-item">{d['gen']} 个工具生成</text>
+    <text x="200" y="358" class="d-num3">web/project.js · web/timeline.js · timeline.json · web/img/** · audio/** · assets/**</text>
   </g>
 
-  <text x="30" y="386" class="d-foot">框架升级时只需保住 3 个手写文件（project.json、script/vo.json、shots_spark.js），其余重跑工具即可恢复。</text>
+  <text x="0" y="386" class="d-foot">框架升级时只需保住 3 个手写文件（project.json、script/vo.json、shots_spark.js），其余重跑工具即可恢复。</text>
 </svg>'''
 
 
@@ -721,15 +729,21 @@ p{margin:0 0 14px}
 .eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--accent);margin:0 0 18px}
 .lede{font-size:19px;line-height:1.62;color:var(--ink2);max-width:66ch;margin:0 0 26px}
-.masthead{padding:64px 0 40px;border-bottom:1px solid var(--rule);margin-bottom:46px}
+.masthead{padding:64px 0 40px;margin-bottom:46px;position:relative}
+/* 页眉下的分隔线跟图形栏同宽，和上面的流程卡、下面的图落在同一条竖线上 */
+.masthead::after{content:'';position:absolute;left:50%;bottom:0;
+  transform:translateX(-50%);width:min(1320px,calc(100vw - 48px));
+  height:1px;background:var(--rule)}
 section{margin-bottom:54px}
 .caption{font-size:14.5px;line-height:1.58;color:var(--ink2);max-width:74ch;margin:0 0 20px}
 .caption b{color:var(--ink);font-weight:500}
 figure{margin:0 0 22px}
-/* 图可以突破正文栏宽：按视口居中，画得比正文宽，图里的字才看得清。
-   宽度取视口宽与 1320 的较小值，两侧至少留 24px，不会横向溢出。 */
-.fig-wide{width:min(1320px,calc(100vw - 48px));margin-left:50%;
-  transform:translateX(-50%);margin-bottom:26px}
+/* 突破正文栏宽：按视口居中，画得比正文宽，图和图里的字才看得清。
+   宽度取视口宽与 1320 的较小值，两侧至少留 24px，不会横向溢出。
+   思路卡与图共用这一套宽度，两排的左右边缘就对齐了。 */
+.bleed{width:min(1320px,calc(100vw - 48px));margin-left:50%;
+  transform:translateX(-50%)}
+figure.fig-wide{margin-bottom:26px}
 .diagram{width:100%;height:auto;display:block;overflow:visible}
 .diagram text{font-family:var(--sans);fill:var(--ink)}
 .l-no{font-family:var(--mono);font-size:13px;fill:#fff;font-weight:500}
@@ -1115,7 +1129,7 @@ def hero_cards() -> str:
       <div class="fc-io"><span class="k">出</span>{esc(outp)}</div>
       <div class="fc-gate {'fail' if fail else 'pass'}">{esc(gate)}</div>
     </div>''')
-    return ('<div class="flow">' + arrow.join(cards) + '</div>')
+    return ('<div class="flow bleed">' + arrow.join(cards) + '</div>')
 
 
 def file_module_map(scan: Scan) -> dict[str, str]:
@@ -1304,7 +1318,7 @@ def render(scan: Scan) -> str:
     <pre class="snippet">SHOT.S03 = function (ctx, t, S) {{ … }}</pre>
     <p class="caption">引擎负责逐帧渲染、拼片、混音、体检和交付核对；
       片子好不好看，取决于写镜头的人。下面五条是它的总体思路。</p>
-    <div class="ideas">
+    <div class="ideas bleed">
       <div class="idea">
         <div class="id-top"><span class="id-no">1</span><span class="id-title">画面只由时间算出</span></div>
         <p class="id-body">镜头只依赖 t，不存状态、不用随机数——所以能逐帧渲染、分段并行、只重渲改过的镜头。</p>
@@ -1331,14 +1345,14 @@ def render(scan: Scan) -> str:
         <p class="id-mech">lint.py → 页面预检 → layout.py；checkup.py 体检</p>
       </div>
     </div>
-    <figure class="fig-wide">{svg_engine()}</figure>
+    <figure class="fig-wide bleed">{svg_engine()}</figure>
   </section>
 
   <section id="layers">
     <h2>二、分层架构</h2>
     <p class="caption"><b>图 1</b> · 数据自上而下流动，从 profile 声明真相一路流到成片。
       <b>可点击的小标签</b>会滑出该文件的源码。</p>
-    <figure class="fig-wide">{svg_layers(scan)}</figure>
+    <figure class="fig-wide bleed">{svg_layers(scan)}</figure>
   </section>
 
   <section id="assets">
@@ -1347,7 +1361,7 @@ def render(scan: Scan) -> str:
       profile 声明要录哪条命令，录制器把它执行一遍、按参数渲染成无损 PNG 帧序列，
       帧序列旁边的 <code>meta.json</code> 写下最终分辨率下的真实网格，镜头代码再把这四个数抄过去。
       {total_frames} 帧，全部来自 {len(metas)} 条真实命令。</p>
-    <figure class="fig-wide">{svg_assets(metas)}</figure>
+    <figure class="fig-wide bleed">{svg_assets(metas)}</figure>
     <table>
       <thead><tr><th>素材</th><th>实际执行的命令</th><th class="num">帧数</th><th class="num">时长</th><th class="num">尺寸</th></tr></thead>
       <tbody>{asset_rows}</tbody>
@@ -1366,7 +1380,7 @@ def render(scan: Scan) -> str:
   <section id="diff">
     <h2>四、原件与工作副本</h2>
 {caption3}
-    <figure class="fig-wide">{svg_diff(diff)}</figure>
+    <figure class="fig-wide bleed">{svg_diff(diff)}</figure>
     <table>
       <thead><tr><th>文件</th><th>类别</th><th>说明</th></tr></thead>
       <tbody>{diff_rows}</tbody>
