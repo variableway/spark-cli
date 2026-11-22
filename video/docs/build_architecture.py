@@ -171,6 +171,8 @@ MODULES = [
     ('工作流层', '演进计划', ['docs/cli-video-skill-plan.md'],
      '这套流程要变成能长期用的 Skill 还差什么：素材层怎么生成的、改文案为什么难、'
      '引擎层有没有硬编码、下一步先做哪一步。'),
+    ('工作流层', '改片手册', ['docs/film-refresh-playbook.md'],
+     'CLI 变了以后怎么把片子跟上：九环的顺序、每环改什么怎么验、实测踩过的五个坑。'),
     ('素材层', '终端素材', ['project/web/img'],
      '命令真跑一遍录下的无损 PNG 帧序列；静帧入库，帧序列不入库。'),
     ('镜头层', '镜头与引擎', ['project/web'],
@@ -279,6 +281,7 @@ DIFF_FILES = [
 DOC_NOTES = {
     'skills/cli-intro-video/SKILL.md': '这套流程的入口：什么时候用、怎么用。',
     'docs/cli-video-skill-plan.md': '演进计划：素材层怎么生成、改文案为什么难、引擎有无硬编码、下一步做什么。',
+    'docs/film-refresh-playbook.md': '改片手册：CLI 变了以后，片子跟着改的顺序、每环改什么、踩过的坑。',
     'skills/cli-intro-video/references/workflow.md': '工作流详解：六步各自在做什么。',
     'skills/cli-intro-video/references/profile-schema.md': 'profile 每个字段怎么写、哪些必填。',
     'skills/cli-intro-video/references/pitfalls.md': '踩过的坑：为什么不能手算列宽。',
@@ -312,6 +315,7 @@ NOTES = {
     'skills/cli-intro-video/scripts/_paths.py': '定位工程、profile、仓库根与 python 解释器。',
     'skills/cli-intro-video/SKILL.md': '这套流程的入口：什么时候用、怎么用。',
     'docs/cli-video-skill-plan.md': '演进计划：素材层怎么生成、改文案为什么难、引擎有无硬编码、下一步做什么。',
+    'docs/film-refresh-playbook.md': '改片手册：CLI 变了以后，片子跟着改的顺序、每环改什么、踩过的坑。',
     'skills/lucid/SKILL.md': 'lucid 引擎入口。',
     'skills/lucid/PROVENANCE.md': '来源与授权说明。',
     'project/web/shots_spark.js': '自写镜头代码：六个镜头，几何常量抄自素材 meta.json。',
