@@ -507,6 +507,43 @@ def svg_assets(meta: dict) -> str:
 </svg>'''
 
 
+def svg_engine() -> str:
+    """图：lucid 引擎怎么把代码变成一支片。"""
+    W, H = 1160, 168
+    BW, GAP = 206, 28
+    X0, Y, BH = 20, 26, 100
+
+    stages = [
+        ('输入', 'project.json', 'shots_*.js 镜头代码', 'vo.json 配音稿'),
+        ('预检', 'lint.py 合同', '页面预检查 NaN', 'layout.py 版面'),
+        ('渲染', '逐帧 render(t)', '画布 → JPEG', '管道给 ffmpeg'),
+        ('合成', '拼接全部分段', '混入 mix_final.wav', '两档互不复用'),
+        ('验收', 'checkup.py 体检', '硬伤 / 可选提示', 'deliver.py 核对表'),
+    ]
+
+    boxes = []
+    for i, (title, *lines) in enumerate(stages):
+        x = X0 + i * (BW + GAP)
+        boxes.append(f'''
+  <g class="en">
+    <rect x="{x}" y="{Y}" width="{BW}" height="{BH}" rx="9" fill="{PANEL}" stroke="{RULE}"/>
+    <text x="{x + 14}" y="{Y + 24}" class="en-t">{esc(title)}</text>
+    {"".join(f'<text x="{x + 14}" y="{Y + 48 + j * 20}" class="en-l">{esc(t)}</text>' for j, t in enumerate(lines))}
+  </g>''')
+        if i < len(stages) - 1:
+            ax0, ax1 = x + BW + 4, x + BW + GAP - 4
+            ay = Y + BH / 2
+            boxes.append(f'''
+  <path d="M {ax0} {ay} L {ax1 - 5} {ay}" stroke="{ACCENT}" stroke-width="1.6"/>
+  <path d="M {ax1 - 9} {ay - 4} L {ax1} {ay} L {ax1 - 9} {ay + 4}" fill="none"
+        stroke="{ACCENT}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>''')
+
+    return f'''<svg viewBox="0 0 {W} {H}" class="diagram" role="img"
+     aria-label="lucid 引擎出片链路：输入、预检、逐帧渲染、合成、体检与交付">
+{''.join(boxes)}
+</svg>'''
+
+
 def diff_summary():
     """实算原件与工作副本的差异。
 
@@ -736,6 +773,22 @@ figure{margin:0 0 22px}
 .geom .gv{font-family:var(--mono);font-size:13px;color:var(--ink)}
 .geom .warn .gv{color:var(--accent)}
 .geom .warn .gk{color:var(--accent)}
+/* ---- 总体思路条目 ---- */
+.principle{display:grid;grid-template-columns:30px 1fr;gap:15px;padding:15px 0;
+  border-bottom:1px solid var(--rule)}
+.principle:last-child{border-bottom:none;padding-bottom:4px}
+.pr-no{width:25px;height:25px;border-radius:50%;background:var(--accent);color:#fff;
+  font-family:var(--mono);font-size:11px;display:flex;align-items:center;
+  justify-content:center;margin-top:2px}
+.pr-title{font-family:var(--serif);font-size:17px;line-height:1.35;color:var(--ink);
+  margin:0 0 5px}
+.pr-body{font-size:13.5px;line-height:1.62;color:var(--ink2);margin:0}
+.pr-body code{font-size:11.5px}
+.pr-mech{font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink);
+  margin:8px 0 0;padding-left:12px;border-left:2px solid var(--accent)}
+pre.snippet{margin:0 0 14px;max-width:520px;font-size:12px;color:var(--ink)}
+.en-t{font-family:var(--mono);font-size:12px;fill:var(--accent)}
+.en-l{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
 /* ---- 参考资料 ---- */
 .doc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule);
   border:1px solid var(--rule);border-radius:10px;overflow:hidden}
@@ -819,8 +872,9 @@ pre{margin:0;padding:16px 18px;background:#faf8f4;border:1px solid var(--rule);
 .dw-title{font-family:var(--serif);font-size:21px;line-height:1.3;margin:0;
   word-break:break-all;color:var(--ink)}
 .dw-close{flex:none;width:30px;height:30px;border-radius:6px;border:1px solid var(--rule);
-  background:transparent;color:var(--ink2);font-size:18px;line-height:1;cursor:pointer;
-  margin-left:auto;padding:0}
+  background:transparent;color:var(--ink2);cursor:pointer;margin-left:auto;padding:0;
+  display:flex;align-items:center;justify-content:center}
+.dw-close svg{display:block}
 .dw-close:hover{border-color:var(--accent);color:var(--accent)}
 .dw-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .dw-meta{display:grid;grid-template-columns:74px 1fr;gap:7px 16px;margin:0;
@@ -1171,8 +1225,83 @@ def render(scan: Scan) -> str:
     {hero}
   </header>
 
+  <section id="lucid">
+    <h2>一、lucid 的总体思路</h2>
+    <p class="caption">lucid 是「用代码写视频」的引擎。画面不是拖模板拼出来的，是写一段 JavaScript：
+      第 t 毫秒这一帧该长什么样，由代码算出来。</p>
+    <pre class="snippet">SHOT.S03 = function (ctx, t, S) {{ … }}</pre>
+    <p class="caption">引擎负责逐帧渲染、拼片、混音、体检和交付核对；
+      片子好不好看，取决于写镜头的人。下面五条是它的总体思路。</p>
+    <div class="principles">
+      <div class="principle">
+        <span class="pr-no">1</span>
+        <div>
+          <h3 class="pr-title">画面只由时间算出</h3>
+          <p class="pr-body">镜头函数只依赖 <code>t</code>：不在帧之间保存状态、不用 <code>Math.random()</code>，
+            随机数用 <code>rng(种子)</code>，衰减用 <code>decay(t, t0, tau)</code>，多段变化用
+            <code>springTo()</code> 把每次变化的弹簧叠起来。正因为「第 t 毫秒长什么样」能被独立算出来，
+            引擎才能逐帧渲染、按镜头切段并行、只重渲改过的那一个镜头。</p>
+          <p class="pr-mech">落地：<code>lint.py</code> 在渲染前拦违规写法（<code>Math.random()</code>、
+            <code>Date.now()</code>、丢全局矩阵、把 <code>EV()</code> 写在绘制函数里），打印文件与行号；
+            确有理由可在行尾写 <code>// lint-ok: 原因</code> 豁免这一行。</p>
+        </div>
+      </div>
+      <div class="principle">
+        <span class="pr-no">2</span>
+        <div>
+          <h3 class="pr-title">代码就是分镜</h3>
+          <p class="pr-body">引擎给的是一套「排版与运动的词汇表」：<code>split</code>／<code>grid</code>／<code>inset</code> 分区，
+            <code>textBlock</code> 排版并入场，<code>springTo</code> 弹簧，<code>b(n)</code> 拍点，
+            <code>screen</code>／<code>cam</code> 坐标，<code>anchor</code>／<code>callout</code> 标注，
+            <code>chartScale</code> 把数据映射成像素。写一个镜头就是：登记物件 → 分区 → 放主体 → 出字 → 登记事件。</p>
+          <p class="pr-mech">落地：片型手册 <code>explainer.md</code>／<code>promo.md</code>／<code>review.md</code>
+            讲怎么用这套词；<code>template/examples/</code> 里两个示例工程可直接跑通。</p>
+        </div>
+      </div>
+      <div class="principle">
+        <span class="pr-no">3</span>
+        <div>
+          <h3 class="pr-title">时间轴决定一切</h3>
+          <p class="pr-body">时间轴有三种模式：<code>beats</code>（节拍）、<code>manual</code>（手写时刻）、
+            <code>voice</code>（配音驱动）。这支片是讲解片，用 <code>voice</code>：先合成配音，
+            按标点切出每句短句的起止，画面事件挂在短句上——<code>act(t, ph('S03', 1))</code>。
+            画面和声音因此天生对齐，不需要手工对轴。</p>
+          <p class="pr-mech">落地：<code>timeline.py</code> 把 <code>project.json</code> 同步成
+            <code>timeline.json</code> 并打印每个镜头的起止；<code>tts.py full</code> 合成后自动转写，
+            把稿子对不上的名字、数字、英文词挑出来。</p>
+        </div>
+      </div>
+      <div class="principle">
+        <span class="pr-no">4</span>
+        <div>
+          <h3 class="pr-title">迭代用草稿档，最后只出一次正式档</h3>
+          <p class="pr-body">草稿档半尺寸、最高 30 帧、不开运动模糊、CRF 28，几分钟出一版，用来反复看结构、节奏和版面；
+            正式档原尺寸、按 <code>project.json</code> 的帧率、开运动模糊、CRF 18，而且会跟草稿逐帧比对查重影。
+            重影只在正式档出现，所以比对的前提是草稿档和当前代码一致。</p>
+          <p class="pr-mech">落地：<code>render.py</code> 默认出草稿，<code>--final</code> 出正式档；
+            两档的分段各自复用，互不影响。改一个镜头只重渲它覆盖的段——每段有指纹，
+            指纹 = 公共部分（引擎、共用镜头文件、project.json、字体与图片清单）＋ 这段时间在画的镜头所在文件的内容。</p>
+        </div>
+      </div>
+      <div class="principle">
+        <span class="pr-no">5</span>
+        <div>
+          <h3 class="pr-title">验收靠机器，不靠人眼</h3>
+          <p class="pr-body">渲染前预检三道：合同 <code>lint.py</code> → 页面预检（每 0.25 秒调一次
+            <code>render(t)</code>，收集 JS 报错和画布里的 NaN）→ 版面 <code>layout.py</code>（字出框、字压字、标注没落到目标）。
+            渲染后体检：开场、转场、抖动、短句对齐、静止段、空帧、正式档重影。</p>
+          <p class="pr-mech">落地：体检分两级——硬伤进终端摘要拦住渲染（要改的，和要看一眼再决定的，分开列）；
+            可选提示（主体偏小、留白多、这句话画面没有新事件……）只写进报告，不拦渲染。
+            交付时 <code>deliver.py</code> 打出成片事实并填 <code>out/交付核对.md</code>，
+            依据只用成片事实和静帧。</p>
+        </div>
+      </div>
+    </div>
+    <figure>{svg_engine()}</figure>
+  </section>
+
   <section id="layers">
-    <h2>一、分层架构</h2>
+    <h2>二、分层架构</h2>
     <p class="caption"><b>图 1</b> · 数据自上而下流动：profile 声明真相，工作流层据此核对并录制素材，
       镜头层把素材画成画面，引擎层逐帧渲染，产物层落出成片。
       <b>可点击的小标签</b>会滑出该文件的源码。</p>
@@ -1183,7 +1312,7 @@ def render(scan: Scan) -> str:
   </section>
 
   <section id="assets">
-    <h2>二、终端素材从哪来</h2>
+    <h2>三、终端素材从哪来</h2>
     <p class="caption"><b>图 2</b> · 画面里那些终端输出不是画的，是<strong>真的跑出来的</strong>。
       profile 声明要录哪条命令，录制器把它执行一遍、按参数渲染成无损 PNG 帧序列，
       帧序列旁边的 <code>meta.json</code> 写下最终分辨率下的真实网格，镜头代码再把这四个数抄过去。
@@ -1205,7 +1334,7 @@ def render(scan: Scan) -> str:
   </section>
 
   <section id="diff">
-    <h2>三、原件与工作副本</h2>
+    <h2>四、原件与工作副本</h2>
 {caption3}
     <figure>{svg_diff(diff)}</figure>
     <table>
@@ -1215,19 +1344,12 @@ def render(scan: Scan) -> str:
   </section>
 
   <section id="modules">
-    <h2>四、模块清单</h2>
+    <h2>五、模块清单</h2>
     <p class="caption">十四个模块按层排列，每一项都能展开。
       展开后是这个模块包含的文件、行数与职责，点文件名会滑出抽屉看源码
-      （16 KB 以内给全文，更大的只给前 100 行并附 GitHub 链接）。</p>
-    {''.join(details)}
-  </section>
-
-  <section id="preview">
-    <h2>五、文件抽屉</h2>
-    <p class="caption">点上面任意文件名，或图 1 里的小标签，右侧会滑出一个抽屉：
-      文件路径、行数、大小、所属模块、职责说明和源码都在里面。
-      源码超过 16 KB 只放前 100 行，抽屉底部有到 GitHub 的完整链接。
+      （16 KB 以内给全文，更大的只给前 100 行并附 GitHub 链接）。
       按 <kbd>Esc</kbd>、点关闭按钮或点抽屉外任意处都能关。</p>
+    {''.join(details)}
   </section>
 
   <section id="refs">
@@ -1251,7 +1373,7 @@ def render(scan: Scan) -> str:
       <p class="dw-eyebrow" id="dw-eyebrow">—</p>
       <h2 class="dw-title" id="dw-title">文件</h2>
     </div>
-    <button class="dw-close" id="dw-close" type="button" aria-label="关闭抽屉">✕</button>
+    <button class="dw-close" id="dw-close" type="button" aria-label="关闭抽屉"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M2 2 L11 11 M11 2 L2 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
   </header>
   <dl class="dw-meta">
     <dt>路径</dt><dd class="mono" id="dw-path"></dd>
