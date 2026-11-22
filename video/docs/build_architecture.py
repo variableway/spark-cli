@@ -74,6 +74,25 @@ def kb(n: int) -> str:
     return f'{n / 1048576:.2f} MB'
 
 
+def vw(text: str, size: float) -> float:
+    """估算 SVG 文本宽度：CJK 与全角标点按 1em，其余按 0.58em。
+
+    字号调大后按「字符个数 × 固定系数」估宽会算少——中文标签会被撑出边框。
+    """
+    w = 0.0
+    for ch in text:
+        w += size if ord(ch) > 0x2E7F else size * 0.58
+    return w
+
+
+CHIP_FS = 11.5          # 图 1 的文件小标签字号
+
+
+def chip_w(text: str) -> float:
+    """一个小标签的宽度：左右各留一点内边距。"""
+    return 16 + vw(text, CHIP_FS) + 8
+
+
 # ---------------------------------------------------------------- 扫描
 
 class Scan:
@@ -308,16 +327,16 @@ NOTES = {
 
 def svg_chip(x: float, y: float, text: str, file_path: str | None):
     """一个文件小标签；file_path 非空时可点。返回 (svg, 下一个 x)。"""
-    w = 18 + 6.75 * len(text)
+    w = chip_w(text)
     if file_path:
         fill, stroke, cls, data = CHIP_BG, '#dcd5c8', 'chip', f' data-file="{esc(file_path)}"'
     else:
         fill, stroke, cls, data = CHIP_DIM_BG, '#ece7de', 'chip dim', ''
     s = (f'<g class="{cls}"{data} tabindex="0" role="button">'
          f'<title>{esc(text)}</title>'
-         f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="21" rx="4" '
+         f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="22" rx="4" '
          f'fill="{fill}" stroke="{stroke}"/>'
-         f'<text x="{x + 9:.1f}" y="{y + 14.6:.1f}" class="chip-t">{esc(text)}</text>'
+         f'<text x="{x + 8:.1f}" y="{y + 15.2:.1f}" class="chip-t">{esc(text)}</text>'
          f'</g>')
     return s, x + w + 7
 
@@ -326,10 +345,10 @@ def svg_layer_chips(chips, x0: float, y0: float, width: float):
     """把一排小标签折行摆放，返回 (svg, 用了几行)。"""
     out, x, y, row = [], x0, y0, 0
     for file_path, label in chips:
-        w = 18 + 6.75 * len(label)
+        w = chip_w(label)
         if x > x0 and x + w > x0 + width:
             x = x0
-            y += 26
+            y += 27
             row += 1
         s, x = svg_chip(x, y, label, file_path or None)
         out.append(s)
@@ -392,10 +411,10 @@ def svg_layers(scan: Scan) -> str:
         labelled = [(fp, chip_label(lbl, fp, mode, scan)) for lbl, fp, mode in chips]
 
         # 一行放得下就放几个，剩下的折成「还有 N 个」
-        chips_svg, x, shown = '', X + 64 + int(len(path) * 6.3) + 16, 0
+        chips_svg, x, shown = '', X + 64 + int(vw(path, 12)) + 16, 0
         rest = []
         for fp, label in labelled:
-            w = 18 + 6.75 * len(label)
+            w = chip_w(label)
             if x + w > X + LW - 16:
                 rest.append((fp, label))
                 continue
@@ -404,7 +423,7 @@ def svg_layers(scan: Scan) -> str:
             shown += 1
         if rest:
             more = f'还有 {len(rest)} 个'
-            w = 18 + 6.75 * len(more)
+            w = chip_w(more)
             if x + w > X + LW - 16:
                 x = X + LW - 16 - w
             one, x = svg_chip(x, y + 36, more, None)
@@ -442,9 +461,10 @@ def svg_layers(scan: Scan) -> str:
 
 def svg_assets(meta: dict) -> str:
     """图 2：终端素材是怎么来的——四步链路。"""
-    W, H = 1160, 268
+    W = 1160
     BW, GAP = 262, 30
-    X0, Y, BH = 18, 24, 176
+    X0, Y, BH = 18, 24, 212
+    H = Y + BH + 26
 
     steps = [
         ('① 声明', 'profile/spark-cli.json',
@@ -468,20 +488,20 @@ def svg_assets(meta: dict) -> str:
         boxes.append(f'''
   <g class="as">
     <rect x="{x}" y="{Y}" width="{BW}" height="{BH}" rx="9" fill="{PANEL}" stroke="{RULE}"/>
-    <text x="{x + 14}" y="{Y + 24}" class="as-t">{esc(title)}</text>
-    <text x="{x + 14}" y="{Y + 44}" class="as-p">{esc(path)}</text>
-    {"<line x1='" + str(x + 14) + "' y1='" + str(Y + 54) + "' x2='" + str(x + BW - 14) + "' y2='" + str(Y + 54) + "' stroke='" + RULE + "' stroke-width='1'/>" if True else ""}
-    {"".join(f'<text x="{x + 14}" y="{Y + 74 + j * 20}" class="as-l">{esc(t)}</text>' for j, t in enumerate(lines))}
-    <text x="{x + 14}" y="{Y + BH - 14}" class="as-tail">{esc(tail)}</text>
+    <text x="{x + 15}" y="{Y + 28}" class="as-t">{esc(title)}</text>
+    <text x="{x + 15}" y="{Y + 52}" class="as-p">{esc(path)}</text>
+    <line x1="{x + 15}" y1="{Y + 64}" x2="{x + BW - 15}" y2="{Y + 64}" stroke="{RULE}" stroke-width="1"/>
+    {"".join(f'<text x="{x + 15}" y="{Y + 88 + j * 26}" class="as-l">{esc(t)}</text>' for j, t in enumerate(lines))}
+    <text x="{x + 15}" y="{Y + BH - 18}" class="as-tail">{esc(tail)}</text>
   </g>''')
         if not last:
             ax0 = x + BW + 5
             ax1 = x + BW + GAP - 5
             ay = Y + BH / 2
             boxes.append(f'''
-  <path d="M {ax0} {ay} L {ax1 - 5} {ay}" stroke="{ACCENT}" stroke-width="1.6"/>
+  <path d="M {ax0} {ay} L {ax1 - 5} {ay}" stroke="{ACCENT}" stroke-width="1.8"/>
   <path d="M {ax1 - 9} {ay - 4} L {ax1} {ay} L {ax1 - 9} {ay + 4}" fill="none"
-        stroke="{ACCENT}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>''')
+        stroke="{ACCENT}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>''')
 
     return f'''<svg viewBox="0 0 {W} {H}" class="diagram" role="img"
      aria-label="终端素材的来源链路：profile 声明、record_terminal 真跑、落成帧序列、镜头代码对齐网格">
@@ -491,9 +511,10 @@ def svg_assets(meta: dict) -> str:
 
 def svg_engine() -> str:
     """图：lucid 引擎怎么把代码变成一支片。"""
-    W, H = 1160, 168
-    BW, GAP = 206, 28
-    X0, Y, BH = 20, 26, 100
+    W = 1160
+    BW, GAP = 206, 26
+    X0, Y, BH = 18, 26, 120
+    H = Y + BH + 30
 
     stages = [
         ('输入', 'project.json', 'shots_*.js 镜头代码', 'vo.json 配音稿'),
@@ -509,16 +530,16 @@ def svg_engine() -> str:
         boxes.append(f'''
   <g class="en">
     <rect x="{x}" y="{Y}" width="{BW}" height="{BH}" rx="9" fill="{PANEL}" stroke="{RULE}"/>
-    <text x="{x + 14}" y="{Y + 24}" class="en-t">{esc(title)}</text>
-    {"".join(f'<text x="{x + 14}" y="{Y + 48 + j * 20}" class="en-l">{esc(t)}</text>' for j, t in enumerate(lines))}
+    <text x="{x + 16}" y="{Y + 30}" class="en-t">{esc(title)}</text>
+    {"".join(f'<text x="{x + 16}" y="{Y + 60 + j * 25}" class="en-l">{esc(t)}</text>' for j, t in enumerate(lines))}
   </g>''')
         if i < len(stages) - 1:
             ax0, ax1 = x + BW + 4, x + BW + GAP - 4
             ay = Y + BH / 2
             boxes.append(f'''
-  <path d="M {ax0} {ay} L {ax1 - 5} {ay}" stroke="{ACCENT}" stroke-width="1.6"/>
+  <path d="M {ax0} {ay} L {ax1 - 5} {ay}" stroke="{ACCENT}" stroke-width="1.8"/>
   <path d="M {ax1 - 9} {ay - 4} L {ax1} {ay} L {ax1 - 9} {ay + 4}" fill="none"
-        stroke="{ACCENT}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>''')
+        stroke="{ACCENT}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>''')
 
     return f'''<svg viewBox="0 0 {W} {H}" class="diagram" role="img"
      aria-label="lucid 引擎出片链路：输入、预检、逐帧渲染、合成、体检与交付">
@@ -705,13 +726,17 @@ section{margin-bottom:54px}
 .caption{font-size:13px;line-height:1.58;color:var(--ink2);max-width:74ch;margin:0 0 20px}
 .caption b{color:var(--ink);font-weight:500}
 figure{margin:0 0 22px}
+/* 图可以突破正文栏宽：按视口居中，画得比正文宽，图里的字才看得清。
+   宽度取视口宽与 1320 的较小值，两侧至少留 24px，不会横向溢出。 */
+.fig-wide{width:min(1320px,calc(100vw - 48px));margin-left:50%;
+  transform:translateX(-50%);margin-bottom:26px}
 .diagram{width:100%;height:auto;display:block;overflow:visible}
 .diagram text{font-family:var(--sans);fill:var(--ink)}
 .l-no{font-family:var(--mono);font-size:12px;fill:#fff;font-weight:500}
-.l-name{font-size:16px;font-weight:500;fill:var(--ink)}
-.l-path{font-family:var(--mono);font-size:11px;fill:var(--ink2)}
-.l-stat{font-family:var(--mono);font-size:11.5px;fill:var(--ink2);text-anchor:end}
-.chip-t{font-family:var(--mono);font-size:11px;fill:var(--ink)}
+.l-name{font-size:17px;font-weight:500;fill:var(--ink)}
+.l-path{font-family:var(--mono);font-size:12px;fill:var(--ink2)}
+.l-stat{font-family:var(--mono);font-size:12.5px;fill:var(--ink2);text-anchor:end}
+.chip-t{font-family:var(--mono);font-size:11.5px;fill:var(--ink)}
 .chip{cursor:pointer}
 .chip.dim{cursor:default}
 .chip:hover rect{fill:#e8e2d6;stroke:var(--accent)}
@@ -739,10 +764,10 @@ figure{margin:0 0 22px}
 .fc-gate.pass{background:#efede7;color:var(--ink2)}
 .flow-arrow{flex:0 0 20px;display:flex;align-items:center;justify-content:center}
 /* ---- 素材链路图 ---- */
-.as-t{font-family:var(--mono);font-size:12px;fill:var(--accent)}
-.as-p{font-family:var(--mono);font-size:10.5px;fill:var(--ink)}
-.as-l{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
-.as-tail{font-size:11px;fill:var(--ink)}
+.as-t{font-family:var(--mono);font-size:15px;fill:var(--accent)}
+.as-p{font-family:var(--mono);font-size:12.5px;fill:var(--ink)}
+.as-l{font-family:var(--mono);font-size:12.5px;fill:var(--ink2)}
+.as-tail{font-size:13px;fill:var(--ink)}
 /* ---- 真实值 vs 名义值 ---- */
 .geom{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
   border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin:22px 0 0}
@@ -765,8 +790,8 @@ figure{margin:0 0 22px}
 .id-mech{margin-top:auto;font-family:var(--mono);font-size:9.5px;line-height:1.55;
   color:var(--ink);padding-left:9px;border-left:2px solid var(--accent)}
 pre.snippet{margin:0 0 14px;max-width:520px;font-size:12px;color:var(--ink)}
-.en-t{font-family:var(--mono);font-size:12px;fill:var(--accent)}
-.en-l{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
+.en-t{font-family:var(--mono);font-size:16px;fill:var(--accent)}
+.en-l{font-family:var(--mono);font-size:12.5px;fill:var(--ink2)}
 /* ---- 参考资料 ---- */
 .doc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule);
   border:1px solid var(--rule);border-radius:10px;overflow:hidden}
@@ -780,14 +805,14 @@ pre.snippet{margin:0 0 14px;max-width:520px;font-size:12px;color:var(--ink)}
   margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dc-note{font-size:12.5px;color:var(--ink2);line-height:1.45}
 .caliber{font-size:12px;color:var(--ink2);opacity:.85;margin-top:-10px}
-.d-head{font-family:var(--mono);font-size:12.5px;fill:var(--ink)}
-.d-num2{font-family:var(--mono);font-size:11px;fill:var(--ink2)}
-.d-num3{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
-.d-status2{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
-.d-sech{font-family:var(--serif);font-size:16px;fill:var(--ink)}
-.d-item{font-family:var(--mono);font-size:12px;fill:var(--ink)}
-.d-item-a{font-family:var(--mono);font-size:12px;fill:var(--accent)}
-.d-foot{font-size:11.5px;fill:var(--ink2)}
+.d-head{font-family:var(--mono);font-size:13.5px;fill:var(--ink)}
+.d-num2{font-family:var(--mono);font-size:12px;fill:var(--ink2)}
+.d-num3{font-family:var(--mono);font-size:11.5px;fill:var(--ink2)}
+.d-status2{font-family:var(--mono);font-size:11.5px;fill:var(--ink2)}
+.d-sech{font-family:var(--serif);font-size:17px;fill:var(--ink)}
+.d-item{font-family:var(--mono);font-size:13px;fill:var(--ink)}
+.d-item-a{font-family:var(--mono);font-size:13px;fill:var(--accent)}
+.d-foot{font-size:12.5px;fill:var(--ink2)}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 th{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.06em;
   text-transform:uppercase;color:var(--ink2);text-align:left;
@@ -1304,7 +1329,7 @@ def render(scan: Scan) -> str:
         <p class="id-mech">lint.py → 页面预检 → layout.py；checkup.py 体检</p>
       </div>
     </div>
-    <figure>{svg_engine()}</figure>
+    <figure class="fig-wide">{svg_engine()}</figure>
   </section>
 
   <section id="layers">
@@ -1316,7 +1341,7 @@ def render(scan: Scan) -> str:
       其中代码（<code>.py</code>／<code>.js</code>）<b>{code_n}</b> 个，文档（<code>.md</code>）<b>{doc_n}</b> 篇。
       数字由 <code>build_architecture.py</code> 扫文件系统得出，另用 <code>find … | wc -l</code> 独立复核，两者{agree_text}。
       本页不统计代码行数。</p>
-    <figure>{svg_layers(scan)}</figure>
+    <figure class="fig-wide">{svg_layers(scan)}</figure>
   </section>
 
   <section id="assets">
@@ -1325,7 +1350,7 @@ def render(scan: Scan) -> str:
       profile 声明要录哪条命令，录制器把它执行一遍、按参数渲染成无损 PNG 帧序列，
       帧序列旁边的 <code>meta.json</code> 写下最终分辨率下的真实网格，镜头代码再把这四个数抄过去。
       {total_frames} 帧，全部来自 {len(metas)} 条真实命令。</p>
-    <figure>{svg_assets(metas)}</figure>
+    <figure class="fig-wide">{svg_assets(metas)}</figure>
     <table>
       <thead><tr><th>素材</th><th>实际执行的命令</th><th class="num">帧数</th><th class="num">时长</th><th class="num">尺寸</th></tr></thead>
       <tbody>{asset_rows}</tbody>
@@ -1344,7 +1369,7 @@ def render(scan: Scan) -> str:
   <section id="diff">
     <h2>四、原件与工作副本</h2>
 {caption3}
-    <figure>{svg_diff(diff)}</figure>
+    <figure class="fig-wide">{svg_diff(diff)}</figure>
     <table>
       <thead><tr><th>文件</th><th>类别</th><th>说明</th></tr></thead>
       <tbody>{diff_rows}</tbody>
