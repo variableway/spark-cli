@@ -256,41 +256,16 @@ FLOW = [
     'ffmpeg 合成 MP4，自动体检与交付核对',
 ]
 
+# 步骤名、脚本、输入、输出、闸门、一句话
 PIPELINE = [
-    ('facts', 'facts.py', 'facts.json', '核对结论', '退出码≠0 即停'),
-    ('crop', 'check_crop.py', '素材＋profile', '裁剪与几何结论', '退出码≠0 即停'),
-    ('record', 'record_terminal.py', 'capture 参数', 'PNG 帧＋meta.json', '退出码≠0 即停'),
-    ('sync', 'timeline.py', '配音＋帧目录', 'timeline.json', '退出码≠0 即停'),
-    ('render', 'render.py', '工程＋时间线', 'MP4＋体检报告', '体检有硬伤'),
-    ('deliver', 'deliver.py', 'out/ 成片', '交付核对.md', '只报告不拦'),
+    ('facts', 'facts.py', 'facts.json', '核对结论', '退出码≠0 即停', '比对画面事实的来源'),
+    ('crop', 'check_crop.py', '素材＋profile', '裁剪与几何结论', '退出码≠0 即停', '裁剪不截字、几何对得上'),
+    ('record', 'record_terminal.py', 'capture 参数', 'PNG 帧＋meta.json', '退出码≠0 即停', '真跑命令，录成帧序列'),
+    ('sync', 'timeline.py', '配音＋帧目录', 'timeline.json', '退出码≠0 即停', '刷新时间线与帧清单'),
+    ('render', 'render.py', '工程＋时间线', 'MP4＋体检报告', '体检有硬伤', '逐帧渲染并自动体检'),
+    ('deliver', 'deliver.py', 'out/ 成片', '交付核对.md', '只报告不拦', '把成片事实填进交付表'),
 ]
 
-PIPE_ROWS = [
-    ('facts', 'skills/cli-intro-video/scripts/facts.py',
-     'profile/facts.json + 二进制 + 仓库',
-     '逐条比对画面事实的来源',
-     '退出码 1，不渲染'),
-    ('crop', 'skills/cli-intro-video/scripts/check_crop.py',
-     '素材真实输出 + profile + 镜头代码',
-     '裁剪不截字；profile 与 CARD 表一致；几何常量与真实网格一致',
-     '退出码 1，不渲染'),
-    ('record', 'skills/cli-intro-video/scripts/record_terminal.py',
-     'profile 的 capture 参数',
-     'PNG 帧序列 + meta.json（含网格）',
-     '退出码 1'),
-    ('sync', 'project/tools/timeline.py',
-     '配音产物 + web/img/ 帧目录',
-     'timeline.json 与 web/project.js 的帧清单',
-     '退出码 1'),
-    ('render', 'project/tools/render.py',
-     '工程 + 时间线',
-     'MP4（--format 指定画幅）+ 自动体检报告',
-     '体检有硬伤就按报告改'),
-    ('deliver', 'project/tools/deliver.py',
-     'project/out/ 下的成片',
-     'out/交付核对.md（成片事实逐条填）',
-     '只报告，不拦'),
-]
 
 DIFF_FILES = [
     ('project/project.json', '手写', '片型、画幅、主题、章节、素材清单——原件是空白模板'),
@@ -303,6 +278,30 @@ DIFF_FILES = [
     ('project/web/img/**、project/audio/**、project/assets/**', '工具生成',
      '录屏帧序列、音频产物、品牌素材——都可重新生成'),
 ]
+
+# 参考资料：每篇一句话
+DOC_NOTES = {
+    'skills/cli-intro-video/SKILL.md': '这套流程的入口：什么时候用、怎么用。',
+    'skills/cli-intro-video/references/workflow.md': '工作流详解：六步各自在做什么。',
+    'skills/cli-intro-video/references/profile-schema.md': 'profile 每个字段怎么写、哪些必填。',
+    'skills/cli-intro-video/references/pitfalls.md': '踩过的坑：为什么不能手算列宽。',
+    'skills/lucid/SKILL.md': 'lucid 引擎的入口。',
+    'skills/lucid/PROVENANCE.md': '来源与授权说明。',
+    'skills/lucid/capabilities/README.md': '宿主能力总览：配音、转写等。',
+    'skills/lucid/capabilities/mcode/voice.md': '配音能力怎么用、退路是什么。',
+    'skills/lucid/capabilities/mcode/long-commands.md': '长命令怎么执行。',
+    'skills/lucid/references/engine.md': '引擎接口：镜头代码怎么写、怎么调试。',
+    'skills/lucid/references/assets.md': '素材：怎么准备、怎么引用。',
+    'skills/lucid/references/audio.md': '配音、配乐与响度。',
+    'skills/lucid/references/craft.md': '工艺：节奏、转场、字幕。',
+    'skills/lucid/references/explainer.md': 'explainer 片型指南。',
+    'skills/lucid/references/promo.md': 'promo 片型指南。',
+    'skills/lucid/references/review.md': 'review 片型指南。',
+    'skills/lucid/references/pitfalls.md': '引擎踩过的坑。',
+    'skills/lucid/references/shader-background.md': '着色器背景怎么写。',
+    'skills/lucid/references/upstream-guide.md': '原版创作指南。',
+    'skills/lucid/references/workflow.md': '引擎工作流。',
+}
 
 # 内嵌预览时给一句「这文件是干什么的」
 NOTES = {
@@ -399,121 +398,112 @@ def layer_stat(path: str, scan: Scan) -> str:
 
 
 def svg_layers(scan: Scan) -> str:
-    """图 1：分层架构图。"""
+    """图 1：分层架构图。压缩版——每层只画一行代表文件，其余归到「还有 N 个」。"""
     W = 1160
-    MAIN_X, MAIN_W = 24, 880
-    RAIL_X, RAIL_W = 936, 200
-    GAP = 46
+    X, LW = 24, 1112
+    LH, GAP = 64, 42
+    TOP = 26
 
-    blocks, y = [], 40
+    blocks, y = [], TOP
     for i, (no, name, path, chips) in enumerate(LAYERS):
-        labelled = [(fp, chip_label(lbl, fp, mode, scan)) for lbl, fp, mode in chips]
-        chip_svg, rows = svg_layer_chips(labelled, MAIN_X + 16, y + 58, MAIN_W - 32)
-        h = 58 + rows * 26 + 12
         stat = layer_stat(path, scan)
+        labelled = [(fp, chip_label(lbl, fp, mode, scan)) for lbl, fp, mode in chips]
+
+        # 一行放得下就放几个，剩下的折成「还有 N 个」
+        chips_svg, x, shown = '', X + 64 + int(len(path) * 6.3) + 16, 0
+        rest = []
+        for fp, label in labelled:
+            w = 18 + 6.75 * len(label)
+            if x + w > X + LW - 16:
+                rest.append((fp, label))
+                continue
+            one, x = svg_chip(x, y + 36, label, fp or None)
+            chips_svg += one
+            shown += 1
+        if rest:
+            more = f'还有 {len(rest)} 个'
+            w = 18 + 6.75 * len(more)
+            if x + w > X + LW - 16:
+                x = X + LW - 16 - w
+            one, x = svg_chip(x, y + 36, more, None)
+            chips_svg += one
+
         blocks.append(f'''
   <g class="layer">
-    <rect x="{MAIN_X}" y="{y}" width="{MAIN_W}" height="{h}" rx="10"
+    <rect x="{X}" y="{y}" width="{LW}" height="{LH}" rx="10"
           fill="{PANEL}" stroke="{RULE}"/>
-    <circle cx="{MAIN_X + 26}" cy="{y + 26}" r="12" fill="{ACCENT}"/>
-    <text x="{MAIN_X + 26}" y="{y + 30.5}" class="l-no" text-anchor="middle">{no}</text>
-    <text x="{MAIN_X + 48}" y="{y + 31}" class="l-name">{esc(name)}</text>
-    <text x="{MAIN_X + 48}" y="{y + 49}" class="l-path">{esc(path)}</text>
-    <text x="{MAIN_X + MAIN_W - 16}" y="{y + 31}" class="l-stat">{esc(stat)}</text>
-    {chip_svg}
+    <circle cx="{X + 22}" cy="{y + 22}" r="11" fill="{ACCENT}"/>
+    <text x="{X + 22}" y="{y + 26}" class="l-no" text-anchor="middle">{no}</text>
+    <text x="{X + 42}" y="{y + 27}" class="l-name">{esc(name)}</text>
+    <text x="{X + LW - 16}" y="{y + 27}" class="l-stat">{esc(stat)}</text>
+    <text x="{X + 42}" y="{y + 50}" class="l-path">{esc(path)}</text>
+    {chips_svg}
   </g>''')
         if i < len(LAYERS) - 1:
-            ax = MAIN_X + MAIN_W / 2
-            ay0, ay1 = y + h, y + h + GAP - 8
-            label = FLOW[i]
+            ax = X + LW / 2
+            ay0, ay1 = y + LH, y + LH + GAP - 8
             blocks.append(f'''
   <g class="flow">
     <path d="M {ax:.0f} {ay0:.0f} L {ax:.0f} {ay1 - 6:.0f}" stroke="{ACCENT}" stroke-width="1.4"/>
     <path d="M {ax - 4.5:.0f} {ay1 - 10:.0f} L {ax:.0f} {ay1:.0f} L {ax + 4.5:.0f} {ay1 - 10:.0f}"
           fill="none" stroke="{ACCENT}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="{ax + 12:.0f}" y="{ay0 + GAP / 2 + 1:.0f}" class="f-label">{esc(label)}</text>
+    <text x="{ax + 12:.0f}" y="{ay0 + GAP / 2 + 1:.0f}" class="f-label">{esc(FLOW[i])}</text>
   </g>''')
-        y += h + GAP
+        y += LH + GAP
 
-    height = y - GAP + 24
-
-    # 右侧文档栏
-    rail = f'''
-  <g class="rail">
-    <rect x="{RAIL_X}" y="40" width="{RAIL_W}" height="{height - 64}" rx="10"
-          fill="{PANEL}" stroke="{RULE}"/>
-    <text x="{RAIL_X + 16}" y="68" class="rail-h">参考资料</text>
-    <text x="{RAIL_X + 16}" y="88" class="rail-p">skills/ 下的说明文档</text>
-    <text x="{RAIL_X + 16}" y="116" class="rail-h2">lucid/references/</text>
-    <text x="{RAIL_X + 16}" y="136" class="rail-item">engine.md · craft.md · assets.md</text>
-    <text x="{RAIL_X + 16}" y="154" class="rail-item">audio.md · explainer.md · promo.md</text>
-    <text x="{RAIL_X + 16}" y="172" class="rail-item">review.md · pitfalls.md · workflow.md</text>
-    <text x="{RAIL_X + 16}" y="190" class="rail-item">shader-background.md</text>
-    <text x="{RAIL_X + 16}" y="208" class="rail-item">upstream-guide.md</text>
-    <text x="{RAIL_X + 16}" y="238" class="rail-h2">cli-intro-video/</text>
-    <text x="{RAIL_X + 16}" y="258" class="rail-item">SKILL.md · workflow.md</text>
-    <text x="{RAIL_X + 16}" y="276" class="rail-item">pitfalls.md · profile-schema.md</text>
-    <text x="{RAIL_X + 16}" y="306" class="rail-h2">lucid/capabilities/</text>
-    <text x="{RAIL_X + 16}" y="326" class="rail-item">README.md · voice.md</text>
-    <text x="{RAIL_X + 16}" y="344" class="rail-item">long-commands.md</text>
-  </g>'''
-
+    height = y - GAP + 18
     return f'''<svg viewBox="0 0 {W} {height}" class="diagram" role="img"
      aria-label="视频工作流分层架构图：配置层、工作流层、素材层、镜头层、引擎层、产物层">
 {''.join(blocks)}
-{rail}
 </svg>'''
 
 
-def svg_pipeline() -> str:
-    """图 2：流水线。"""
-    W, H = 1160, 250
-    NW, GAP = 170, 24
-    X0, Y, NH = 10, 58, 124
+def svg_assets(meta: dict) -> str:
+    """图 2：终端素材是怎么来的——四步链路。"""
+    W, H = 1160, 268
+    BW, GAP = 262, 30
+    X0, Y, BH = 18, 24, 176
 
-    nodes = []
-    for i, (step, script, inp, outp, gate) in enumerate(PIPELINE):
-        x = X0 + i * (NW + GAP)
-        cx = x + NW / 2
-        fail = gate.startswith('退出码')
-        nodes.append(f'''
-  <g class="pn">
-    <rect x="{x}" y="{Y}" width="{NW}" height="{NH}" rx="9" fill="{PANEL}" stroke="{RULE}"/>
-    <circle cx="{x + 20}" cy="{Y + 20}" r="11" fill="{ACCENT}"/>
-    <text x="{x + 20}" y="{Y + 24}" class="p-no" text-anchor="middle">{i + 1}</text>
-    <text x="{x + 38}" y="{Y + 25}" class="p-step">{esc(step)}</text>
-    <text x="{x + 12}" y="{Y + 47}" class="p-script">{esc(script)}</text>
-    <text x="{x + 12}" y="{Y + 70}" class="p-io"><tspan class="p-io-k">入</tspan>{esc(inp)}</text>
-    <text x="{x + 12}" y="{Y + 88}" class="p-io"><tspan class="p-io-k">出</tspan>{esc(outp)}</text>
-    <rect x="{x + 12}" y="{Y + 98}" width="{NW - 24}" height="17" rx="4"
-          fill="{'#f6e7e1' if fail else '#efede7'}"/>
-    <text x="{x + NW / 2}" y="{Y + 110}" class="p-gate"
-          fill="{'#a8431f' if fail else '#6d6862'}">{esc(gate)}</text>
+    steps = [
+        ('① 声明', 'profile/spark-cli.json',
+         ['assets.<名>.command', 'assets.<名>.capture', 'cols / rows / fps', 'out_width / seq_sec'],
+         '要录哪条命令、录多大'),
+        ('② 真跑', 'record_terminal.py',
+         ['真的执行一次命令', '采集 stdout / stderr', '超采样渲染成 PNG', '逐字显现，节奏合成'],
+         '不是画的，是录的'),
+        ('③ 落帧', 'project/web/img/<名>/',
+         ['0001.png … N.png', 'meta.json 写网格', 'cell: cw / ch', 'pad_x / top'],
+         '无损帧序列＋网格'),
+        ('④ 对齐', 'shots_spark.js',
+         ['CH = 30.1871', 'TOP = 51.0204', 'COLW = 13.1803', 'PADX = 18.7075'],
+         '几何常量抄自 meta.json'),
+    ]
+
+    boxes = []
+    for i, (title, path, lines, tail) in enumerate(steps):
+        x = X0 + i * (BW + GAP)
+        last = (i == len(steps) - 1)
+        boxes.append(f'''
+  <g class="as">
+    <rect x="{x}" y="{Y}" width="{BW}" height="{BH}" rx="9" fill="{PANEL}" stroke="{RULE}"/>
+    <text x="{x + 14}" y="{Y + 24}" class="as-t">{esc(title)}</text>
+    <text x="{x + 14}" y="{Y + 44}" class="as-p">{esc(path)}</text>
+    {"<line x1='" + str(x + 14) + "' y1='" + str(Y + 54) + "' x2='" + str(x + BW - 14) + "' y2='" + str(Y + 54) + "' stroke='" + RULE + "' stroke-width='1'/>" if True else ""}
+    {"".join(f'<text x="{x + 14}" y="{Y + 74 + j * 20}" class="as-l">{esc(t)}</text>' for j, t in enumerate(lines))}
+    <text x="{x + 14}" y="{Y + BH - 14}" class="as-tail">{esc(tail)}</text>
   </g>''')
-        if i < len(PIPELINE) - 1:
-            ax0 = x + NW + 4
-            ax1 = x + NW + GAP - 4
-            ay = Y + NH / 2
-            nodes.append(f'''
-  <path d="M {ax0} {ay} L {ax1 - 5} {ay}" stroke="{RULE}" stroke-width="1.6"/>
+        if not last:
+            ax0 = x + BW + 5
+            ax1 = x + BW + GAP - 5
+            ay = Y + BH / 2
+            boxes.append(f'''
+  <path d="M {ax0} {ay} L {ax1 - 5} {ay}" stroke="{ACCENT}" stroke-width="1.6"/>
   <path d="M {ax1 - 9} {ay - 4} L {ax1} {ay} L {ax1 - 9} {ay + 4}" fill="none"
-        stroke="{RULE}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>''')
-
-    bx0 = X0 + NW / 2
-    bx1 = X0 + 3 * (NW + GAP) + NW / 2
-    bracket = f'''
-  <g class="gate-bracket">
-    <path d="M {bx0} {Y + NH + 4} L {bx0} {Y + NH + 16} L {bx1} {Y + NH + 16} L {bx1} {Y + NH + 4}"
-          fill="none" stroke="{ACCENT}" stroke-width="1.3"/>
-    <text x="{(bx0 + bx1) / 2:.0f}" y="{Y + NH + 34}" class="g-label" text-anchor="middle">
-      前 4 步任一失败 → 流水线停下，不往下渲染
-    </text>
-  </g>'''
+        stroke="{ACCENT}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>''')
 
     return f'''<svg viewBox="0 0 {W} {H}" class="diagram" role="img"
-     aria-label="六步流水线：facts、crop、record、sync、render、deliver">
-{''.join(nodes)}
-{bracket}
+     aria-label="终端素材的来源链路：profile 声明、record_terminal 真跑、落成帧序列、镜头代码对齐网格">
+{''.join(boxes)}
 </svg>'''
 
 
@@ -551,7 +541,6 @@ def diff_summary():
     hand = [f for f in only_prj if f in handmade]
     gen = [f for f in only_prj if f not in handmade]
 
-    # 共同文件里，目录级统计（按一级子目录归并）
     buckets: dict[str, list[str]] = {}
     for rel in same:
         key = rel.split('/')[0] if '/' in rel else '（根目录）'
@@ -713,17 +702,53 @@ figure{margin:0 0 22px}
 .chip:focus{outline:none}
 .chip:focus rect{stroke:var(--accent);stroke-width:1.6}
 .f-label{font-size:11.5px;fill:var(--accent)}
-.rail-h{font-family:var(--serif);font-size:16px;fill:var(--ink)}
-.rail-p{font-size:11.5px;fill:var(--ink2)}
-.rail-h2{font-family:var(--mono);font-size:11px;fill:var(--accent);letter-spacing:.04em}
-.rail-item{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
-.p-no{font-family:var(--mono);font-size:11px;fill:#fff;font-weight:500}
-.p-step{font-family:var(--mono);font-size:14px;fill:var(--ink)}
-.p-script{font-family:var(--mono);font-size:10px;fill:var(--ink2)}
-.p-io{font-size:11px;fill:var(--ink)}
-.p-io-k{font-family:var(--mono);font-size:10px;fill:var(--accent);margin-right:5px}
-.p-gate{font-family:var(--mono);font-size:9.5px;text-anchor:middle}
-.g-label{font-size:12px;fill:var(--accent)}
+/* ---- Hero 流程卡 ---- */
+.flow{display:flex;align-items:stretch;margin-top:28px}
+.flow-card{flex:1 1 0;min-width:0;background:var(--panel);border:1px solid var(--rule);
+  border-radius:10px;padding:13px 12px 11px;display:flex;flex-direction:column}
+.fc-top{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.fc-no{width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;
+  font-family:var(--mono);font-size:10px;display:flex;align-items:center;
+  justify-content:center;flex:none}
+.fc-name{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.fc-script{font-family:var(--mono);font-size:10px;color:var(--ink2);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:7px}
+.fc-desc{font-size:12px;line-height:1.48;color:var(--ink);margin:0 0 8px}
+.fc-io{font-family:var(--mono);font-size:9.5px;color:var(--ink2);line-height:1.75;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fc-io .k{color:var(--accent);margin-right:4px}
+.fc-gate{margin-top:9px;font-family:var(--mono);font-size:9.5px;text-align:center;
+  padding:3px 0;border-radius:4px}
+.fc-gate.fail{background:var(--accent-soft);color:var(--accent)}
+.fc-gate.pass{background:#efede7;color:var(--ink2)}
+.flow-arrow{flex:0 0 20px;display:flex;align-items:center;justify-content:center}
+/* ---- 素材链路图 ---- */
+.as-t{font-family:var(--mono);font-size:12px;fill:var(--accent)}
+.as-p{font-family:var(--mono);font-size:10.5px;fill:var(--ink)}
+.as-l{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
+.as-tail{font-size:11px;fill:var(--ink)}
+/* ---- 真实值 vs 名义值 ---- */
+.geom{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin:22px 0 0}
+.geom div{background:var(--panel);padding:14px 16px}
+.geom .gk{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink2);
+  letter-spacing:.04em;margin-bottom:5px}
+.geom .gv{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.geom .warn .gv{color:var(--accent)}
+.geom .warn .gk{color:var(--accent)}
+/* ---- 参考资料 ---- */
+.doc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.doc-card{background:var(--panel);padding:10px 15px;display:grid;gap:2px;
+  cursor:pointer;align-content:center}
+.doc-card:hover{background:#fbf8f3}
+.doc-card:hover .dc-name{color:var(--accent)}
+.dc-head{display:flex;align-items:baseline;gap:10px}
+.dc-name{font-family:var(--mono);font-size:12px;color:var(--ink)}
+.dc-dir{font-family:var(--mono);font-size:9.5px;color:var(--ink2);
+  margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc-note{font-size:12.5px;color:var(--ink2);line-height:1.45}
+.caliber{font-size:12px;color:var(--ink2);opacity:.85;margin-top:-10px}
 .d-head{font-family:var(--mono);font-size:12.5px;fill:var(--ink)}
 .d-num2{font-family:var(--mono);font-size:11px;fill:var(--ink2)}
 .d-num3{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
@@ -732,11 +757,6 @@ figure{margin:0 0 22px}
 .d-item{font-family:var(--mono);font-size:12px;fill:var(--ink)}
 .d-item-a{font-family:var(--mono);font-size:12px;fill:var(--accent)}
 .d-foot{font-size:11.5px;fill:var(--ink2)}
-dl.facts{display:grid;grid-template-columns:132px 1fr;gap:9px 20px;
-  margin:0;padding:20px 22px;background:var(--panel);border:1px solid var(--rule);border-radius:10px}
-dl.facts dt{font-family:var(--mono);font-size:11.5px;color:var(--accent);letter-spacing:.03em}
-dl.facts dd{margin:0;font-size:13.5px;line-height:1.55;color:var(--ink2)}
-dl.facts dd b{color:var(--ink);font-weight:500}
 table{width:100%;border-collapse:collapse;font-size:13.5px}
 th{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.06em;
   text-transform:uppercase;color:var(--ink2);text-align:left;
@@ -825,16 +845,23 @@ pre{margin:0;padding:16px 18px;background:#faf8f4;border:1px solid var(--rule);
 footer{border-top:1px solid var(--rule);padding-top:22px;margin-top:60px;
   font-size:12.5px;color:var(--ink2);line-height:1.65}
 footer code{font-size:11px}
+@media (max-width:1080px){
+  .flow{flex-wrap:wrap;gap:10px}
+  .flow-card{flex:1 1 30%}
+  .flow-arrow{display:none}
+  .geom{grid-template-columns:1fr}
+  .doc-grid{grid-template-columns:1fr}
+}
 @media (max-width:820px){
   h1{font-size:31px} h2{font-size:23px}
   .two{grid-template-columns:1fr}
   details.mod>summary{grid-template-columns:1fr;gap:4px}
   .m-path,.m-role,.flist{padding-left:18px;margin-left:0}
-  dl.facts{grid-template-columns:1fr}
   .dw{top:auto;bottom:0;right:0;left:0;width:100%;height:86vh;
     border-left:none;border-top:1px solid var(--rule);border-radius:12px 12px 0 0;
     transform:translateY(101%);box-shadow:0 -20px 50px rgba(29,27,24,.12)}
   .dw.open{transform:translateY(0)}
+  .flow-card{flex:1 1 100%}
 }
 """
 
@@ -935,6 +962,34 @@ JS = """
 """
 
 
+def skill_of(rel: str) -> str:
+    """文件属于哪个 Skill：skills/<skill>/…"""
+    parts = rel.split('/')
+    return parts[1] if len(parts) > 2 and parts[0] == 'skills' else '—'
+
+
+def hero_cards() -> str:
+    """Hero 里的六步流程卡。"""
+    arrow = ('<div class="flow-arrow" aria-hidden="true">'
+             '<svg width="14" height="14" viewBox="0 0 14 14">'
+             '<path d="M4 2 L9 7 L4 12" fill="none" stroke="' + ACCENT +
+             '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
+             '</svg></div>')
+    cards = []
+    for i, (step, script, inp, outp, gate, desc) in enumerate(PIPELINE):
+        fail = gate.startswith('退出码')
+        cards.append(f'''
+    <div class="flow-card">
+      <div class="fc-top"><span class="fc-no">{i + 1}</span><span class="fc-name">{esc(step)}</span></div>
+      <div class="fc-script">{esc(script)}</div>
+      <p class="fc-desc">{esc(desc)}</p>
+      <div class="fc-io"><span class="k">入</span>{esc(inp)}</div>
+      <div class="fc-io"><span class="k">出</span>{esc(outp)}</div>
+      <div class="fc-gate {'fail' if fail else 'pass'}">{esc(gate)}</div>
+    </div>''')
+    return ('<div class="flow">' + arrow.join(cards) + '</div>')
+
+
 def file_module_map(scan: Scan) -> dict[str, str]:
     """文件 → 所属模块（层 · 模块名），给抽屉里的「所属模块」用。"""
     out: dict[str, str] = {}
@@ -971,17 +1026,16 @@ def render(scan: Scan) -> str:
     chk_n, chk_l = scan.cross_check()
     agree = (chk_n == code_n and chk_l == code_l)
 
-    # --- 模块清单
-    rows, details = [], []
+    # --- 模块清单：每个模块一个可折叠块，展开是它的文件
+    details = []
     for layer, name, paths, role in MODULES:
         prefix = tuple(paths)
         files = [r for r in scan.tracked
                  if r != Scan.SELF
-                 and any(r == p or r.startswith(p.rstrip('/') + '/') for p in prefix)]
+                 and any(r == q or r.startswith(q.rstrip('/') + '/') for q in prefix)]
         txt = [f for f in files if scan.text[f]]
-        nlines = sum(scan.lines[f] for f in txt)
         nbin = len(files) - len(txt)
-        stat = f'{len(files)} 文件 · {fmt_int(nlines)} 行'
+        stat = f'{len(files)} 文件 · {fmt_int(sum(scan.lines[f] for f in txt))} 行'
         if nbin:
             stat += f' · {nbin} 个二进制'
         if 'project/web/img' in prefix:
@@ -994,12 +1048,6 @@ def render(scan: Scan) -> str:
                     pass
             stat = f'{len(files)} 个入库文件（静帧与图标）· {fmt_int(total)} 帧（帧序列不入库）'
         path_label = '、'.join(paths)
-        rows.append(
-            f'<tr><td class="mono">{esc(layer)}</td>'
-            f'<td><b>{esc(name)}</b></td>'
-            f'<td class="mono">{esc(path_label)}</td>'
-            f'<td class="num">{esc(stat)}</td>'
-            f'<td>{esc(role)}</td></tr>')
 
         frows = []
         for f in sorted(files):
@@ -1047,26 +1095,43 @@ def render(scan: Scan) -> str:
     </div>
   </details>''')
 
-    # --- 流水线表
-    pipe_rows = ''.join(
-        f'<tr><td class="mono">{esc(s)}</td><td class="mono">{esc(script)}</td>'
-        f'<td>{esc(inp)}</td><td>{esc(outp)}</td><td>{esc(fail)}</td></tr>'
-        for s, script, inp, outp, fail in PIPE_ROWS)
+    # --- 终端素材：帧数、命令、名义 vs 真实列宽
+    metas = {}
+    for nm in ('help', 'version', 'repo', 'skill'):
+        mp = VIDEO / f'project/web/img/{nm}/meta.json'
+        try:
+            metas[nm] = json.loads(mp.read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            metas[nm] = {}
+    total_frames = sum(m.get('total_frames', 0) for m in metas.values())
+    hm = metas.get('help') or {}
+    hsize = hm.get('size') or [0, 0]
+    hcols = hm.get('cols') or 1
+    nominal = hsize[0] / hcols if hcols else 0
+    real = (hm.get('cell') or {}).get('cw', 0)
+    diff_pct = (nominal - real) / nominal * 100 if nominal else 0
+    asset_rows = ''.join(
+        f'<tr><td class="mono">{esc(nm)}</td>'
+        f'<td class="mono">{esc(str(m.get("cmd", "")))}</td>'
+        f'<td class="num">{fmt_int(m.get("total_frames", 0))}</td>'
+        f'<td class="num">{m.get("duration", 0)} 秒</td>'
+        f'<td class="num">{hsize[0] and m.get("size", [0, 0])[0]}×{m.get("size", [0, 0])[1]}</td></tr>'
+        for nm, m in metas.items())
+
+    # --- 参考资料（随工程入库的说明文档）
+    doc_files = sorted(f for f in scan.tracked
+                       if f.startswith('skills/') and f.endswith('.md'))
+    doc_cards = ''.join(
+        f'<div class="doc-card" data-file="{esc(f)}" role="button" tabindex="0">'
+        f'<span class="dc-head"><span class="dc-name">{esc(skill_of(f))} · {esc(Path(f).name)}</span>'
+        f'<span class="dc-dir">{esc(str(Path(f).parent))}/</span></span>'
+        f'<span class="dc-note">{esc(DOC_NOTES.get(f, "随工程入库的说明文档"))}</span>'
+        f'</div>' for f in doc_files)
 
     # --- 差异表
     diff_rows = ''.join(
         f'<tr><td class="mono">{esc(p)}</td><td class="mono">{esc(k)}</td>'
         f'<td>{esc(w)}</td></tr>' for p, k, w in DIFF_FILES)
-
-    facts = f'''
-  <dl class="facts">
-    <dt>扫描范围</dt><dd>仓库 <code>video/</code> 目录；以 <code>git ls-files video</code> 的入库清单为准，共 <b>{len(scan.tracked)}</b> 个文件。工程内生成的产物（<code>out/</code> 成片、<code>web/img/</code> 帧序列、<code>.venv</code>）不在清单里。</dd>
-    <dt>代码口径</dt><dd>扩展名 <code>.py</code> 与 <code>.js</code>，共 <b>{code_n}</b> 个文件、<b>{fmt_int(code_l)}</b> 行；排除 <code>__pycache__</code>、<code>.venv</code>、<code>out</code>、<code>frames</code>、<code>references</code>，以及 <code>docs/</code>（生成本页的脚本本身）。</dd>
-    <dt>文档口径</dt><dd>扩展名 <code>.md</code>，共 <b>{doc_n}</b> 篇、<b>{fmt_int(doc_l)}</b> 行。</dd>
-    <dt>交叉复核</dt><dd>另用 <code>find … | xargs wc -l</code> 独立数一遍，得 <b>{chk_n}</b> 个文件、<b>{fmt_int(chk_l)}</b> 行，与上表<b>{'一致' if agree else '不一致'}</b>。</dd>
-    <dt>快照</dt><dd>扫描基线是生成时的 HEAD（commit <code>{commit}</code>），生成于 <code>{now}</code>，分支 <code>{branch}</code>。本页是在这之后提交的，所以这个 hash 指向本页所在提交的父提交。</dd>
-    <dt>生成方式</dt><dd>本页由 <code>video/docs/build_architecture.py</code> 扫描工程生成；图里每个数字、每个文件名都来自文件系统。</dd>
-  </dl>'''
 
     payload = json.dumps({'blobs': blobs, 'items': items, 'repo': repo, 'branch': branch,
                          'max_inline': MAX_INLINE, 'head_lines': HEAD_LINES},
@@ -1080,6 +1145,8 @@ def render(scan: Scan) -> str:
         f'工作副本独有的 {diff["only_prj"]} 个文件里，只有 1 个是手写的'
         '（<code>web/shots_spark.js</code>），其余都是录制、时间线、配音这些工具的产物。'
         '所以框架升级时可以整目录覆盖，只需要把 3 个手写文件搬回去。</p>')
+    agree_text = '一致' if agree else '不一致（脚本会拒绝出图）'
+    hero = hero_cards()
     page = f'''<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -1099,30 +1166,42 @@ def render(scan: Scan) -> str:
     <p class="eyebrow">spark-cli · 介绍片工程</p>
     <h1>视频工作流的架构与模块</h1>
     <p class="lede">一支 52 秒的中文介绍片，从「工具档案」一路流到「三画幅成片」。
-      画面里的每条命令、每个版本号都由脚本在渲染前核对过。
-      这张图把这套流程拆成六层、六个步骤和十四个模块，
-      点任意文件名可以直接看源码。</p>
-    {facts}
+      画面里的每条命令、每个版本号都由脚本在渲染前核对过——
+      下面这条流水线跑完，片子才算数。</p>
+    {hero}
   </header>
 
   <section id="layers">
     <h2>一、分层架构</h2>
     <p class="caption"><b>图 1</b> · 数据自上而下流动：profile 声明真相，工作流层据此核对并录制素材，
       镜头层把素材画成画面，引擎层逐帧渲染，产物层落出成片。
-      右侧是随工程一起入库的说明文档。
-      <b>可点击的小标签</b>会展开对应文件的源码。</p>
+      <b>可点击的小标签</b>会滑出该文件的源码。</p>
+    <p class="caption caliber">口径：代码按 <code>.py</code>／<code>.js</code> 计，
+      共 <b>{code_n}</b> 个文件、<b>{fmt_int(code_l)}</b> 行；文档按 <code>.md</code> 计，共 <b>{doc_n}</b> 篇。
+      数字由 <code>build_architecture.py</code> 扫文件系统得出，另用 <code>find … | wc -l</code> 独立复核，两者{agree_text}。</p>
     <figure>{svg_layers(scan)}</figure>
   </section>
 
-  <section id="pipeline">
-    <h2>二、流水线</h2>
-    <p class="caption"><b>图 2</b> · 一条命令跑完六步：<code>pipeline.py --profile profile --project project --final --format all</code>。
-      前四步任一失败，流水线立刻停下，绝不带着问题往下渲染。</p>
-    <figure>{svg_pipeline()}</figure>
+  <section id="assets">
+    <h2>二、终端素材从哪来</h2>
+    <p class="caption"><b>图 2</b> · 画面里那些终端输出不是画的，是<strong>真的跑出来的</strong>。
+      profile 声明要录哪条命令，录制器把它执行一遍、按参数渲染成无损 PNG 帧序列，
+      帧序列旁边的 <code>meta.json</code> 写下最终分辨率下的真实网格，镜头代码再把这四个数抄过去。
+      {total_frames} 帧，全部来自 {len(metas)} 条真实命令。</p>
+    <figure>{svg_assets(metas)}</figure>
     <table>
-      <thead><tr><th>步骤</th><th>脚本</th><th>输入</th><th>输出</th><th>不通过会怎样</th></tr></thead>
-      <tbody>{pipe_rows}</tbody>
+      <thead><tr><th>素材</th><th>实际执行的命令</th><th class="num">帧数</th><th class="num">时长</th><th class="num">尺寸</th></tr></thead>
+      <tbody>{asset_rows}</tbody>
     </table>
+    <div class="geom">
+      <div><span class="gk">名义列宽</span><span class="gv">{hsize[0]} ÷ {hcols} = {nominal:.4f} px</span></div>
+      <div><span class="gk">真实列宽</span><span class="gv">meta.json 的 cell.cw = {real} px</span></div>
+      <div class="warn"><span class="gk">差 {diff_pct:.1f}%</span><span class="gv">用名义值，标注线会整体偏掉</span></div>
+    </div>
+    <p class="caption">素材文本区两侧留了内边距（{hsize[0]}px 宽里文字只占 {(hm.get('cell') or {}).get('text_width', 0)}px），
+      所以真实列宽不等于「画幅宽 ÷ 列数」。
+      <code>check_crop.py</code> 会拿镜头代码里的几何常量跟 <code>meta.json</code> 逐个比对
+      （容差 0.02 像素），对不上就拦住渲染——所以别手算，抄 <code>meta.json</code>。</p>
   </section>
 
   <section id="diff">
@@ -1137,13 +1216,9 @@ def render(scan: Scan) -> str:
 
   <section id="modules">
     <h2>四、模块清单</h2>
-    <p class="caption">十四个模块按层排列。展开任一模块可以看到它包含的文件、行数与职责；
-      点文件名可以看源码（16 KB 以内给全文，更大的只给前 100 行并附 GitHub 链接）。</p>
-    <table class="modules">
-      <thead><tr><th>层</th><th>模块</th><th>路径</th><th class="num">规模</th><th>职责</th></tr></thead>
-      <tbody>{''.join(rows)}</tbody>
-    </table>
-    <div style="height:22px"></div>
+    <p class="caption">十四个模块按层排列，每一项都能展开。
+      展开后是这个模块包含的文件、行数与职责，点文件名会滑出抽屉看源码
+      （16 KB 以内给全文，更大的只给前 100 行并附 GitHub 链接）。</p>
     {''.join(details)}
   </section>
 
@@ -1155,12 +1230,15 @@ def render(scan: Scan) -> str:
       按 <kbd>Esc</kbd>、点关闭按钮或点抽屉外任意处都能关。</p>
   </section>
 
+  <section id="refs">
+    <h2>六、参考资料</h2>
+    <p class="caption">随工程一起入库的 {len(doc_files)} 篇说明文档，点任意一篇同样滑出抽屉看内容。</p>
+    <div class="doc-grid">{doc_cards}</div>
+  </section>
+
   <footer>
     <p>本页由 <code>video/docs/build_architecture.py</code> 生成，数据来自扫描基线
       （父提交 <code>{commit}</code>）的真实文件系统扫描。工程改动后重跑脚本即可更新。</p>
-    <p>相关文档：<code>video/WORKFLOW.md</code>（工作流说明）、
-      <code>skills/cli-intro-video/SKILL.md</code>（何时用这套流程）、
-      <code>skills/lucid/references/engine.md</code>（lucid 引擎接口）。</p>
   </footer>
 
 </div>
