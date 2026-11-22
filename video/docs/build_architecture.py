@@ -773,19 +773,18 @@ figure{margin:0 0 22px}
 .geom .gv{font-family:var(--mono);font-size:13px;color:var(--ink)}
 .geom .warn .gv{color:var(--accent)}
 .geom .warn .gk{color:var(--accent)}
-/* ---- 总体思路条目 ---- */
-.principle{display:grid;grid-template-columns:30px 1fr;gap:15px;padding:15px 0;
-  border-bottom:1px solid var(--rule)}
-.principle:last-child{border-bottom:none;padding-bottom:4px}
-.pr-no{width:25px;height:25px;border-radius:50%;background:var(--accent);color:#fff;
-  font-family:var(--mono);font-size:11px;display:flex;align-items:center;
-  justify-content:center;margin-top:2px}
-.pr-title{font-family:var(--serif);font-size:17px;line-height:1.35;color:var(--ink);
-  margin:0 0 5px}
-.pr-body{font-size:13.5px;line-height:1.62;color:var(--ink2);margin:0}
-.pr-body code{font-size:11.5px}
-.pr-mech{font-family:var(--mono);font-size:11px;line-height:1.6;color:var(--ink);
-  margin:8px 0 0;padding-left:12px;border-left:2px solid var(--accent)}
+/* ---- 总体思路卡片 ---- */
+.ideas{display:flex;align-items:stretch;margin-top:20px}
+.idea{flex:1 1 0;min-width:0;background:var(--panel);border:1px solid var(--rule);
+  border-radius:10px;padding:13px 12px 11px;display:flex;flex-direction:column}
+.id-top{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.id-no{width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;
+  font-family:var(--mono);font-size:10px;display:flex;align-items:center;
+  justify-content:center;flex:none}
+.id-title{font-family:var(--serif);font-size:14.5px;line-height:1.3;color:var(--ink)}
+.id-body{font-size:11.5px;line-height:1.55;color:var(--ink2);margin:0 0 9px}
+.id-mech{margin-top:auto;font-family:var(--mono);font-size:9.5px;line-height:1.55;
+  color:var(--ink);padding-left:9px;border-left:2px solid var(--accent)}
 pre.snippet{margin:0 0 14px;max-width:520px;font-size:12px;color:var(--ink)}
 .en-t{font-family:var(--mono);font-size:12px;fill:var(--accent)}
 .en-l{font-family:var(--mono);font-size:10.5px;fill:var(--ink2)}
@@ -902,6 +901,8 @@ footer code{font-size:11px}
 @media (max-width:1080px){
   .flow{flex-wrap:wrap;gap:10px}
   .flow-card{flex:1 1 30%}
+  .ideas{flex-wrap:wrap;gap:10px}
+  .idea{flex:1 1 30%}
   .flow-arrow{display:none}
   .geom{grid-template-columns:1fr}
   .doc-grid{grid-template-columns:1fr}
@@ -916,6 +917,7 @@ footer code{font-size:11px}
     transform:translateY(101%);box-shadow:0 -20px 50px rgba(29,27,24,.12)}
   .dw.open{transform:translateY(0)}
   .flow-card{flex:1 1 100%}
+  .idea{flex:1 1 100%}
 }
 """
 
@@ -1232,69 +1234,31 @@ def render(scan: Scan) -> str:
     <pre class="snippet">SHOT.S03 = function (ctx, t, S) {{ … }}</pre>
     <p class="caption">引擎负责逐帧渲染、拼片、混音、体检和交付核对；
       片子好不好看，取决于写镜头的人。下面五条是它的总体思路。</p>
-    <div class="principles">
-      <div class="principle">
-        <span class="pr-no">1</span>
-        <div>
-          <h3 class="pr-title">画面只由时间算出</h3>
-          <p class="pr-body">镜头函数只依赖 <code>t</code>：不在帧之间保存状态、不用 <code>Math.random()</code>，
-            随机数用 <code>rng(种子)</code>，衰减用 <code>decay(t, t0, tau)</code>，多段变化用
-            <code>springTo()</code> 把每次变化的弹簧叠起来。正因为「第 t 毫秒长什么样」能被独立算出来，
-            引擎才能逐帧渲染、按镜头切段并行、只重渲改过的那一个镜头。</p>
-          <p class="pr-mech">落地：<code>lint.py</code> 在渲染前拦违规写法（<code>Math.random()</code>、
-            <code>Date.now()</code>、丢全局矩阵、把 <code>EV()</code> 写在绘制函数里），打印文件与行号；
-            确有理由可在行尾写 <code>// lint-ok: 原因</code> 豁免这一行。</p>
-        </div>
+    <div class="ideas">
+      <div class="idea">
+        <div class="id-top"><span class="id-no">1</span><span class="id-title">画面只由时间算出</span></div>
+        <p class="id-body">镜头只依赖 t，不存状态、不用随机数——所以能逐帧渲染、分段并行、只重渲改过的镜头。</p>
+        <p class="id-mech">lint.py 渲染前拦违规写法</p>
       </div>
-      <div class="principle">
-        <span class="pr-no">2</span>
-        <div>
-          <h3 class="pr-title">代码就是分镜</h3>
-          <p class="pr-body">引擎给的是一套「排版与运动的词汇表」：<code>split</code>／<code>grid</code>／<code>inset</code> 分区，
-            <code>textBlock</code> 排版并入场，<code>springTo</code> 弹簧，<code>b(n)</code> 拍点，
-            <code>screen</code>／<code>cam</code> 坐标，<code>anchor</code>／<code>callout</code> 标注，
-            <code>chartScale</code> 把数据映射成像素。写一个镜头就是：登记物件 → 分区 → 放主体 → 出字 → 登记事件。</p>
-          <p class="pr-mech">落地：片型手册 <code>explainer.md</code>／<code>promo.md</code>／<code>review.md</code>
-            讲怎么用这套词；<code>template/examples/</code> 里两个示例工程可直接跑通。</p>
-        </div>
+      <div class="idea">
+        <div class="id-top"><span class="id-no">2</span><span class="id-title">代码就是分镜</span></div>
+        <p class="id-body">引擎给的是一套排版与运动的词汇表。写镜头＝登记物件→分区→放主体→出字→登记事件。</p>
+        <p class="id-mech">engine.md · explainer/promo/review.md</p>
       </div>
-      <div class="principle">
-        <span class="pr-no">3</span>
-        <div>
-          <h3 class="pr-title">时间轴决定一切</h3>
-          <p class="pr-body">时间轴有三种模式：<code>beats</code>（节拍）、<code>manual</code>（手写时刻）、
-            <code>voice</code>（配音驱动）。这支片是讲解片，用 <code>voice</code>：先合成配音，
-            按标点切出每句短句的起止，画面事件挂在短句上——<code>act(t, ph('S03', 1))</code>。
-            画面和声音因此天生对齐，不需要手工对轴。</p>
-          <p class="pr-mech">落地：<code>timeline.py</code> 把 <code>project.json</code> 同步成
-            <code>timeline.json</code> 并打印每个镜头的起止；<code>tts.py full</code> 合成后自动转写，
-            把稿子对不上的名字、数字、英文词挑出来。</p>
-        </div>
+      <div class="idea">
+        <div class="id-top"><span class="id-no">3</span><span class="id-title">时间轴决定一切</span></div>
+        <p class="id-body">beats / manual / voice 三种模式。讲解片用 voice，画面事件挂在短句上，声音天生对齐。</p>
+        <p class="id-mech">timeline.py 同步时间线；tts.py full 合成并转写</p>
       </div>
-      <div class="principle">
-        <span class="pr-no">4</span>
-        <div>
-          <h3 class="pr-title">迭代用草稿档，最后只出一次正式档</h3>
-          <p class="pr-body">草稿档半尺寸、最高 30 帧、不开运动模糊、CRF 28，几分钟出一版，用来反复看结构、节奏和版面；
-            正式档原尺寸、按 <code>project.json</code> 的帧率、开运动模糊、CRF 18，而且会跟草稿逐帧比对查重影。
-            重影只在正式档出现，所以比对的前提是草稿档和当前代码一致。</p>
-          <p class="pr-mech">落地：<code>render.py</code> 默认出草稿，<code>--final</code> 出正式档；
-            两档的分段各自复用，互不影响。改一个镜头只重渲它覆盖的段——每段有指纹，
-            指纹 = 公共部分（引擎、共用镜头文件、project.json、字体与图片清单）＋ 这段时间在画的镜头所在文件的内容。</p>
-        </div>
+      <div class="idea">
+        <div class="id-top"><span class="id-no">4</span><span class="id-title">草稿迭代，正式档只一次</span></div>
+        <p class="id-body">草稿半尺寸、快；正式档开运动模糊，并跟草稿逐帧比对查重影。</p>
+        <p class="id-mech">render.py 默认草稿／--final 正式；分段指纹决定增量</p>
       </div>
-      <div class="principle">
-        <span class="pr-no">5</span>
-        <div>
-          <h3 class="pr-title">验收靠机器，不靠人眼</h3>
-          <p class="pr-body">渲染前预检三道：合同 <code>lint.py</code> → 页面预检（每 0.25 秒调一次
-            <code>render(t)</code>，收集 JS 报错和画布里的 NaN）→ 版面 <code>layout.py</code>（字出框、字压字、标注没落到目标）。
-            渲染后体检：开场、转场、抖动、短句对齐、静止段、空帧、正式档重影。</p>
-          <p class="pr-mech">落地：体检分两级——硬伤进终端摘要拦住渲染（要改的，和要看一眼再决定的，分开列）；
-            可选提示（主体偏小、留白多、这句话画面没有新事件……）只写进报告，不拦渲染。
-            交付时 <code>deliver.py</code> 打出成片事实并填 <code>out/交付核对.md</code>，
-            依据只用成片事实和静帧。</p>
-        </div>
+      <div class="idea">
+        <div class="id-top"><span class="id-no">5</span><span class="id-title">验收靠机器</span></div>
+        <p class="id-body">渲染前预检三道，渲染后体检；硬伤拦住渲染，可选提示只写进报告。</p>
+        <p class="id-mech">lint.py → 页面预检 → layout.py；checkup.py 体检</p>
       </div>
     </div>
     <figure>{svg_engine()}</figure>
