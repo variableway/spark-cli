@@ -489,10 +489,13 @@ def svg_assets(meta: dict) -> str:
     for i, (title, path, lines, tail) in enumerate(steps):
         x = X0 + i * (BW + GAP)
         last = (i == len(steps) - 1)
+        # 标题拆成「编号 + 名称」：编号用强调色，名称用黑体。
+        # 用 tspan 让浏览器自己排两者间距，不去猜编号的实际字宽。
+        num, label = title.split(' ', 1)
         boxes.append(f'''
   <g class="as">
     <rect x="{x}" y="{Y}" width="{BW}" height="{BH}" rx="9" fill="{PANEL}" stroke="{RULE}"/>
-    <text x="{x + 15}" y="{Y + 28}" class="as-t">{esc(title)}</text>
+    <text x="{x + 15}" y="{Y + 30}" class="as-t"><tspan class="as-num">{esc(num)}</tspan> {esc(label)}</text>
     <text x="{x + 15}" y="{Y + 52}" class="as-p">{esc(path)}</text>
     <line x1="{x + 15}" y1="{Y + 64}" x2="{x + BW - 15}" y2="{Y + 64}" stroke="{RULE}" stroke-width="1"/>
     {"".join(f'<text x="{x + 15}" y="{Y + 88 + j * 26}" class="as-l">{esc(t)}</text>' for j, t in enumerate(lines))}
@@ -778,7 +781,9 @@ figure.fig-wide{margin-bottom:26px}
 .fc-gate.pass{background:#efede7;color:var(--ink2)}
 .flow-arrow{flex:0 0 20px;display:flex;align-items:center;justify-content:center}
 /* ---- 素材链路图 ---- */
-.as-t{font-family:var(--mono);font-size:16px;fill:var(--accent)}
+/* 块标题用黑体（无衬线），跟页面正文和分层图的层名一致，不跟参数名用等宽 */
+.as-num{font-family:var(--sans);font-size:18px;font-weight:500;fill:var(--accent)}
+.as-t{font-family:var(--sans);font-size:18px;font-weight:500;fill:var(--ink)}
 .as-p{font-family:var(--mono);font-size:13.5px;fill:var(--ink)}
 .as-l{font-family:var(--mono);font-size:13.5px;fill:var(--ink2)}
 .as-tail{font-size:14px;fill:var(--ink)}
@@ -804,7 +809,7 @@ figure.fig-wide{margin-bottom:26px}
 .id-mech{margin-top:auto;font-family:var(--mono);font-size:11px;line-height:1.55;
   color:var(--ink);padding-left:9px;border-left:2px solid var(--accent)}
 pre.snippet{margin:0 0 14px;max-width:520px;font-size:13.5px;color:var(--ink)}
-.en-t{font-family:var(--mono);font-size:17px;fill:var(--accent)}
+.en-t{font-family:var(--sans);font-size:18px;font-weight:500;fill:var(--ink)}
 .en-l{font-family:var(--mono);font-size:13.5px;fill:var(--ink2)}
 /* ---- 参考资料 ---- */
 .doc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule);
@@ -1350,8 +1355,6 @@ def render(scan: Scan) -> str:
 
   <section id="layers">
     <h2>二、分层架构</h2>
-    <p class="caption"><b>图 1</b> · 数据自上而下流动，从 profile 声明真相一路流到成片。
-      <b>可点击的小标签</b>会滑出该文件的源码。</p>
     <figure class="fig-wide bleed">{svg_layers(scan)}</figure>
   </section>
 
