@@ -85,7 +85,7 @@ def vw(text: str, size: float) -> float:
     return w
 
 
-CHIP_FS = 11.5          # 图 1 的文件小标签字号
+CHIP_FS = 12.5          # 图 1 的文件小标签字号
 
 
 def chip_w(text: str) -> float:
@@ -706,7 +706,7 @@ CSS = """
 html{scroll-behavior:smooth}
 body{
   margin:0;background:var(--bg);color:var(--ink);
-  font-family:var(--sans);font-size:15px;line-height:1.6;font-weight:300;
+  font-family:var(--sans);font-size:17px;line-height:1.62;font-weight:300;
   -webkit-font-smoothing:antialiased;
 }
 .wrap{max-width:1120px;margin:0 auto;padding:0 28px 140px}
@@ -714,16 +714,16 @@ a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(168,67,3
 a:hover{border-bottom-color:var(--accent)}
 code,kbd,pre{font-family:var(--mono)}
 h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:.01em}
-h1{font-size:40px;line-height:1.18;margin:0 0 14px}
-h2{font-size:27px;line-height:1.3;margin:0 0 8px}
-h3{font-size:19px;line-height:1.4;margin:0 0 6px}
+h1{font-size:44px;line-height:1.18;margin:0 0 14px}
+h2{font-size:29px;line-height:1.3;margin:0 0 8px}
+h3{font-size:20px;line-height:1.4;margin:0 0 6px}
 p{margin:0 0 14px}
-.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--accent);margin:0 0 18px}
-.lede{font-size:17px;line-height:1.62;color:var(--ink2);max-width:66ch;margin:0 0 26px}
+.lede{font-size:19px;line-height:1.62;color:var(--ink2);max-width:66ch;margin:0 0 26px}
 .masthead{padding:64px 0 40px;border-bottom:1px solid var(--rule);margin-bottom:46px}
 section{margin-bottom:54px}
-.caption{font-size:13px;line-height:1.58;color:var(--ink2);max-width:74ch;margin:0 0 20px}
+.caption{font-size:14.5px;line-height:1.58;color:var(--ink2);max-width:74ch;margin:0 0 20px}
 .caption b{color:var(--ink);font-weight:500}
 figure{margin:0 0 22px}
 /* 图可以突破正文栏宽：按视口居中，画得比正文宽，图里的字才看得清。
@@ -732,49 +732,49 @@ figure{margin:0 0 22px}
   transform:translateX(-50%);margin-bottom:26px}
 .diagram{width:100%;height:auto;display:block;overflow:visible}
 .diagram text{font-family:var(--sans);fill:var(--ink)}
-.l-no{font-family:var(--mono);font-size:12px;fill:#fff;font-weight:500}
-.l-name{font-size:17px;font-weight:500;fill:var(--ink)}
-.l-path{font-family:var(--mono);font-size:12px;fill:var(--ink2)}
-.l-stat{font-family:var(--mono);font-size:12.5px;fill:var(--ink2);text-anchor:end}
-.chip-t{font-family:var(--mono);font-size:11.5px;fill:var(--ink)}
+.l-no{font-family:var(--mono);font-size:13px;fill:#fff;font-weight:500}
+.l-name{font-size:18px;font-weight:500;fill:var(--ink)}
+.l-path{font-family:var(--mono);font-size:13px;fill:var(--ink2)}
+.l-stat{font-family:var(--mono);font-size:13.5px;fill:var(--ink2);text-anchor:end}
+.chip-t{font-family:var(--mono);font-size:12.5px;fill:var(--ink)}
 .chip{cursor:pointer}
 .chip.dim{cursor:default}
 .chip:hover rect{fill:#e8e2d6;stroke:var(--accent)}
 .chip:focus{outline:none}
 .chip:focus rect{stroke:var(--accent);stroke-width:1.6}
-.f-label{font-size:11.5px;fill:var(--accent)}
+.f-label{font-size:12.5px;fill:var(--accent)}
 /* ---- Hero 流程卡 ---- */
 .flow{display:flex;align-items:stretch;margin-top:28px}
 .flow-card{flex:1 1 0;min-width:0;background:var(--panel);border:1px solid var(--rule);
   border-radius:10px;padding:13px 12px 11px;display:flex;flex-direction:column}
 .fc-top{display:flex;align-items:center;gap:7px;margin-bottom:6px}
 .fc-no{width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;
-  font-family:var(--mono);font-size:10px;display:flex;align-items:center;
+  font-family:var(--mono);font-size:11px;display:flex;align-items:center;
   justify-content:center;flex:none}
-.fc-name{font-family:var(--mono);font-size:13px;color:var(--ink)}
-.fc-script{font-family:var(--mono);font-size:10px;color:var(--ink2);
+.fc-name{font-family:var(--mono);font-size:14.5px;color:var(--ink)}
+.fc-script{font-family:var(--mono);font-size:11px;color:var(--ink2);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:7px}
-.fc-desc{font-size:12px;line-height:1.48;color:var(--ink);margin:0 0 8px}
-.fc-io{font-family:var(--mono);font-size:9.5px;color:var(--ink2);line-height:1.75;
+.fc-desc{font-size:13.5px;line-height:1.48;color:var(--ink);margin:0 0 8px;flex:1 1 auto}
+.fc-io{font-family:var(--mono);font-size:11px;color:var(--ink2);line-height:1.75;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fc-io .k{color:var(--accent);margin-right:4px}
-.fc-gate{margin-top:9px;font-family:var(--mono);font-size:9.5px;text-align:center;
+.fc-gate{margin-top:9px;font-family:var(--mono);font-size:11px;text-align:center;
   padding:3px 0;border-radius:4px}
 .fc-gate.fail{background:var(--accent-soft);color:var(--accent)}
 .fc-gate.pass{background:#efede7;color:var(--ink2)}
 .flow-arrow{flex:0 0 20px;display:flex;align-items:center;justify-content:center}
 /* ---- 素材链路图 ---- */
-.as-t{font-family:var(--mono);font-size:15px;fill:var(--accent)}
-.as-p{font-family:var(--mono);font-size:12.5px;fill:var(--ink)}
-.as-l{font-family:var(--mono);font-size:12.5px;fill:var(--ink2)}
-.as-tail{font-size:13px;fill:var(--ink)}
+.as-t{font-family:var(--mono);font-size:16px;fill:var(--accent)}
+.as-p{font-family:var(--mono);font-size:13.5px;fill:var(--ink)}
+.as-l{font-family:var(--mono);font-size:13.5px;fill:var(--ink2)}
+.as-tail{font-size:14px;fill:var(--ink)}
 /* ---- 真实值 vs 名义值 ---- */
 .geom{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);
   border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin:22px 0 0}
 .geom div{background:var(--panel);padding:14px 16px}
-.geom .gk{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink2);
+.geom .gk{display:block;font-family:var(--mono);font-size:12px;color:var(--ink2);
   letter-spacing:.04em;margin-bottom:5px}
-.geom .gv{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.geom .gv{font-family:var(--mono);font-size:14.5px;color:var(--ink)}
 .geom .warn .gv{color:var(--accent)}
 .geom .warn .gk{color:var(--accent)}
 /* ---- 总体思路卡片 ---- */
@@ -783,15 +783,15 @@ figure{margin:0 0 22px}
   border-radius:10px;padding:13px 12px 11px;display:flex;flex-direction:column}
 .id-top{display:flex;align-items:center;gap:7px;margin-bottom:7px}
 .id-no{width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;
-  font-family:var(--mono);font-size:10px;display:flex;align-items:center;
+  font-family:var(--mono);font-size:11px;display:flex;align-items:center;
   justify-content:center;flex:none}
-.id-title{font-family:var(--serif);font-size:14.5px;line-height:1.3;color:var(--ink)}
-.id-body{font-size:11.5px;line-height:1.55;color:var(--ink2);margin:0 0 9px}
-.id-mech{margin-top:auto;font-family:var(--mono);font-size:9.5px;line-height:1.55;
+.id-title{font-family:var(--serif);font-size:15.5px;line-height:1.3;color:var(--ink)}
+.id-body{font-size:13px;line-height:1.55;color:var(--ink2);margin:0 0 9px}
+.id-mech{margin-top:auto;font-family:var(--mono);font-size:11px;line-height:1.55;
   color:var(--ink);padding-left:9px;border-left:2px solid var(--accent)}
-pre.snippet{margin:0 0 14px;max-width:520px;font-size:12px;color:var(--ink)}
-.en-t{font-family:var(--mono);font-size:16px;fill:var(--accent)}
-.en-l{font-family:var(--mono);font-size:12.5px;fill:var(--ink2)}
+pre.snippet{margin:0 0 14px;max-width:520px;font-size:13.5px;color:var(--ink)}
+.en-t{font-family:var(--mono);font-size:17px;fill:var(--accent)}
+.en-l{font-family:var(--mono);font-size:13.5px;fill:var(--ink2)}
 /* ---- 参考资料 ---- */
 .doc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule);
   border:1px solid var(--rule);border-radius:10px;overflow:hidden}
@@ -800,28 +800,27 @@ pre.snippet{margin:0 0 14px;max-width:520px;font-size:12px;color:var(--ink)}
 .doc-card:hover{background:#fbf8f3}
 .doc-card:hover .dc-name{color:var(--accent)}
 .dc-head{display:flex;align-items:baseline;gap:10px}
-.dc-name{font-family:var(--mono);font-size:12px;color:var(--ink)}
-.dc-dir{font-family:var(--mono);font-size:9.5px;color:var(--ink2);
+.dc-name{font-family:var(--mono);font-size:13.5px;color:var(--ink)}
+.dc-dir{font-family:var(--mono);font-size:11px;color:var(--ink2);
   margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dc-note{font-size:12.5px;color:var(--ink2);line-height:1.45}
-.caliber{font-size:12px;color:var(--ink2);opacity:.85;margin-top:-10px}
-.d-head{font-family:var(--mono);font-size:13.5px;fill:var(--ink)}
-.d-num2{font-family:var(--mono);font-size:12px;fill:var(--ink2)}
-.d-num3{font-family:var(--mono);font-size:11.5px;fill:var(--ink2)}
-.d-status2{font-family:var(--mono);font-size:11.5px;fill:var(--ink2)}
-.d-sech{font-family:var(--serif);font-size:17px;fill:var(--ink)}
-.d-item{font-family:var(--mono);font-size:13px;fill:var(--ink)}
-.d-item-a{font-family:var(--mono);font-size:13px;fill:var(--accent)}
-.d-foot{font-size:12.5px;fill:var(--ink2)}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.06em;
+.dc-note{font-size:14px;color:var(--ink2);line-height:1.45}
+.d-head{font-family:var(--mono);font-size:14.5px;fill:var(--ink)}
+.d-num2{font-family:var(--mono);font-size:13px;fill:var(--ink2)}
+.d-num3{font-family:var(--mono);font-size:12.5px;fill:var(--ink2)}
+.d-status2{font-family:var(--mono);font-size:12.5px;fill:var(--ink2)}
+.d-sech{font-family:var(--serif);font-size:18px;fill:var(--ink)}
+.d-item{font-family:var(--mono);font-size:14px;fill:var(--ink)}
+.d-item-a{font-family:var(--mono);font-size:14px;fill:var(--accent)}
+.d-foot{font-size:13.5px;fill:var(--ink2)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{font-family:var(--mono);font-size:12.5px;font-weight:400;letter-spacing:.06em;
   text-transform:uppercase;color:var(--ink2);text-align:left;
   padding:0 14px 9px 0;border-bottom:1px solid var(--rule)}
 td{padding:10px 14px 10px 0;border-bottom:1px solid var(--rule);
   vertical-align:top;line-height:1.55}
 td:last-child,th:last-child{padding-right:0}
-td.mono,th.mono{font-family:var(--mono);font-size:11.5px}
-td.num{font-family:var(--mono);font-size:11.5px;text-align:right;white-space:nowrap;color:var(--ink2)}
+td.mono,th.mono{font-family:var(--mono);font-size:13px}
+td.num{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap;color:var(--ink2)}
 th.num{text-align:right}
 table.modules{table-layout:fixed}
 table.modules td:nth-child(1){width:62px;white-space:nowrap}
@@ -836,24 +835,24 @@ details.mod>summary::after{content:'＋';font-family:var(--mono);color:var(--ink
   position:absolute;right:18px}
 details.mod[open]>summary::after{content:'−'}
 details.mod>summary:hover .m-name{color:var(--accent)}
-.m-layer{font-family:var(--mono);font-size:10.5px;color:var(--accent);letter-spacing:.05em}
-.m-name{font-family:var(--serif);font-size:17px;color:var(--ink);transition:color .15s}
-.m-path{font-family:var(--mono);font-size:11px;color:var(--ink2);grid-column:2;
+.m-layer{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.05em}
+.m-name{font-family:var(--serif);font-size:19px;color:var(--ink);transition:color .15s}
+.m-path{font-family:var(--mono);font-size:12.5px;color:var(--ink2);grid-column:2;
   margin-top:-6px}
-.m-count{font-family:var(--mono);font-size:11px;color:var(--ink2);white-space:nowrap}
-.m-role{padding:0 18px 12px 96px;font-size:13.5px;color:var(--ink2);line-height:1.55}
+.m-count{font-family:var(--mono);font-size:12.5px;color:var(--ink2);white-space:nowrap}
+.m-role{padding:0 18px 12px 96px;font-size:15px;color:var(--ink2);line-height:1.55}
 .m-role b{color:var(--ink);font-weight:500}
 .flist{padding:0 18px 6px 96px}
-.flist table{font-size:12.5px}
-.flist th{font-size:10px;padding-bottom:7px}
+.flist table{font-size:13.5px}
+.flist th{font-size:11.5px;padding-bottom:7px}
 .flist td{padding:6px 14px 6px 0}
-.filebtn{font-family:var(--mono);font-size:11.5px;background:none;border:none;
+.filebtn{font-family:var(--mono);font-size:13px;background:none;border:none;
   padding:0;color:var(--ink);cursor:pointer;text-align:left;border-bottom:1px solid transparent}
 .filebtn:hover{color:var(--accent);border-bottom-color:rgba(168,67,31,.4)}
 .filebtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.bin{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
+.bin{font-family:var(--mono);font-size:13px;color:var(--ink2)}
 pre{margin:0;padding:16px 18px;background:#faf8f4;border:1px solid var(--rule);
-  border-radius:8px;overflow:auto;max-height:620px;font-size:11.5px;line-height:1.62;
+  border-radius:8px;overflow:auto;max-height:620px;font-size:13px;line-height:1.62;
   white-space:pre;tab-size:4}
 /* ---- 文件抽屉 ---- */
 /* 遮罩只做视觉压暗，不拦截指针：抽屉开着时页面照样能点、能选文件 */
@@ -879,9 +878,9 @@ pre{margin:0;padding:16px 18px;background:#faf8f4;border:1px solid var(--rule);
 body.resizing{cursor:ew-resize;user-select:none}
 .dw-head{display:flex;align-items:flex-start;gap:14px;padding:22px 24px 14px;
   border-bottom:1px solid var(--rule)}
-.dw-eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+.dw-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;
   color:var(--accent);margin:0 0 5px}
-.dw-title{font-family:var(--serif);font-size:21px;line-height:1.3;margin:0;
+.dw-title{font-family:var(--serif);font-size:23px;line-height:1.3;margin:0;
   word-break:break-all;color:var(--ink)}
 .dw-close{flex:none;width:30px;height:30px;border-radius:6px;border:1px solid var(--rule);
   background:transparent;color:var(--ink2);cursor:pointer;margin-left:auto;padding:0;
@@ -891,25 +890,25 @@ body.resizing{cursor:ew-resize;user-select:none}
 .dw-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .dw-meta{display:grid;grid-template-columns:74px 1fr;gap:7px 16px;margin:0;
   padding:16px 24px 4px}
-.dw-meta dt{font-family:var(--mono);font-size:10.5px;color:var(--ink2);letter-spacing:.04em}
-.dw-meta dd{margin:0;font-size:12.5px;line-height:1.5;color:var(--ink);word-break:break-all}
-.dw-meta dd.mono{font-family:var(--mono);font-size:11.5px;color:var(--ink2)}
-.dw-note{font-size:13px;color:var(--ink2);line-height:1.55;margin:12px 24px 10px;padding:0}
+.dw-meta dt{font-family:var(--mono);font-size:12px;color:var(--ink2);letter-spacing:.04em}
+.dw-meta dd{margin:0;font-size:14px;line-height:1.5;color:var(--ink);word-break:break-all}
+.dw-meta dd.mono{font-family:var(--mono);font-size:13px;color:var(--ink2)}
+.dw-note{font-size:14.5px;color:var(--ink2);line-height:1.55;margin:12px 24px 10px;padding:0}
 .dw-note b{color:var(--ink);font-weight:500}
-.dw-warn{font-size:12px;color:var(--accent);margin:0 24px 10px}
+.dw-warn{font-size:13.5px;color:var(--accent);margin:0 24px 10px}
 .dw-warn a{color:var(--accent)}
 .dw-body{flex:1 1 auto;min-height:0;overflow:auto;padding:0 24px 4px}
 .dw-body pre{max-height:none;border-radius:8px}
 .dw-foot{display:flex;align-items:center;gap:14px;padding:13px 24px;
-  border-top:1px solid var(--rule);font-size:12px}
-.dw-foot a{font-size:12.5px}
-.dw-hint{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink2)}
+  border-top:1px solid var(--rule);font-size:13.5px}
+.dw-foot a{font-size:13.5px}
+.dw-hint{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink2)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:26px}
 .note{border-left:2px solid var(--accent);padding:2px 0 2px 16px;
-  font-size:13.5px;line-height:1.6;color:var(--ink2);margin:22px 0}
+  font-size:15px;line-height:1.6;color:var(--ink2);margin:22px 0}
 .note b{color:var(--ink);font-weight:500}
 footer{border-top:1px solid var(--rule);padding-top:22px;margin-top:60px;
-  font-size:12.5px;color:var(--ink2);line-height:1.65}
+  font-size:14px;color:var(--ink2);line-height:1.65}
 footer code{font-size:11px}
 @media (max-width:1080px){
   .flow{flex-wrap:wrap;gap:10px}
@@ -1088,9 +1087,13 @@ JS = """
 
 
 def skill_of(rel: str) -> str:
-    """文件属于哪个 Skill：skills/<skill>/…"""
+    """文件属于哪个 Skill：skills/<skill>/…；docs/ 下的归 docs。"""
     parts = rel.split('/')
-    return parts[1] if len(parts) > 2 and parts[0] == 'skills' else '—'
+    if len(parts) > 2 and parts[0] == 'skills':
+        return parts[1]
+    if len(parts) > 1:
+        return parts[0]
+    return '—'
 
 
 def hero_cards() -> str:
@@ -1147,9 +1150,9 @@ def render(scan: Scan) -> str:
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
 
     code_n = len(scan.code_files())
-    doc_n = len(scan.doc_files())
     chk_n = scan.cross_check()
-    agree = (chk_n == code_n)
+    if chk_n != code_n:
+        sys.exit('❌ 两种口径的文件数不一致，先把统计口径修好再出图')
 
     # --- 模块清单：每个模块一个可折叠块，展开是它的文件
     details = []
@@ -1269,7 +1272,6 @@ def render(scan: Scan) -> str:
         f'工作副本独有的 {diff["only_prj"]} 个文件里，只有 1 个是手写的'
         '（<code>web/shots_spark.js</code>），其余都是录制、时间线、配音这些工具的产物。'
         '所以框架升级时可以整目录覆盖，只需要把 3 个手写文件搬回去。</p>')
-    agree_text = '一致' if agree else '不一致（脚本会拒绝出图）'
     hero = hero_cards()
     page = f'''<!doctype html>
 <html lang="zh-CN">
@@ -1319,7 +1321,7 @@ def render(scan: Scan) -> str:
         <p class="id-mech">timeline.py 同步时间线；tts.py full 合成并转写</p>
       </div>
       <div class="idea">
-        <div class="id-top"><span class="id-no">4</span><span class="id-title">草稿迭代，正式档只一次</span></div>
+        <div class="id-top"><span class="id-no">4</span><span class="id-title">草稿迭代，正式档一次</span></div>
         <p class="id-body">草稿半尺寸、快；正式档开运动模糊，并跟草稿逐帧比对查重影。</p>
         <p class="id-mech">render.py 默认草稿／--final 正式；分段指纹决定增量</p>
       </div>
@@ -1334,13 +1336,8 @@ def render(scan: Scan) -> str:
 
   <section id="layers">
     <h2>二、分层架构</h2>
-    <p class="caption"><b>图 1</b> · 数据自上而下流动：profile 声明真相，工作流层据此核对并录制素材，
-      镜头层把素材画成画面，引擎层逐帧渲染，产物层落出成片。
+    <p class="caption"><b>图 1</b> · 数据自上而下流动，从 profile 声明真相一路流到成片。
       <b>可点击的小标签</b>会滑出该文件的源码。</p>
-    <p class="caption caliber">口径：文件清单以 <code>git ls-files video</code> 为准，共 <b>{len(scan.tracked)}</b> 个入库文件；
-      其中代码（<code>.py</code>／<code>.js</code>）<b>{code_n}</b> 个，文档（<code>.md</code>）<b>{doc_n}</b> 篇。
-      数字由 <code>build_architecture.py</code> 扫文件系统得出，另用 <code>find … | wc -l</code> 独立复核，两者{agree_text}。
-      本页不统计代码行数。</p>
     <figure class="fig-wide">{svg_layers(scan)}</figure>
   </section>
 
@@ -1392,8 +1389,10 @@ def render(scan: Scan) -> str:
   </section>
 
   <footer>
-    <p>本页由 <code>video/docs/build_architecture.py</code> 生成，数据来自扫描基线
-      （父提交 <code>{commit}</code>）的真实文件系统扫描。工程改动后重跑脚本即可更新。</p>
+    <p>本页由 <code>video/docs/build_architecture.py</code> 生成，数字来自扫描基线
+      （父提交 <code>{commit}</code>）的真实文件系统扫描；
+      文件清单以 <code>git ls-files video</code> 为准（入库文件，工程内生成的产物不在其中）。
+      工程改动后重跑脚本即可更新。</p>
   </footer>
 
 </div>
