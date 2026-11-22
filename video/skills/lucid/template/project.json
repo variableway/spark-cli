@@ -1,0 +1,111 @@
+{
+  "title": "示例：8 秒节拍片",
+  "output": "video",
+  "genre": "promo",
+  "target_sec": 8,
+  "canvas": {
+    "w": 1920,
+    "h": 1080
+  },
+  "fps": 60,
+  "seed": 20261009,
+  "timeline": {
+    "mode": "beats",
+    "bpm": 120,
+    "offset": 0,
+    "shots": [
+      {
+        "id": "S01",
+        "beats": 4,
+        "label": "钩子"
+      },
+      {
+        "id": "S02",
+        "beats": 4,
+        "label": "展开"
+      },
+      {
+        "id": "S03",
+        "beats": 4,
+        "label": "高潮"
+      },
+      {
+        "id": "S04",
+        "beats": 4,
+        "label": "落版"
+      }
+    ]
+  },
+  "theme": {
+    "说明": "colors 必填 bg、ink、acc（#RRGGBB），按题材和观众定色调和背景后写进来；ink2、dim 可省（由 ink 和 bg 混出），片子自己的颜色可以加。fonts 可写 display、body、mono、serif，缺省用系统字体。",
+    "colors": {},
+    "fonts": {},
+    "font_files": []
+  },
+  "modules": [],
+  "assets": {
+    "images": "auto"
+  },
+  "motion_blur": {
+    "samples": 4,
+    "shutter": 0.5,
+    "max": 128
+  },
+  "transitions": {
+    "default": "cut"
+  },
+  "post": {
+    "grain": 0.06,
+    "vignette": 0.3,
+    "fadeOut": 0
+  },
+  "music": {
+    "source": "synth",
+    "key": "A minor",
+    "progression": [
+      "Am",
+      "F",
+      "C",
+      "G"
+    ],
+    "sections": [
+      {
+        "from": 0,
+        "to": 4,
+        "type": "intro"
+      },
+      {
+        "from": 4,
+        "to": 7.75,
+        "type": "build"
+      },
+      {
+        "from": 7.75,
+        "to": 8,
+        "type": "gap"
+      },
+      {
+        "from": 8,
+        "to": 12,
+        "type": "drop"
+      },
+      {
+        "from": 12,
+        "to": 16,
+        "type": "outro"
+      }
+    ],
+    "kicks": [
+      [
+        4,
+        12
+      ]
+    ],
+    "kick_zoom": 0.008,
+    "lufs": -14
+  },
+  "background": null,
+  "voice": {
+    "provider": "mcode"
+  }
+}

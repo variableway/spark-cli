@@ -1,0 +1,68 @@
+{
+  "_note": "画面上出现的每个事实 → 它的来源和校验方式。facts.py 真跑一遍比对，编造的事实渲染前就被拦住。",
+  "_schema": {
+    "on_screen": "画面上出现的内容（给人和体检报告看）",
+    "where": "出现在哪个镜头",
+    "check": {
+      "command": "跑这个命令，输出里必须包含 expect_all 里的每一串；binary:false 表示不是被介绍工具的子命令；cwd:\"repo\" 表示在仓库根跑",
+      "file": "读这个文件（相对仓库根），内容里必须包含 expect 里的每一串",
+      "quick_commands": "profile.quick_commands 里的每条子命令都得存在",
+      "manual": "机器核不了，必须人工确认；reason 里写清为什么核不了"
+    }
+  },
+
+  "facts": [
+    {
+      "id": "version",
+      "on_screen": "v1.2.0 / commit abc1234",
+      "where": "S03 版本卡",
+      "check": {
+        "type": "command",
+        "command": ["version"],
+        "expect_all": ["mytool v1.2.0", "commit:     abc1234"]
+      }
+    },
+    {
+      "id": "capabilities",
+      "on_screen": "三条能力：一键执行 / 全量校验 / 结果导出",
+      "where": "S02 编号标注",
+      "check": {
+        "type": "command",
+        "command": ["--help"],
+        "expect_all": [
+          "1. Run tasks in one command",
+          "2. Check the whole project",
+          "3. Export results"
+        ]
+      }
+    },
+    {
+      "id": "site_url",
+      "on_screen": "example.github.io/mytool",
+      "where": "S06 落版",
+      "check": {
+        "type": "file",
+        "path": "README.md",
+        "expect": ["https://example.github.io/mytool"]
+      }
+    },
+    {
+      "id": "quick_commands",
+      "on_screen": "mytool run demo / mytool check all",
+      "where": "S06 速查卡",
+      "check": {
+        "type": "quick_commands",
+        "note": "逐条跑子命令的 --help，确认命令真的存在"
+      }
+    },
+    {
+      "id": "env_dependent",
+      "on_screen": "（画面里没有出现）",
+      "where": "—",
+      "check": {
+        "type": "manual",
+        "reason": "这类数字随本机环境变，写进片子会变成一条随时会过期的事实，所以故意不写"
+      }
+    }
+  ]
+}

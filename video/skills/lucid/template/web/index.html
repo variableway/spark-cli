@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>motion video</title>
+<link rel="icon" href="data:,">
+<style>
+@font-face{font-family:"Instrument Serif";src:url(fonts/instrument-serif-latin-400-normal.woff2) format("woff2");font-weight:400;font-style:normal}
+@font-face{font-family:"Instrument Serif";src:url(fonts/instrument-serif-latin-400-italic.woff2) format("woff2");font-weight:400;font-style:italic}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2");font-weight:400}
+@font-face{font-family:"JetBrains Mono";src:url(fonts/jetbrains-mono-latin-600-normal.woff2) format("woff2");font-weight:600}
+/* fonts:start */
+/* fonts:end */
+html,body{margin:0;background:#000;overflow:hidden}
+canvas#c{display:block}
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<!-- 下面标记之间的内容由 tools/timeline.py 自动同步，不要手改：
+     modules = project.json 的 modules 列表对应的 web/modules/*.js；shots = web/ 下全部 shots_*.js（按文件名排序） -->
+<script src="project.js"></script>
+<script src="timeline.js"></script>
+<script src="core.js"></script>
+<script src="gl3d.js"></script>
+<script src="bg.js"></script>
+<!-- modules:start -->
+<!-- modules:end -->
+<!-- shots:start -->
+<!-- shots:end -->
+<script src="main.js"></script>
+</body>
+</html>

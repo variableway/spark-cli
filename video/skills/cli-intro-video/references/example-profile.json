@@ -1,0 +1,60 @@
+{
+  "name": "mytool",
+  "title": "My Tool",
+  "summary": "一句话说清这个工具是干什么的",
+  "language": "zh",
+
+  "binary": {
+    "path": "/usr/local/bin/mytool",
+    "build": "make build",
+    "build_env": {},
+    "note": "构建产物。路径没了就按 build 重来一遍。录制素材和事实核对都用它。"
+  },
+
+  "links": {
+    "site": "https://example.github.io/mytool",
+    "repo_ssh": "ssh://git@ssh.github.com:443/example/mytool.git",
+    "repo_web": "github.com/example/mytool"
+  },
+
+  "install": "make build  →  ~/.local/bin/mytool",
+
+  "command_families": ["run", "check", "version"],
+  "quick_commands": [
+    ["run", "demo"],
+    ["check", "all"]
+  ],
+
+  "card_order": ["16x9", "1x1", "9x16"],
+
+  "assets": {
+    "help": {
+      "command": ["--help"],
+      "prompt": "$ mytool --help",
+      "title": "mytool --help",
+      "capture": {
+        "cols": 92, "rows": 23, "fps": 15, "head": 22,
+        "out_width": 1250, "seq_sec": 12, "still": true, "cps": 16
+      },
+      "crop": {
+        "16x9": { "rows": [0, 11], "cols": [0, 92] },
+        "9x16": { "rows": [0, 10], "cols": [0, 58] },
+        "1x1": { "rows": [0, 5], "cols": [0, 58] }
+      }
+    },
+    "version": {
+      "command": ["version"],
+      "prompt": "$ mytool version",
+      "title": "mytool version",
+      "capture": {
+        "cols": 92, "rows": 6, "fps": 15, "skip": 1,
+        "out_width": 1250, "still": true
+      },
+      "crop": {
+        "16x9": { "rows": [0, 4], "cols": [0, 56] },
+        "9x16": { "rows": [0, 4], "cols": [0, 56] },
+        "1x1": { "rows": [0, 4], "cols": [0, 56] }
+      }
+    }
+  }
+}

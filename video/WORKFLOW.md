@@ -4,20 +4,42 @@
 画面里的每条命令、每个版本号、每个 URL 都是真的——这一点由事实核对器
 在渲染前逐条核对，不是靠人记。
 
-## 工具链在 Skill 里，工程只放项目数据
+## 工具链是两个 Skill，工程只放项目数据
 
-通用工具（录制素材、事实核对、裁剪自检、流水线）不放在这个仓库里，
-放在 `cli-intro-video` Skill 里：
+这支片用两个 Skill：
+
+| Skill | 是什么 | 副本在 |
+|---|---|---|
+| `cli-intro-video` | 工作流层：录素材、事实核对、裁剪自检、流水线、脚手架 | `video/skills/cli-intro-video/` |
+| `lucid` | 引擎层：代码视频框架（镜头代码 → 逐帧渲染 → MP4 → 体检 → 交付核对） | `video/skills/lucid/` |
+
+两个 Skill 都**整份复制进本目录**，工程因此是自洽的：不依赖某个人的
+`~/.minimax` 目录，也不需要联网去插件缓存里找模板。原件同时留在用户目录里
+（`~/.minimax/agents/mavis/skills/cli-intro-video/` 和插件缓存里的 lucid），
+那边是「活的」版本——改脚本先改原件，再同步回本目录。
 
 ```
-~/.minimax/agents/mavis/skills/cli-intro-video/
+video/skills/cli-intro-video/
 ├── SKILL.md              什么时候用这套流程、怎么用
 ├── scripts/              record_terminal / facts / check_crop / pipeline / scaffold
 └── references/           工作流详解、profile 字段说明、踩坑记录
+
+video/skills/lucid/
+├── SKILL.md              引擎入口（25 行）
+├── PROVENANCE.md         来源与授权说明，务必保留
+├── references/           12 篇：引擎接口、素材、配音、工艺、评审、片型指南、踩坑
+├── capabilities/         宿主能力说明（配音、转写等）与退路
+└── template/             框架模板原件（21 个工具脚本 + web 引擎 + 示例工程）
 ```
 
-一份工具只维护一处。下一个工具要做介绍片，写一份新的 profile 就行，
-不用再抄一遍脚本。Skill 里的脚本对任何工程都能用。
+**lucid 是什么**：一个「用代码写视频」的引擎。画面不是拖模板拼的，而是你写一段
+JavaScript 描述「第 t 毫秒这一帧该长什么样」，引擎用 Chrome 逐帧渲染、按镜头切段
+并行渲染、再用 ffmpeg 合成 MP4；另有自动体检（版面、字幕、响度、空帧、运动量）
+和交付核对。片型分explainer / promo / review 等，各自的参考文档在 `references/`。
+详细接口看 `video/skills/lucid/references/engine.md`。
+
+**分工**：`lucid` 负责「画面好不好看」，`cli-intro-video` 负责「画面里的是不是真的」——
+终端素材是命令真跑一遍录的，画面上每个数字和 URL 都有一条可执行的检查。
 
 ## 目录
 
@@ -26,7 +48,10 @@ video/
 ├── profile/          这支片讲谁：工具元数据、素材录制参数、画面上的每个事实
 │   ├── spark-cli.json    二进制怎么构建、命令、URL、命令族、每个素材的裁剪范围
 │   └── facts.json        画面上出现的事实 → 它的来源和校验方式
-├── project/          lucid 框架副本（保持原样，框架升级时可整体覆盖）
+├── skills/           用到的两个 Skill 的完整副本（改脚本先改原件再同步回来）
+│   ├── cli-intro-video/  工作流层：录素材 / 事实核对 / 裁剪自检 / 流水线
+│   └── lucid/            引擎层：框架模板原件 + 12 篇参考 + 宿主能力说明
+├── project/          lucid 框架的工作副本（保持原样，框架升级时可整体覆盖）
 │   ├── project.json      片型、画幅、主题、配音
 │   ├── script/vo.json    配音稿 + 逐句英译
 │   ├── web/shots_spark.js 六个镜头的代码
@@ -35,15 +60,20 @@ video/
 └── out/              成片与交付核对（不进版本库）
 ```
 
-`project/` 是 lucid 框架的副本，升级框架时整体替换即可；自己的代码只有
-`project/web/shots_spark.js`，不会被覆盖。
+`skills/lucid/template/` 是框架原件，`project/` 是它的工作副本——
+两者只差 4 个文件（`project.json`、`script/vo.json`、`web/index.html`，
+加上自己写的 `web/shots_spark.js`）。要升级框架，从 `template/` 重新铺一遍 `project/`，
+再把这 4 个文件搬回去；也可以直接 diff 看看上游改了什么：
+
+```bash
+diff -rq skills/lucid/template project
+```
 
 ## 一条命令跑完
 
 ```bash
 cd video
-SKILL=~/.minimax/agents/mavis/skills/cli-intro-video
-project/.venv/bin/python $SKILL/scripts/pipeline.py \
+project/.venv/bin/python skills/cli-intro-video/scripts/pipeline.py \
   --profile profile --project project --final --format all
 ```
 
@@ -102,8 +132,7 @@ project/.venv/bin/python $SKILL/scripts/pipeline.py \
 ## 重录素材
 
 ```bash
-SKILL=~/.minimax/agents/mavis/skills/cli-intro-video
-project/.venv/bin/python $SKILL/scripts/record_terminal.py \
+project/.venv/bin/python skills/cli-intro-video/scripts/record_terminal.py \
   --name help --cmd "/tmp/spark-new --help" --prompt '$ spark --help' \
   --cols 92 --rows 23 --fps 15 --head 22 --out-width 1250 --seq-sec 12 --still --cps 16 \
   --project project

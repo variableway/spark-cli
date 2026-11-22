@@ -1,0 +1,9 @@
+out/
+frames/
+audio/*.wav
+audio/*.mp3
+audio/checks/
+audio/asr/
+audio/tts_args_*.json
+audio/events.json
+web/vendor/shaders-core.js

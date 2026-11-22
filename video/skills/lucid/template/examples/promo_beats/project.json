@@ -1,0 +1,136 @@
+{
+  "title": "示例：8 秒节拍片",
+  "output": "demo",
+  "genre": "promo",
+  "target_sec": 8,
+  "canvas": {
+    "w": 1920,
+    "h": 1080
+  },
+  "formats": {
+    "16x9": {
+      "w": 1920,
+      "h": 1080
+    },
+    "9x16": {
+      "w": 1080,
+      "h": 1920
+    }
+  },
+  "fps": 60,
+  "seed": 20261009,
+  "timeline": {
+    "mode": "beats",
+    "bpm": 120,
+    "offset": 0,
+    "shots": [
+      {
+        "id": "S01",
+        "beats": 4,
+        "label": "钩子"
+      },
+      {
+        "id": "S02",
+        "beats": 4,
+        "label": "展示"
+      },
+      {
+        "id": "S03",
+        "beats": 4,
+        "label": "加速与空拍",
+        "motion": "可以震"
+      },
+      {
+        "id": "S04",
+        "beats": 4,
+        "label": "drop 与落版"
+      }
+    ]
+  },
+  "theme": {
+    "colors": {
+      "bg": "#0B0C0F",
+      "ink": "#F2F3F5",
+      "ink2": "#9AA1AD",
+      "dim": "#2A2E36",
+      "acc": "#FF5A1F"
+    },
+    "fonts": {
+      "display": "Helvetica Neue",
+      "body": "Helvetica Neue",
+      "mono": "JetBrains Mono",
+      "serif": "Instrument Serif"
+    },
+    "font_files": []
+  },
+  "modules": [],
+  "assets": {
+    "images": "auto"
+  },
+  "motion_blur": {
+    "samples": 8,
+    "shutter": 0.5,
+    "max": 128
+  },
+  "transitions": {
+    "default": "cut"
+  },
+  "post": {
+    "grain": 0.05,
+    "vignette": 0.3
+  },
+  "music": {
+    "source": "synth",
+    "style": "electronic",
+    "key": "A minor",
+    "progression": [
+      "Am",
+      "F",
+      "C",
+      "G"
+    ],
+    "sections": [
+      {
+        "from": 0,
+        "to": 4,
+        "type": "intro"
+      },
+      {
+        "from": 4,
+        "to": 8,
+        "type": "build"
+      },
+      {
+        "from": 8,
+        "to": 11.5,
+        "type": "build"
+      },
+      {
+        "from": 11.5,
+        "to": 12,
+        "type": "gap"
+      },
+      {
+        "from": 12,
+        "to": 16,
+        "type": "drop"
+      }
+    ],
+    "kicks": [
+      [
+        4,
+        11
+      ],
+      [
+        12,
+        16
+      ]
+    ],
+    "kick_zoom": 0.008,
+    "lufs": -14
+  },
+  "background": null,
+  "voice": {
+    "provider": "mcode"
+  }
+}
